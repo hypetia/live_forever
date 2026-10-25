@@ -1,0 +1,188 @@
+{
+  "alive": 0,
+  "crew": [
+    {
+      "alive": false,
+      "experience": {
+        "care": 0.0,
+        "craft": 48.0,
+        "scout": 72.0
+      },
+      "fatigue": 100.0,
+      "health": 0.0,
+      "hunger": 100.0,
+      "infection": 0.0,
+      "injury": 0.0,
+      "jobs": {
+        "cook": 0,
+        "craft": 5,
+        "eat": 0,
+        "heal": 0,
+        "repair": 0,
+        "sleep": 0
+      },
+      "morale": 52.2587333334102,
+      "name": "林舟",
+      "persona": "lin",
+      "stress": 60.3473333333045,
+      "thirst": 77.4709999997868
+    },
+    {
+      "alive": false,
+      "experience": {
+        "care": 0.0,
+        "craft": 0.0,
+        "scout": 0.0
+      },
+      "fatigue": 100.0,
+      "health": 0.0,
+      "hunger": 100.0,
+      "infection": 0.0,
+      "injury": 0.0,
+      "jobs": {
+        "cook": 0,
+        "craft": 0,
+        "eat": 0,
+        "heal": 0,
+        "repair": 0,
+        "sleep": 0
+      },
+      "morale": 64.2596500001892,
+      "name": "许遥",
+      "persona": "xu",
+      "stress": 25.9323333333122,
+      "thirst": 71.1064999998167
+    },
+    {
+      "alive": false,
+      "experience": {
+        "care": 0.0,
+        "craft": 0.0,
+        "scout": 40.0
+      },
+      "fatigue": 100.0,
+      "health": 0.0,
+      "hunger": 100.0,
+      "infection": 0.0,
+      "injury": 0.0,
+      "jobs": {
+        "cook": 0,
+        "craft": 0,
+        "eat": 0,
+        "heal": 0,
+        "repair": 0,
+        "sleep": 0
+      },
+      "morale": 20.6920000000838,
+      "name": "陈野",
+      "persona": "chen",
+      "stress": 83.2699999999789,
+      "thirst": 78.9514999997798
+    }
+  ],
+  "daily": [
+    {
+      "alive": 3,
+      "day": 1,
+      "hunger": 92.001111111082,
+      "integrity": 96.6999280000015,
+      "morale": 68.076472222196,
+      "stock": {
+        "fuel": 12,
+        "materials": 9,
+        "meals": 0,
+        "medicine": 6,
+        "raw_food": 6,
+        "tools": 1,
+        "water": 5
+      }
+    },
+    {
+      "alive": 2,
+      "day": 2,
+      "hunger": 100.0,
+      "integrity": 90.1335280000045,
+      "morale": 46.9948166667576,
+      "stock": {
+        "fuel": 12,
+        "materials": 5,
+        "meals": 0,
+        "medicine": 6,
+        "raw_food": 6,
+        "tools": 1,
+        "water": 11
+      }
+    }
+  ],
+  "days_elapsed": 1.81951388888769,
+  "drinks": 0,
+  "first_aid": 0,
+  "game_over": true,
+  "goals": {
+    "field_notes": [],
+    "next_trade_day": 4,
+    "notes": [
+      "works:1",
+      "street:4"
+    ],
+    "spent": {
+      "fuel": 0,
+      "materials": 0,
+      "medicine": 0,
+      "raw_food": 0,
+      "tools": 0,
+      "water": 0
+    },
+    "stages": {
+      "clinic": 0,
+      "network": 1,
+      "radio": 1
+    },
+    "tracked": "radio",
+    "trades": {
+      "convoy": 0,
+      "materials": 0,
+      "medicine": 0
+    }
+  },
+  "integrity": 89.130024000005,
+  "level": 2,
+  "peak_people": 3,
+  "recovered": {
+    "fuel": 11,
+    "materials": 21,
+    "meals": 0,
+    "medicine": 5,
+    "raw_food": 2,
+    "tools": 1,
+    "water": 1
+  },
+  "repairs": 0,
+  "save_error": "",
+  "simulated_seconds": 1310.04999999914,
+  "spoiled": {
+    "meals": 0,
+    "raw_food": 0
+  },
+  "stock": {
+    "fuel": 14,
+    "materials": 1,
+    "meals": 0,
+    "medicine": 6,
+    "raw_food": 10,
+    "tools": 1,
+    "water": 11
+  },
+  "stories": [
+    {
+      "actor": 0,
+      "day": 2,
+      "id": "lin_radio",
+      "outcome": "a",
+      "target": 1
+    }
+  ],
+  "swings": 17,
+  "trips": 6,
+  "wall_seconds": 1.714
+}

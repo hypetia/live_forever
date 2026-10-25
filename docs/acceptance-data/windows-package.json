@@ -1,0 +1,9 @@
+{
+  "filename": "live_forever_v08_windows_acceptance.zip",
+  "bytes": 73140797,
+  "sha256": "533780d0a93118bff21ff321a90506b6fe8dd9c56995f8f295626d20778f6952",
+  "windows_runtime_status": "pending actual user machine run",
+  "powershell_structural_parse": "passed",
+  "gameplay_binary_sha256": "6e12c1b25f2c6c77338d2322ae70d301590b67a96ff97466e2f097ca56595ec3",
+  "acceptance_binary_sha256": "99e83a061c608f22030e39006bc1b371b76032300e72300157eeb687bce42275"
+}

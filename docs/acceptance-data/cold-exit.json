@@ -1,0 +1,21 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "cold_wm_delete_atom": 0,
+      "close_and_restart": "passed"
+    },
+    {
+      "round": 2,
+      "cold_wm_delete_atom": 0,
+      "close_and_restart": "passed"
+    },
+    {
+      "round": 3,
+      "cold_wm_delete_atom": 0,
+      "close_and_restart": "passed"
+    }
+  ],
+  "game_runtime_patched_for_probe": false,
+  "binary_sha256": "df55570d54cd6dfe7db358afa66ef5bfbadef6602c808d26a637322d3df8f9c2"
+}

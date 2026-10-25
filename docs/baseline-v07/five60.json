@@ -1,0 +1,1169 @@
+{
+  "alive": 5,
+  "crew": [
+    {
+      "alive": true,
+      "experience": {
+        "care": 0.0,
+        "craft": 180.0,
+        "scout": 152.0
+      },
+      "fatigue": 25.6539998938565,
+      "health": 100.0,
+      "hunger": 19.9999998237003,
+      "infection": 0.0,
+      "injury": 0.0,
+      "jobs": {
+        "cook": 42,
+        "craft": 67,
+        "eat": 79,
+        "heal": 0,
+        "repair": 12,
+        "sleep": 44
+      },
+      "morale": 77.4567500086081,
+      "name": "林舟",
+      "persona": "lin",
+      "stress": 0.0,
+      "thirst": 43.9999999178182
+    },
+    {
+      "alive": true,
+      "experience": {
+        "care": 0.0,
+        "craft": 160.0,
+        "scout": 180.0
+      },
+      "fatigue": 45.2823332271645,
+      "health": 100.0,
+      "hunger": 32.9999998237175,
+      "infection": 0.0,
+      "injury": 0.0,
+      "jobs": {
+        "cook": 36,
+        "craft": 2,
+        "eat": 79,
+        "heal": 0,
+        "repair": 0,
+        "sleep": 45
+      },
+      "morale": 78.9940000085596,
+      "name": "许遥",
+      "persona": "xu",
+      "stress": 0.0,
+      "thirst": 43.999999917811
+    },
+    {
+      "alive": true,
+      "experience": {
+        "care": 0.0,
+        "craft": 140.0,
+        "scout": 180.0
+      },
+      "fatigue": 37.3543332272733,
+      "health": 100.0,
+      "hunger": 9.99999982368205,
+      "infection": 0.0,
+      "injury": 0.0,
+      "jobs": {
+        "cook": 35,
+        "craft": 0,
+        "eat": 79,
+        "heal": 0,
+        "repair": 0,
+        "sleep": 55
+      },
+      "morale": 80.8215833419204,
+      "name": "陈野",
+      "persona": "chen",
+      "stress": 0.0,
+      "thirst": 43.999999917811
+    },
+    {
+      "alive": true,
+      "experience": {
+        "care": 0.0,
+        "craft": 180.0,
+        "scout": 136.0
+      },
+      "fatigue": 19.8529998939062,
+      "health": 100.0,
+      "hunger": 59.6076664724993,
+      "infection": 0.0,
+      "injury": 0.0,
+      "jobs": {
+        "cook": 47,
+        "craft": 0,
+        "eat": 84,
+        "heal": 0,
+        "repair": 0,
+        "sleep": 43
+      },
+      "morale": 74.7752500086187,
+      "name": "沈禾",
+      "persona": "he",
+      "stress": 0.0,
+      "thirst": 49.8394999179267
+    },
+    {
+      "alive": true,
+      "experience": {
+        "care": 0.0,
+        "craft": 148.0,
+        "scout": 168.0
+      },
+      "fatigue": 28.1363665537009,
+      "health": 100.0,
+      "hunger": 28.7233331572884,
+      "infection": 0.0,
+      "injury": 0.0,
+      "jobs": {
+        "cook": 37,
+        "craft": 0,
+        "eat": 73,
+        "heal": 0,
+        "repair": 0,
+        "sleep": 45
+      },
+      "morale": 77.3005000086029,
+      "name": "顾苒",
+      "persona": "gu",
+      "stress": 0.0,
+      "thirst": 12.6754999181431
+    }
+  ],
+  "daily": [
+    {
+      "alive": 3,
+      "day": 1,
+      "hunger": 39.0016666666331,
+      "integrity": 96.9406960000014,
+      "morale": 75.332888888825,
+      "stock": {
+        "fuel": 10,
+        "materials": 8,
+        "meals": 1,
+        "medicine": 8,
+        "raw_food": 8,
+        "tools": 2,
+        "water": 10
+      }
+    },
+    {
+      "alive": 3,
+      "day": 2,
+      "hunger": 37.6683333332471,
+      "integrity": 90.3742960000044,
+      "morale": 74.5827499999087,
+      "stock": {
+        "fuel": 10,
+        "materials": 10,
+        "meals": 1,
+        "medicine": 8,
+        "raw_food": 6,
+        "tools": 2,
+        "water": 11
+      }
+    },
+    {
+      "alive": 4,
+      "day": 3,
+      "hunger": 20.7036249998873,
+      "integrity": 83.8078200000075,
+      "morale": 73.1281458332608,
+      "stock": {
+        "fuel": 10,
+        "materials": 11,
+        "meals": 0,
+        "medicine": 7,
+        "raw_food": 7,
+        "tools": 2,
+        "water": 7
+      }
+    },
+    {
+      "alive": 4,
+      "day": 4,
+      "hunger": 39.5019166664956,
+      "integrity": 81.9585239997051,
+      "morale": 73.5379583332203,
+      "stock": {
+        "fuel": 8,
+        "materials": 9,
+        "meals": 0,
+        "medicine": 12,
+        "raw_food": 8,
+        "tools": 2,
+        "water": 6
+      }
+    },
+    {
+      "alive": 4,
+      "day": 5,
+      "hunger": 30.8019166664415,
+      "integrity": 75.3921239997081,
+      "morale": 73.3690624998482,
+      "stock": {
+        "fuel": 7,
+        "materials": 9,
+        "meals": 0,
+        "medicine": 11,
+        "raw_food": 7,
+        "tools": 3,
+        "water": 6
+      }
+    },
+    {
+      "alive": 5,
+      "day": 6,
+      "hunger": 33.0261999997677,
+      "integrity": 68.8257239997111,
+      "morale": 74.2308999998497,
+      "stock": {
+        "fuel": 6,
+        "materials": 16,
+        "meals": 1,
+        "medicine": 10,
+        "raw_food": 8,
+        "tools": 2,
+        "water": 11
+      }
+    },
+    {
+      "alive": 5,
+      "day": 7,
+      "hunger": 29.4661999997133,
+      "integrity": 62.2592479997141,
+      "morale": 75.0595833331572,
+      "stock": {
+        "fuel": 8,
+        "materials": 10,
+        "meals": 0,
+        "medicine": 14,
+        "raw_food": 11,
+        "tools": 2,
+        "water": 9
+      }
+    },
+    {
+      "alive": 5,
+      "day": 8,
+      "hunger": 47.9061999996587,
+      "integrity": 60.4097239995249,
+      "morale": 77.6800499998596,
+      "stock": {
+        "fuel": 7,
+        "materials": 13,
+        "meals": 1,
+        "medicine": 15,
+        "raw_food": 10,
+        "tools": 2,
+        "water": 5
+      }
+    },
+    {
+      "alive": 5,
+      "day": 9,
+      "hunger": 22.3478999996033,
+      "integrity": 66.8767799993664,
+      "morale": 80.7973166665036,
+      "stock": {
+        "fuel": 10,
+        "materials": 10,
+        "meals": 2,
+        "medicine": 14,
+        "raw_food": 10,
+        "tools": 2,
+        "water": 4
+      }
+    },
+    {
+      "alive": 5,
+      "day": 10,
+      "hunger": 29.787899999555,
+      "integrity": 61.3471799993547,
+      "morale": 75.9622499999257,
+      "stock": {
+        "fuel": 16,
+        "materials": 5,
+        "meals": 0,
+        "medicine": 18,
+        "raw_food": 10,
+        "tools": 2,
+        "water": 10
+      }
+    },
+    {
+      "alive": 5,
+      "day": 11,
+      "hunger": 48.2278999994941,
+      "integrity": 73.8175159992722,
+      "morale": 74.3398166666116,
+      "stock": {
+        "fuel": 17,
+        "materials": 7,
+        "meals": 1,
+        "medicine": 17,
+        "raw_food": 11,
+        "tools": 2,
+        "water": 5
+      }
+    },
+    {
+      "alive": 5,
+      "day": 12,
+      "hunger": 33.6678999994445,
+      "integrity": 73.5231799993406,
+      "morale": 77.0718666665894,
+      "stock": {
+        "fuel": 14,
+        "materials": 12,
+        "meals": 1,
+        "medicine": 18,
+        "raw_food": 12,
+        "tools": 3,
+        "water": 6
+      }
+    },
+    {
+      "alive": 5,
+      "day": 13,
+      "hunger": 30.1078999993899,
+      "integrity": 67.9935799991816,
+      "morale": 75.5615999999323,
+      "stock": {
+        "fuel": 11,
+        "materials": 12,
+        "meals": 0,
+        "medicine": 17,
+        "raw_food": 11,
+        "tools": 4,
+        "water": 5
+      }
+    },
+    {
+      "alive": 5,
+      "day": 14,
+      "hunger": 37.5478999993352,
+      "integrity": 62.4639799991079,
+      "morale": 75.6335166665815,
+      "stock": {
+        "fuel": 10,
+        "materials": 13,
+        "meals": 0,
+        "medicine": 17,
+        "raw_food": 10,
+        "tools": 3,
+        "water": 9
+      }
+    },
+    {
+      "alive": 5,
+      "day": 15,
+      "hunger": 33.9878999992811,
+      "integrity": 74.9343159990903,
+      "morale": 79.429983333218,
+      "stock": {
+        "fuel": 9,
+        "materials": 11,
+        "meals": 1,
+        "medicine": 17,
+        "raw_food": 15,
+        "tools": 2,
+        "water": 7
+      }
+    },
+    {
+      "alive": 5,
+      "day": 16,
+      "hunger": 19.4278999992271,
+      "integrity": 74.6399799991587,
+      "morale": 76.600566666587,
+      "stock": {
+        "fuel": 8,
+        "materials": 13,
+        "meals": 1,
+        "medicine": 17,
+        "raw_food": 13,
+        "tools": 2,
+        "water": 5
+      }
+    },
+    {
+      "alive": 5,
+      "day": 17,
+      "hunger": 37.8678999991751,
+      "integrity": 69.1103799989997,
+      "morale": 75.049149999922,
+      "stock": {
+        "fuel": 6,
+        "materials": 16,
+        "meals": 0,
+        "medicine": 16,
+        "raw_food": 11,
+        "tools": 3,
+        "water": 4
+      }
+    },
+    {
+      "alive": 5,
+      "day": 18,
+      "hunger": 34.3078999991152,
+      "integrity": 63.580779998864,
+      "morale": 78.0990166665969,
+      "stock": {
+        "fuel": 8,
+        "materials": 19,
+        "meals": 0,
+        "medicine": 20,
+        "raw_food": 9,
+        "tools": 4,
+        "water": 9
+      }
+    },
+    {
+      "alive": 5,
+      "day": 19,
+      "hunger": 30.7478999990686,
+      "integrity": 76.0511159989075,
+      "morale": 76.2402833332351,
+      "stock": {
+        "fuel": 7,
+        "materials": 14,
+        "meals": 0,
+        "medicine": 20,
+        "raw_food": 15,
+        "tools": 2,
+        "water": 7
+      }
+    },
+    {
+      "alive": 5,
+      "day": 20,
+      "hunger": 38.1878999990094,
+      "integrity": 75.756779998976,
+      "morale": 75.9482499999253,
+      "stock": {
+        "fuel": 7,
+        "materials": 17,
+        "meals": 0,
+        "medicine": 23,
+        "raw_food": 12,
+        "tools": 2,
+        "water": 4
+      }
+    },
+    {
+      "alive": 5,
+      "day": 21,
+      "hunger": 45.6278999989555,
+      "integrity": 70.227179998817,
+      "morale": 75.2343666666346,
+      "stock": {
+        "fuel": 9,
+        "materials": 22,
+        "meals": 2,
+        "medicine": 22,
+        "raw_food": 13,
+        "tools": 2,
+        "water": 6
+      }
+    },
+    {
+      "alive": 5,
+      "day": 22,
+      "hunger": 31.0678999989028,
+      "integrity": 64.697579998658,
+      "morale": 75.5163833332442,
+      "stock": {
+        "fuel": 6,
+        "materials": 22,
+        "meals": 0,
+        "medicine": 22,
+        "raw_food": 12,
+        "tools": 3,
+        "water": 7
+      }
+    },
+    {
+      "alive": 5,
+      "day": 23,
+      "hunger": 27.5078999988492,
+      "integrity": 77.1679159987232,
+      "morale": 75.8073499999604,
+      "stock": {
+        "fuel": 7,
+        "materials": 22,
+        "meals": 1,
+        "medicine": 25,
+        "raw_food": 12,
+        "tools": 2,
+        "water": 4
+      }
+    },
+    {
+      "alive": 5,
+      "day": 24,
+      "hunger": 45.9478999987939,
+      "integrity": 76.8735799987917,
+      "morale": 77.4566666665756,
+      "stock": {
+        "fuel": 6,
+        "materials": 25,
+        "meals": 0,
+        "medicine": 25,
+        "raw_food": 15,
+        "tools": 3,
+        "water": 4
+      }
+    },
+    {
+      "alive": 5,
+      "day": 25,
+      "hunger": 31.3878999987387,
+      "integrity": 71.3439799986326,
+      "morale": 76.1087833332506,
+      "stock": {
+        "fuel": 9,
+        "materials": 29,
+        "meals": 2,
+        "medicine": 24,
+        "raw_food": 12,
+        "tools": 2,
+        "water": 4
+      }
+    },
+    {
+      "alive": 5,
+      "day": 26,
+      "hunger": 27.8278999986897,
+      "integrity": 65.8143799984736,
+      "morale": 76.8774333332629,
+      "stock": {
+        "fuel": 6,
+        "materials": 32,
+        "meals": 1,
+        "medicine": 27,
+        "raw_food": 9,
+        "tools": 2,
+        "water": 5
+      }
+    },
+    {
+      "alive": 5,
+      "day": 27,
+      "hunger": 46.2678999986297,
+      "integrity": 60.2847159985209,
+      "morale": 76.4979499999236,
+      "stock": {
+        "fuel": 6,
+        "materials": 28,
+        "meals": 0,
+        "medicine": 27,
+        "raw_food": 16,
+        "tools": 2,
+        "water": 8
+      }
+    },
+    {
+      "alive": 5,
+      "day": 28,
+      "hunger": 31.7078999985795,
+      "integrity": 59.9903799985893,
+      "morale": 76.0339499999547,
+      "stock": {
+        "fuel": 6,
+        "materials": 25,
+        "meals": 0,
+        "medicine": 31,
+        "raw_food": 14,
+        "tools": 2,
+        "water": 3
+      }
+    },
+    {
+      "alive": 5,
+      "day": 29,
+      "hunger": 28.1478999985238,
+      "integrity": 72.4607799984364,
+      "morale": 75.8383166665883,
+      "stock": {
+        "fuel": 7,
+        "materials": 29,
+        "meals": 1,
+        "medicine": 30,
+        "raw_food": 10,
+        "tools": 2,
+        "water": 3
+      }
+    },
+    {
+      "alive": 5,
+      "day": 30,
+      "hunger": 35.5878999984705,
+      "integrity": 66.9311799982774,
+      "morale": 78.0394333332682,
+      "stock": {
+        "fuel": 7,
+        "materials": 32,
+        "meals": 1,
+        "medicine": 30,
+        "raw_food": 14,
+        "tools": 2,
+        "water": 8
+      }
+    },
+    {
+      "alive": 5,
+      "day": 31,
+      "hunger": 32.0278999984145,
+      "integrity": 61.4015159982626,
+      "morale": 75.2620833332823,
+      "stock": {
+        "fuel": 6,
+        "materials": 28,
+        "meals": 0,
+        "medicine": 34,
+        "raw_food": 17,
+        "tools": 2,
+        "water": 7
+      }
+    },
+    {
+      "alive": 5,
+      "day": 32,
+      "hunger": 28.4678999983619,
+      "integrity": 61.1071799983311,
+      "morale": 76.1080666666105,
+      "stock": {
+        "fuel": 10,
+        "materials": 31,
+        "meals": 1,
+        "medicine": 34,
+        "raw_food": 13,
+        "tools": 2,
+        "water": 1
+      }
+    },
+    {
+      "alive": 5,
+      "day": 33,
+      "hunger": 35.9078999983095,
+      "integrity": 73.5775799982396,
+      "morale": 76.0786833332563,
+      "stock": {
+        "fuel": 7,
+        "materials": 30,
+        "meals": 1,
+        "medicine": 33,
+        "raw_food": 15,
+        "tools": 3,
+        "water": 5
+      }
+    },
+    {
+      "alive": 5,
+      "day": 34,
+      "hunger": 32.3478999982497,
+      "integrity": 68.0479799980805,
+      "morale": 77.6829999999032,
+      "stock": {
+        "fuel": 8,
+        "materials": 35,
+        "meals": 0,
+        "medicine": 33,
+        "raw_food": 14,
+        "tools": 3,
+        "water": 8
+      }
+    },
+    {
+      "alive": 5,
+      "day": 35,
+      "hunger": 28.7878999982027,
+      "integrity": 62.5183159980038,
+      "morale": 74.7829166665631,
+      "stock": {
+        "fuel": 6,
+        "materials": 34,
+        "meals": 1,
+        "medicine": 33,
+        "raw_food": 14,
+        "tools": 2,
+        "water": 1
+      }
+    },
+    {
+      "alive": 5,
+      "day": 36,
+      "hunger": 36.2278999981451,
+      "integrity": 62.2239799980722,
+      "morale": 76.7450499999084,
+      "stock": {
+        "fuel": 9,
+        "materials": 39,
+        "meals": 1,
+        "medicine": 37,
+        "raw_food": 16,
+        "tools": 2,
+        "water": 3
+      }
+    },
+    {
+      "alive": 5,
+      "day": 37,
+      "hunger": 43.667899998092,
+      "integrity": 74.6943799980429,
+      "morale": 74.0035333332471,
+      "stock": {
+        "fuel": 6,
+        "materials": 38,
+        "meals": 1,
+        "medicine": 36,
+        "raw_food": 15,
+        "tools": 3,
+        "water": 2
+      }
+    },
+    {
+      "alive": 5,
+      "day": 38,
+      "hunger": 29.1078999980377,
+      "integrity": 69.1647799978839,
+      "morale": 76.2889666665533,
+      "stock": {
+        "fuel": 5,
+        "materials": 43,
+        "meals": 1,
+        "medicine": 38,
+        "raw_food": 11,
+        "tools": 1,
+        "water": 5
+      }
+    },
+    {
+      "alive": 5,
+      "day": 39,
+      "hunger": 25.5478999979854,
+      "integrity": 63.6351159977452,
+      "morale": 75.2556333332821,
+      "stock": {
+        "fuel": 9,
+        "materials": 39,
+        "meals": 0,
+        "medicine": 39,
+        "raw_food": 17,
+        "tools": 2,
+        "water": 4
+      }
+    },
+    {
+      "alive": 5,
+      "day": 40,
+      "hunger": 43.9878999979295,
+      "integrity": 63.3407799978136,
+      "morale": 74.2263666666144,
+      "stock": {
+        "fuel": 6,
+        "materials": 33,
+        "meals": 1,
+        "medicine": 43,
+        "raw_food": 16,
+        "tools": 2,
+        "water": 3
+      }
+    },
+    {
+      "alive": 5,
+      "day": 41,
+      "hunger": 29.4278999978746,
+      "integrity": 75.8111799978458,
+      "morale": 76.2966833332502,
+      "stock": {
+        "fuel": 6,
+        "materials": 40,
+        "meals": 1,
+        "medicine": 42,
+        "raw_food": 12,
+        "tools": 2,
+        "water": 0
+      }
+    },
+    {
+      "alive": 5,
+      "day": 42,
+      "hunger": 25.8678999978248,
+      "integrity": 70.2815799976868,
+      "morale": 80.4014999999005,
+      "stock": {
+        "fuel": 9,
+        "materials": 45,
+        "meals": 0,
+        "medicine": 42,
+        "raw_food": 14,
+        "tools": 2,
+        "water": 8
+      }
+    },
+    {
+      "alive": 5,
+      "day": 43,
+      "hunger": 33.3078999977655,
+      "integrity": 64.7519159975278,
+      "morale": 75.459999999909,
+      "stock": {
+        "fuel": 8,
+        "materials": 45,
+        "meals": 0,
+        "medicine": 42,
+        "raw_food": 17,
+        "tools": 2,
+        "water": 4
+      }
+    },
+    {
+      "alive": 5,
+      "day": 44,
+      "hunger": 29.7478999977155,
+      "integrity": 64.4575799975962,
+      "morale": 76.29104999993,
+      "stock": {
+        "fuel": 7,
+        "materials": 48,
+        "meals": 1,
+        "medicine": 45,
+        "raw_food": 13,
+        "tools": 2,
+        "water": 0
+      }
+    },
+    {
+      "alive": 5,
+      "day": 45,
+      "hunger": 37.1878999976598,
+      "integrity": 76.9279799976646,
+      "morale": 78.9105499999373,
+      "stock": {
+        "fuel": 10,
+        "materials": 52,
+        "meals": 0,
+        "medicine": 44,
+        "raw_food": 15,
+        "tools": 2,
+        "water": 3
+      }
+    },
+    {
+      "alive": 5,
+      "day": 46,
+      "hunger": 33.6278999976078,
+      "integrity": 71.3983799975056,
+      "morale": 75.011483333274,
+      "stock": {
+        "fuel": 6,
+        "materials": 52,
+        "meals": 2,
+        "medicine": 44,
+        "raw_food": 13,
+        "tools": 3,
+        "water": 6
+      }
+    },
+    {
+      "alive": 5,
+      "day": 47,
+      "hunger": 41.0678999975507,
+      "integrity": 65.8687159973466,
+      "morale": 74.7413333332451,
+      "stock": {
+        "fuel": 6,
+        "materials": 51,
+        "meals": 0,
+        "medicine": 44,
+        "raw_food": 15,
+        "tools": 2,
+        "water": 2
+      }
+    },
+    {
+      "alive": 5,
+      "day": 48,
+      "hunger": 26.507899997499,
+      "integrity": 65.574379997415,
+      "morale": 75.7041666666104,
+      "stock": {
+        "fuel": 6,
+        "materials": 51,
+        "meals": 0,
+        "medicine": 48,
+        "raw_food": 16,
+        "tools": 3,
+        "water": 0
+      }
+    },
+    {
+      "alive": 5,
+      "day": 49,
+      "hunger": 33.9461999974463,
+      "integrity": 60.0449079974756,
+      "morale": 76.9341833332581,
+      "stock": {
+        "fuel": 6,
+        "materials": 53,
+        "meals": 0,
+        "medicine": 47,
+        "raw_food": 15,
+        "tools": 3,
+        "water": 2
+      }
+    },
+    {
+      "alive": 5,
+      "day": 50,
+      "hunger": 41.3861999973872,
+      "integrity": 72.5153079973244,
+      "morale": 76.9052833332638,
+      "stock": {
+        "fuel": 8,
+        "materials": 59,
+        "meals": 0,
+        "medicine": 50,
+        "raw_food": 12,
+        "tools": 2,
+        "water": 3
+      }
+    },
+    {
+      "alive": 5,
+      "day": 51,
+      "hunger": 26.826199997339,
+      "integrity": 66.9856439971654,
+      "morale": 77.9069499998973,
+      "stock": {
+        "fuel": 6,
+        "materials": 55,
+        "meals": 0,
+        "medicine": 50,
+        "raw_food": 17,
+        "tools": 2,
+        "water": 4
+      }
+    },
+    {
+      "alive": 5,
+      "day": 52,
+      "hunger": 34.2661999972814,
+      "integrity": 66.6913079972338,
+      "morale": 76.4576833332622,
+      "stock": {
+        "fuel": 7,
+        "materials": 52,
+        "meals": 0,
+        "medicine": 54,
+        "raw_food": 16,
+        "tools": 2,
+        "water": 0
+      }
+    },
+    {
+      "alive": 5,
+      "day": 53,
+      "hunger": 41.7061999972295,
+      "integrity": 61.1617079972324,
+      "morale": 75.2793999999296,
+      "stock": {
+        "fuel": 9,
+        "materials": 57,
+        "meals": 0,
+        "medicine": 53,
+        "raw_food": 13,
+        "tools": 2,
+        "water": 1
+      }
+    },
+    {
+      "alive": 5,
+      "day": 54,
+      "hunger": 38.1461999971734,
+      "integrity": 73.632107997144,
+      "morale": 78.3075833332373,
+      "stock": {
+        "fuel": 6,
+        "materials": 59,
+        "meals": 1,
+        "medicine": 53,
+        "raw_food": 14,
+        "tools": 3,
+        "water": 5
+      }
+    },
+    {
+      "alive": 5,
+      "day": 55,
+      "hunger": 23.5861999971223,
+      "integrity": 68.102443996985,
+      "morale": 77.4163333332807,
+      "stock": {
+        "fuel": 7,
+        "materials": 55,
+        "meals": 1,
+        "medicine": 57,
+        "raw_food": 16,
+        "tools": 2,
+        "water": 3
+      }
+    },
+    {
+      "alive": 5,
+      "day": 56,
+      "hunger": 64.0261999970624,
+      "integrity": 67.8081079970534,
+      "morale": 74.0837833332764,
+      "stock": {
+        "fuel": 6,
+        "materials": 58,
+        "meals": 0,
+        "medicine": 57,
+        "raw_food": 15,
+        "tools": 2,
+        "water": 0
+      }
+    },
+    {
+      "alive": 5,
+      "day": 57,
+      "hunger": 27.4661999970071,
+      "integrity": 62.27850799699,
+      "morale": 78.636583333235,
+      "stock": {
+        "fuel": 9,
+        "materials": 65,
+        "meals": 0,
+        "medicine": 56,
+        "raw_food": 15,
+        "tools": 2,
+        "water": 2
+      }
+    },
+    {
+      "alive": 5,
+      "day": 58,
+      "hunger": 23.9061999969569,
+      "integrity": 74.7489079969632,
+      "morale": 75.9645999999125,
+      "stock": {
+        "fuel": 5,
+        "materials": 64,
+        "meals": 1,
+        "medicine": 55,
+        "raw_food": 13,
+        "tools": 2,
+        "water": 4
+      }
+    },
+    {
+      "alive": 5,
+      "day": 59,
+      "hunger": 31.346199996899,
+      "integrity": 69.2192439968042,
+      "morale": 74.871166666596,
+      "stock": {
+        "fuel": 7,
+        "materials": 67,
+        "meals": 1,
+        "medicine": 58,
+        "raw_food": 14,
+        "tools": 2,
+        "water": 0
+      }
+    },
+    {
+      "alive": 5,
+      "day": 60,
+      "hunger": 38.7861999968478,
+      "integrity": 68.9249079968726,
+      "morale": 76.4165333333073,
+      "stock": {
+        "fuel": 10,
+        "materials": 72,
+        "meals": 1,
+        "medicine": 58,
+        "raw_food": 16,
+        "tools": 2,
+        "water": 0
+      }
+    }
+  ],
+  "days_elapsed": 60.000000000001,
+  "drinks": 157,
+  "first_aid": 3,
+  "game_over": false,
+  "integrity": 67.0817080101204,
+  "level": 3,
+  "peak_people": 5,
+  "recovered": {
+    "fuel": 176,
+    "materials": 355,
+    "meals": 0,
+    "medicine": 77,
+    "raw_food": 154,
+    "tools": 17,
+    "water": 224
+  },
+  "repairs": 12,
+  "save_error": "",
+  "simulated_seconds": 43200.0000000007,
+  "spoiled": {
+    "meals": 0,
+    "raw_food": 0
+  },
+  "stock": {
+    "fuel": 9,
+    "materials": 72,
+    "meals": 0,
+    "medicine": 57,
+    "raw_food": 17,
+    "tools": 3,
+    "water": 5
+  },
+  "stories": [
+    {
+      "actor": 0,
+      "day": 2,
+      "id": "lin_radio",
+      "outcome": "a",
+      "target": 1
+    },
+    {
+      "actor": 1,
+      "day": 4,
+      "id": "xu_names",
+      "outcome": "b",
+      "target": 0
+    },
+    {
+      "actor": 2,
+      "day": 6,
+      "id": "chen_lamp",
+      "outcome": "a",
+      "target": 0
+    },
+    {
+      "actor": 3,
+      "day": 8,
+      "id": "he_table",
+      "outcome": "b",
+      "target": 0
+    },
+    {
+      "actor": 4,
+      "day": 10,
+      "id": "gu_labels",
+      "outcome": "a",
+      "target": 0
+    }
+  ],
+  "swings": 419,
+  "trips": 192,
+  "wall_seconds": 86.355
+}

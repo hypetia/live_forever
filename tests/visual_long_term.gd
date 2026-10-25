@@ -1,0 +1,112 @@
+extends "res://tests/visual_expedition.gd"
+## Actual GUI navigation and live-keyboard trips to each new location.
+
+
+func dialog_click(window: Window, button: Control) -> void:
+	await click_at(Vector2(window.position) + button.get_global_rect().get_center())
+
+
+func _run() -> void:
+	var scene: Node2D = load("res://scenes/shelter.tscn").instantiate()
+	scene.persistence_enabled = false
+	root.add_child(scene)
+	scene.set_process(false)
+	await process_frame
+	await keypress(KEY_M)
+	check(scene.center.visible and scene.paused and scene.center.tabs.current_tab == 0, "M opens paused destination handbook")
+	check(scene.center.tabs.get_tab_count() == 8 and scene.center.map_buttons.size() == 3, "handbook exposes maps, upkeep, record, guide and settings")
+	await picture("res://docs/locations-preview.png")
+	await dialog_click(scene.center, scene.center.map_buttons["clinic"])
+	check(not scene.center.visible and scene.prep_dialog.visible and scene.expedition.location_id == "clinic", "actual clinic button opens the matching preparation")
+	check(scene.prep_text.text.contains("雨杉诊所") and scene.prep_destination.selected == 1, "preparation reflects selected clinic and actual forecast")
+	await dialog_click(scene.prep_dialog, scene.prep_dialog.get_ok_button())
+	check(scene.expedition.active and scene.expedition.location_id == "clinic" and not scene.paused, "actual confirmation starts clinic")
+	await held_key(KEY_D, true)
+	simulate(scene, 1.3)
+	await held_key(KEY_D, false)
+	await held_key(KEY_E, true)
+	simulate(scene, 3.2)
+	await held_key(KEY_E, false)
+	check(scene.expedition.bag["water"] == 3 and scene.inventory.amount("water") == 4, "actual clinic search gains water without remote credit")
+	await keypress(KEY_ESCAPE)
+	check(scene.center.visible and scene.paused, "Esc can inspect a frozen active expedition")
+	check(scene.center.map_buttons.values().all(func(button): return button.disabled), "active mission disables all destination swaps")
+	await keypress(KEY_ESCAPE)
+	check(not scene.center.visible and not scene.paused, "Esc returns to the previous running mission")
+	await held_key(KEY_A, true)
+	simulate(scene, 1.4)
+	await held_key(KEY_A, false)
+	await keypress(KEY_T)
+	check(not scene.expedition.active and scene.inventory.amount("water") == 7 and scene.upkeep.returns["clinic"] == 1, "clinic supplies physically return and enter long-term records")
+	await keypress(KEY_M)
+	await dialog_click(scene.center, scene.center.map_buttons["works"])
+	await dialog_click(scene.prep_dialog, scene.prep_dialog.get_ok_button())
+	await held_key(KEY_D, true)
+	simulate(scene, 1.2)
+	await held_key(KEY_D, false)
+	await held_key(KEY_E, true)
+	simulate(scene, 3.2)
+	await held_key(KEY_E, false)
+	check(scene.expedition.bag["materials"] == 3 and scene.expedition.bag["fuel"] == 1, "actual works trip yields distinct maintenance resources")
+	# Walk to the actual ladder, holding sprint; no coordinate fixture.
+	await held_key(KEY_SHIFT, true)
+	await held_key(KEY_D, true)
+	simulate(scene, 2.8)
+	await held_key(KEY_D, false)
+	await held_key(KEY_SHIFT, false)
+	await held_key(KEY_W, true)
+	simulate(scene, 1)
+	await held_key(KEY_W, false)
+	check(scene.expedition.climb_target == 1 and scene.expedition.player_y > 400 and scene.expedition.player_y < 620, "new works ladder is reached and climbed through real input")
+	await picture("res://docs/works-preview.png")
+	simulate(scene, 1.2)
+	await held_key(KEY_S, true)
+	simulate(scene, 2.2)
+	await held_key(KEY_S, false)
+	await held_key(KEY_SHIFT, true)
+	await held_key(KEY_A, true)
+	simulate(scene, 4)
+	await held_key(KEY_A, false)
+	await held_key(KEY_SHIFT, false)
+	await keypress(KEY_T)
+	check(not scene.expedition.active and scene.upkeep.returns["works"] == 1 and scene.inventory.amount("materials") == 11, "factory supplies return without debug deposits")
+	# Craft the first real upgrade tool from earned materials.
+	scene.select_survivor(0)
+	await keypress(KEY_C)
+	await keypress(KEY_SPACE)
+	simulate(scene, 20)
+	check(scene.inventory.amount("tools") == 1, "earned supplies can fund a genuine crafted upgrade tool")
+	await keypress(KEY_M)
+	scene.center.tabs.current_tab = 1
+	await process_frame
+	var materials: int = scene.inventory.amount("materials")
+	await dialog_click(scene.center, scene.center.upgrade_button)
+	check(scene.upkeep.level == 1 and scene.inventory.amount("materials") == materials - 4 and scene.inventory.amount("tools") == 0, "actual upgrade button spends full recipe and changes real level")
+	# Reach the first event by shared calendar; keep needs under observation.
+	scene.center.close()
+	simulate(scene, 480 - scene.simulation_time + 0.1)
+	await keypress(KEY_M)
+	scene.center.tabs.current_tab = 1
+	await process_frame
+	check(scene.upkeep.pending_event == 0 and scene.center.accept_event.visible, "calendar-driven event appears in the handbook")
+	var water: int = scene.inventory.amount("water")
+	materials = scene.inventory.amount("materials")
+	await dialog_click(scene.center, scene.center.accept_event)
+	check(scene.upkeep.pending_event == -1 and scene.inventory.amount("water") == water + 6 and scene.inventory.amount("materials") == materials - 2, "actual event choice trades exact scarce resources once")
+	await picture("res://docs/upkeep-preview.png")
+	scene.center.tabs.current_tab = 4
+	await process_frame
+	await dialog_click(scene.center, scene.center.effects_check)
+	check(not scene.game_audio.enabled, "actual settings toggle disables synthesized effects")
+	await dialog_click(scene.center, scene.center.ambience_check)
+	check(scene.game_audio.ambience, "actual settings toggle enables original wind ambience")
+	await keypress(KEY_ESCAPE)
+	await keypress(KEY_F1)
+	check(scene.center.visible and scene.center.tabs.current_tab == 3, "F1 opens the in-game control guide")
+	scene.center.close()
+	check(SaveSystem.validate(SaveSystem.capture(scene)).is_empty(), "real multi-location/upgrade/event run remains a valid save")
+	scene.free()
+	await process_frame
+	print("LONG TERM VISUAL RESULT: %d checks, %d failures" % [checks, failures])
+	await create_timer(0.12).timeout
+	quit(1 if failures else 0)
