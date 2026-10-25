@@ -185,7 +185,8 @@ func _finish(actor: Survivor) -> void:
 	elif task_id == "eat":
 		actor.hunger = maxf(0, actor.hunger - SurvivalRules.MEAL_RECOVERY)
 	elif task_id == "heal":
-		actor.health = minf(100, actor.health + 25)
+		# In the campaign, medicine treats wounds; it cannot replace food.
+		if actor.metabolism >= 1 or actor.hunger < 80: actor.health = minf(100, actor.health + 25)
 		actor.injury = maxf(0, actor.injury - 50)
 		actor.infection = maxf(0, actor.infection - 40)
 	actor.completed_jobs += 1

@@ -1,19 +1,19 @@
 # Windows 真机验收
 
-**[从GitHub下载Windows一键验收包](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.9.0/live_forever_v09_windows_acceptance.zip)** · [全部下载](../downloads/README.md)
+**[从GitHub下载Windows一键验收包](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.0.0/live_forever_v10_windows_acceptance.zip)** · [全部下载](../downloads/README.md)
 
 当前开发环境为Linux。Windows运行包已导出和校验，但本文件不代表已经做过Windows真机测试。Windows验收包使用相同游戏程序、独立LiveForeverAcceptance.exe和内置PowerShell，不需要安装Godot或Python；测试不会读取你的正常存档。
 
 ## 一键自动检查
 
-解压整个Windows验收包，双击windows_acceptance.cmd。保持当前桌面会话可用，等待约30分钟；期间程序会自动切换窗口尺寸、全屏／窗口，并持续进行真实时间的派工、饮水、移动、搜索、战斗和撤退，不注入物资、生命或坐标。
+解压整个Windows验收包，双击windows_acceptance.cmd。保持当前桌面会话可用，等待约30分钟；期间程序会自动切换窗口尺寸、全屏／窗口，并持续进行新昼夜循环的实际派工、饮水、结束白天、岗位／装备分配、移动、选择物资、战斗和撤退，不注入物资、生命或坐标。
 
 自动检查包括：
 
 - 1024×768、1280×720、1440×900、1920×1080；超过当前屏幕尺寸的项目记录为跳过，不能算通过。
 - 保持画面比例、完整手册窗口、真实全屏与返回窗口模式。每个尺寸另保存避难所画面，核对时钟／倒计时、人物卡和标明患者的治疗按钮。
 - 30分钟实际经过时间、逐帧玩法推进、存活、补给归来、帧数／慢帧与定期内存采样。
-- 真实Windows关窗消息、退出码、校验和存档、启动原运行包、实际系统F6键，以及库存／目标／故事不重复。
+- 真实Windows关窗消息、退出码、校验和存档、启动原运行包、实际系统F6键，以及库存／目标／故事／昼夜账目不重复。
 - 记录实际Windows版本、显卡／驱动及普通程序／验收程序SHA-256。
 
 每次使用独立时间戳结果目录。acceptance-result.json是机器结果，desktop-report.json和四份日志保存细节。脚本失败时保留结果，最后只关闭自己启动的测试进程；不修改普通用户存档。短测可用PowerShell执行`./windows_acceptance.ps1 -Minutes 1`，但结果不会标记为完成30分钟验收。

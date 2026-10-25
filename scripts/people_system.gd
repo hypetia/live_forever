@@ -28,7 +28,7 @@ func tick(game: Node2D, delta: float) -> void:
 	for actor: Survivor in game.survivors:
 		if actor.health <= 0: continue
 		var person := actor.person
-		person.thirst = minf(100, person.thirst + delta * 0.045)
+		person.thirst = minf(100, person.thirst + delta * 0.045 * actor.metabolism)
 		if person.thirst >= 95: actor.health = maxf(0, actor.health - delta * 0.06)
 		var asleep := actor.state == Survivor.TaskState.WORKING and actor.orders[0] == "sleep"
 		var pressure := (1.0 if actor.hunger >= 80 else 0.0) + (0.5 if actor.fatigue >= 85 else 0.0) + (0.5 if actor.infection >= 30 or actor.injury >= 50 else 0.0)
@@ -260,10 +260,11 @@ func aid(game: Node2D, target_id: int) -> bool:
 	var medic: Survivor = game.survivors[game.selected_id]
 	var target: Survivor = game.survivors[target_id]
 	if medic.health <= 0 or target.health <= 0 or medic.speciality != "医护": return false
+	if target.metabolism < 1 and target.hunger >= 80 and target.injury <= 0 and target.infection <= 0: return false
 	if game.simulation_time - medic.person.last_aid < 180 or game.simulation_time - target.person.last_aid < 180: return false
 	if target.health >= 100 and target.injury <= 0 and target.infection <= 0: return false
 	if not game.inventory.try_take({"medicine": 1}, medic.display_name + "医疗援助" + target.display_name): return false
-	target.health = minf(100, target.health + 20 + medic.person.level("care") * 2)
+	if target.metabolism >= 1 or target.hunger < 80: target.health = minf(100, target.health + 20 + medic.person.level("care") * 2)
 	target.injury = maxf(0, target.injury - 40)
 	target.infection = maxf(0, target.infection - 35)
 	target.person.stress = maxf(0, target.person.stress - 10)

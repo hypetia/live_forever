@@ -2,6 +2,7 @@ extends RefCounted
 ## Frame-driven actual gameplay, used only by the optional acceptance pack.
 
 const Policy := preload("res://tests/balance_bot.gd")
+var campaign_driver: RefCounted
 var game: Node2D
 var policy := Policy.new()
 var target := -1
@@ -13,6 +14,10 @@ var trips := 0
 
 func setup(scene: Node2D) -> void:
 	game = scene
+	if game.has_method("campaign_snapshot"):
+		campaign_driver = preload("res://tests/campaign_pilot.gd").new()
+		campaign_driver.setup(game)
+		return
 	policy.game = scene
 	policy.provide_care = true
 	policy.handle_projects = true
@@ -20,6 +25,10 @@ func setup(scene: Node2D) -> void:
 
 
 func tick(delta: float) -> void:
+	if is_instance_valid(campaign_driver):
+		campaign_driver.tick(delta)
+		trips = campaign_driver.trips
+		return
 	if game.game_over: return
 	if game.paused: game.toggle_pause()
 	var input := {}

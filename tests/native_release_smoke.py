@@ -93,7 +93,7 @@ def main():
             pending = children(root)
             while pending:
                 window = pending.pop()
-                if 'Live Forever' in title(window) and 'v0.9' in title(window):
+                if 'Live Forever' in title(window) and 'v1.0' in title(window):
                     if expected_pid is None or owner_pid(window) == expected_pid:
                         return window
                 pending.extend(children(window))
@@ -196,7 +196,22 @@ def main():
         assert [actor['person']['persona'] for actor in initial['actors']] == ['lin', 'xu', 'chen']
         press('v')
         press('Return')
-        trip = save()
+        # End-day simulation and the next rendered frame can take longer
+        # than a key's release delay. Observe the saved phase before confirming.
+        deadline = time.monotonic() + 20
+        while True:
+            plan = save()
+            if plan.get('campaign', {}).get('phase') == 'planning' or plan['expedition']['active']:
+                break
+            assert time.monotonic() < deadline, 'End day never reached assignment'
+        if not plan['expedition']['active']:
+            press('Return')
+        deadline = time.monotonic() + 20
+        while True:
+            trip = save()
+            if trip['expedition']['active']:
+                break
+            assert time.monotonic() < deadline, 'Night confirmation never entered the field'
         assert trip['expedition']['active'] and trip['expedition']['actor_id'] == 2, trip['expedition']
         # Only genuine OS keyboard input controls the game; the build has no test scripts.
         hold('d', 1.0)
@@ -206,6 +221,10 @@ def main():
             position = save()['expedition']['player_x']
         assert abs(position - 300) < 58, position
         hold('e', 2.3)
+        searched = save()
+        if searched['expedition'].get('manual_loot'):
+            press('f')
+            press('Escape')
         looted = save()
         assert looted['expedition']['bag']['raw_food'] == 2 and looted['expedition']['bag']['water'] == 1, looted['expedition']
         assert looted['stock']['raw_food'] == 4, 'Remote cargo credit'
@@ -215,7 +234,7 @@ def main():
         assert not returned['expedition']['active'] and returned['paused']
         assert returned['stock']['raw_food'] == 6 and returned['stock']['water'] == 5 and returned['stock']['medicine'] == 1, returned['stock']
         assert returned['upkeep']['returns']['street'] == 1
-        assert returned['actors'][2]['person']['experience']['scout'] == 10
+        assert returned['actors'][2]['person']['experience']['scout'] == 4
         subprocess.run(['import', '-display', args.display, '-window', str(window), str(output / 'native-return.png')], check=True, timeout=15)
         close(window, process)
         log.close()
@@ -225,7 +244,7 @@ def main():
         assert resumed['paused'] and not resumed['expedition']['active']
         assert resumed['stock'] == returned['stock'] and resumed['upkeep']['returns']['street'] == 1
         assert resumed['expedition']['sites'][0]['contents']['raw_food'] == 0
-        assert resumed['actors'][2]['person']['experience']['scout'] == 10
+        assert resumed['actors'][2]['person']['experience']['scout'] == 4
         assert not any(actor['person']['routine'] for actor in resumed['actors'])
         close(window, process)
         log.close()

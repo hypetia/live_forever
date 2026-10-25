@@ -215,7 +215,9 @@ func refresh() -> void:
 func _prepare(id: String) -> void:
 	if not game.choose_destination(id): return
 	close()
-	game.request_expedition()
+	if game.has_method("campaign_snapshot"):
+		game._log("今晚目的地已设为" + LocationCatalog.area(id)["name"] + "；结束白天后安排岗位与装备。")
+	else: game.request_expedition()
 
 
 func _repair() -> void:
@@ -346,6 +348,7 @@ func _refresh_support() -> void:
 	aid_button.disabled = aid_disabled
 	aid_button.text = "%s → %s · 药品1" % [actor.display_name, game.survivors[int(support_picker.get_item_metadata(support_picker.selected))].display_name] if support_picker.item_count > 0 else "没有可治疗的同伴"
 	aid_button.tooltip_text = "施治者：%s（需要医护）。接受治疗者：下拉框中的同伴。即时消耗药品1，生命+20至26、伤势−40、感染−35；双方180秒冷却。" % actor.display_name
+	if game.has_method("campaign_snapshot"): aid_button.tooltip_text += "\n饥饿80以上时先吃饭：用药仍处理伤势与感染，但不恢复生命。"
 	support_picker.tooltip_text = "选择接受共餐安慰或医疗援助的同伴。上方当前角色是行动发起者。"
 	support_picker.disabled = game.expedition.active or support_picker.item_count == 0
 

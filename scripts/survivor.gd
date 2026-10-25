@@ -33,6 +33,9 @@ var warned := {"hunger": false, "fatigue": false, "health": false, "infection": 
 var feedback := "等待你的安排"
 var movement_clock := 0.0
 var facing := 1.0
+var metabolism := 1.0
+var move_multiplier := 1.0
+var activity: Dictionary = {}
 const MOVE_SPEED := 150.0
 const FONT := preload("res://assets/fonts/interface.otf")
 var visual_time := 0.0
@@ -46,7 +49,7 @@ func _process(delta: float) -> void:
 
 
 func advance_route(delta: float) -> void:
-	var travel := MOVE_SPEED * effort_factor() * delta
+	var travel := MOVE_SPEED * effort_factor() * move_multiplier * delta
 	while not route.is_empty() and travel > 0.0:
 		var destination := route[0]
 		var distance := position.distance_to(destination)
@@ -64,6 +67,7 @@ func advance_route(delta: float) -> void:
 
 
 func status_text() -> String:
+	if not activity.is_empty(): return "%s · %d%%" % [activity["label"], roundi(activity["progress"] * 100)]
 	match state:
 		TaskState.MOVING: return "前往%s" % target_label
 		TaskState.WAITING: return "等待%s空闲" % target_label
@@ -104,7 +108,7 @@ func _draw() -> void:
 		draw_arc(Vector2(0, -3), 25, 0, TAU, 40, Color("d6b584"), 1.5, true)
 		draw_colored_polygon(PackedVector2Array([Vector2(-5, -89), Vector2(5, -89), Vector2(0, -83)]), Color("e4bf86"))
 	# Original geometric placeholder characters; coat, pack, limbs and head.
-	if state == TaskState.WORKING and not orders.is_empty() and orders[0] == "sleep":
+	if (state == TaskState.WORKING and not orders.is_empty() and orders[0] == "sleep") or activity.get("kind", "") == "sleep":
 		draw_set_transform(Vector2(-40, -23), PI / 2)
 	draw_line(Vector2(-5, -24), Vector2(-7 + stride, -3), Color("242d30"), 7, true)
 	draw_line(Vector2(6, -24), Vector2(9 - stride, -3), Color("242d30"), 7, true)
@@ -112,7 +116,7 @@ func _draw() -> void:
 	draw_line(Vector2(5 - stride, -2), Vector2(14 - stride, -2), Color("9b9e92"), 3, true)
 	draw_rect(Rect2(-17 * facing - 4, -53, 11, 28), tint.darkened(0.45))
 	draw_colored_polygon(PackedVector2Array([Vector2(-10, -56), Vector2(10, -56), Vector2(13, -23), Vector2(-12, -23)]), tint)
-	var working := state == TaskState.WORKING
+	var working := state == TaskState.WORKING or not activity.is_empty()
 	var eating := working and not orders.is_empty() and orders[0] == "eat"
 	var hand := Vector2(12 * facing, -58 + sin(visual_time * 2) * 3) if eating else Vector2(21 * facing, -40 + sin(visual_time * 5) * 7 if working else -26 + sin(visual_time * 1.4) * 2)
 	if working and not orders.is_empty() and orders[0] in ["repair", "craft"]:
@@ -133,7 +137,11 @@ func _draw() -> void:
 		draw_rect(Rect2(-26, -117, 52 * health / 100.0, 5), Color("d48f75") if health < 40 else Color("9dbb9b"))
 	if selected:
 		draw_string(FONT, Vector2(-22, 22), display_name, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color("e4d0a8"))
-	if state == TaskState.WORKING:
+	if not activity.is_empty():
+		draw_string(FONT, Vector2(-26, -87), activity["label"], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color("c8cbb1"))
+		draw_rect(Rect2(-23, -102, 46, 4), Color("273236"))
+		draw_rect(Rect2(-23, -102, 46 * activity["progress"], 4), Color("d6b584"))
+	elif state == TaskState.WORKING:
 		draw_string(FONT, Vector2(-26, -87), "用药中" if not orders.is_empty() and orders[0] == "heal" else task_label, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color("c8cbb1"))
 		draw_rect(Rect2(-23, -102, 46, 4), Color("273236"))
 		draw_rect(Rect2(-23, -102, 46 * progress(), 4), Color("d6b584"))

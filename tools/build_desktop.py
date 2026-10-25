@@ -68,7 +68,7 @@ def main():
         settings = project / 'project.godot'
         original_settings = settings.read_text()
         try:
-            settings.write_text(original_settings.replace('run/main_scene="res://scenes/shelter.tscn"', 'run/main_scene="res://tests/desktop_acceptance.tscn"'))
+            settings.write_text(original_settings.replace('run/main_scene="res://scenes/campaign.tscn"', 'run/main_scene="res://tests/desktop_acceptance.tscn"'))
             presets.write_text(original.replace('exclude_filter="tests/*,docs/*,', 'exclude_filter="docs/*,')
                                .replace('include_filter=""', 'include_filter="tests/fixtures/*.json"'))
             for platform, preset in [('windows', 'Windows Desktop'), ('linux', 'Linux Desktop')]:

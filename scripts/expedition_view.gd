@@ -188,8 +188,8 @@ func refresh() -> void:
 	stats_label.text = "生命 %d · 饥饿 %d · 疲劳 %d\n伤势 %d · 感染 %d · 口渴%d" % [ceili(actor.health), ceili(actor.hunger), ceili(actor.fatigue), ceili(actor.injury), ceili(actor.infection), roundi(actor.person.thirst)]
 	stats_label.add_theme_color_override("font_color", Color("dca184") if actor.health < 40 or actor.infection >= 30 else MUTED)
 	for node in bag_nodes: node.visible = bag_open
-	bag_button.text = "%d/%d I" % [state.used_capacity(), ExpeditionState.CAPACITY]
-	capacity_label.text = "背包 %d / %d" % [state.used_capacity(), ExpeditionState.CAPACITY]
+	bag_button.text = "%d/%d I" % [state.used_capacity(), state.capacity]
+	capacity_label.text = "背包 %d / %d" % [state.used_capacity(), state.capacity]
 	for resource in drop_buttons:
 		drop_buttons[resource].text = "%s   %d                           −1" % [ShelterInventory.NAMES[resource], state.bag[resource]]
 		drop_buttons[resource].disabled = state.bag[resource] <= 0

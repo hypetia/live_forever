@@ -1,0 +1,40 @@
+extends SceneTree
+const Pilot := preload("res://tests/campaign_pilot.gd")
+
+
+func _initialize() -> void:
+	call_deferred("_run")
+
+
+func _run() -> void:
+	var args := OS.get_cmdline_user_args()
+	var output := args[0] if not args.is_empty() else "user://campaign-balance.json"
+	var recruiting := args.has("--recruit")
+	var game: Node2D = load("res://scenes/campaign.tscn").instantiate()
+	game.persistence_enabled = false
+	root.add_child(game)
+	game.set_process(false)
+	var pilot := Pilot.new()
+	pilot.setup(game)
+	pilot.policy.recruit_members = recruiting
+	var last := 0
+	var steps := 0
+	var records: Array = []
+	while ExpeditionState.day_at(game.simulation_time) <= 30 and not game.game_over and steps < 900000:
+		pilot.tick(1.0 / 30)
+		steps += 1
+		var day := ExpeditionState.day_at(game.simulation_time)
+		if day > last:
+			last = day
+			var alive: int = game.survivors.filter(func(actor): return actor.health > 0).size()
+			var error := SaveSystem.validate(SaveSystem.capture(game))
+			print("CAMPAIGN DAY %d · alive %d · trips %d · stock %s · validation %s" % [day, alive, pilot.trips, str(game.inventory.snapshot()), error])
+			records.append({"day": day, "alive": alive, "trips": pilot.trips, "stock": game.inventory.snapshot(), "error": error})
+			if not error.is_empty(): break
+	var result := {"day": last, "trips": pilot.trips, "steps": steps, "alive": game.survivors.filter(func(actor): return actor.health > 0).size(), "records": records, "campaign": game.cycle.snapshot()}
+	var file := FileAccess.open(output, FileAccess.WRITE)
+	file.store_string(JSON.stringify(result,"  "))
+	print("CAMPAIGN BALANCE RESULT: ", JSON.stringify(result))
+	game.free()
+	await create_timer(0.12).timeout
+	quit(0 if last >= 31 and result["alive"] == (5 if recruiting else 3) and records.all(func(row): return row["error"].is_empty()) else 1)

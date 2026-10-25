@@ -54,24 +54,27 @@ def main():
         run(name, command,
             f'{checks} checks, 0 failures; {cases} scenarios executed.')
         logical += checks
+    run('campaign', ['--headless', '--path', str(project), '--script', 'res://tests/test_campaign.gd'], '85 checks, 0 failures')
+    logical += 85
     run('startup', ['--headless', '--path', str(project), '--quit-after', '8'])
     for name, phases in [('persistence_process', ['write', 'read']),
                          ('persistence_expedition_process', ['write', 'read', 'verify']),
                          ('persistence_long_term_process', ['write', 'read', 'verify']),
                          ('persistence_people_process', ['write', 'read', 'verify']),
                          ('persistence_story_process', ['write', 'read', 'verify']),
-                         ('persistence_goals_process', ['write', 'read', 'verify'])]:
+                         ('persistence_goals_process', ['write', 'read', 'verify']),
+                         ('persistence_campaign_process', ['write', 'read', 'verify'])]:
         slot = workspace / f'{name}.json'
         for phase in phases:
             run(f'{name}-{phase}', ['--headless', '--path', str(project), '--script',
                 f'res://tests/{name}.gd', '--', phase, str(slot)], 'PASS:')
     graphical = 0
     if args.graphics:
-        for name, count in [('visual_smoke', 36), ('visual_expedition', 36), ('visual_long_term', 24), ('visual_people', 22), ('visual_story', 17), ('visual_goals', 24), ('visual_presentation', 45)]:
+        for name, count in [('visual_smoke', 36), ('visual_expedition', 36), ('visual_long_term', 24), ('visual_people', 22), ('visual_story', 17), ('visual_goals', 24), ('visual_presentation', 45), ('visual_campaign', 47)]:
             run(name, ['--path', str(project), '--resolution', '1440x900', '--audio-driver', 'Dummy',
                 '--script', f'res://tests/{name}.gd'], f'{count} checks, 0 failures')
             graphical += count
-    print(f'Validated {logical} logical checks, {graphical} GUI checks, startup and 17 persistence processes.')
+    print(f'Validated {logical} logical checks, {graphical} GUI checks, startup and 20 persistence processes.')
     print(f'Clean project: {project}\nLogs: {output}')
 
 

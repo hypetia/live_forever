@@ -215,20 +215,7 @@ func advance_simulation(delta: float) -> void:
 	# Same maximum simulation step at 1x, 3x and in regression tests.
 	while remaining > 0.0000001 and not game_over and not paused:
 		var step := minf(remaining, 1.0 / 60.0)
-		simulation_time += step
-		upkeep.tick(step, simulation_time)
-		for actor in survivors:
-			SurvivalRules.tick(actor, step)
-			_check_warnings(actor)
-			if actor.health <= 0 and actor.state != Survivor.TaskState.DEAD:
-				scheduler.mark_dead(actor)
-		people.tick(self, step)
-		for actor: Survivor in survivors:
-			if actor.health <= 0 and actor.state != Survivor.TaskState.DEAD: scheduler.mark_dead(actor, "严重缺水")
-		scheduler.step(step)
-		if expedition.active:
-			expedition.tick(step, survivors[expedition.actor_id], _expedition_controls())
-		story.tick(self)
+		_advance_world_step(step)
 		remaining -= step
 		if survivors.all(func(actor: Survivor): return actor.health <= 0):
 			game_over = true
@@ -236,6 +223,23 @@ func advance_simulation(delta: float) -> void:
 			_log("庇护所失守：所有幸存者已死亡。可以读档，或新开一局。")
 	if persistence_enabled and auto_save_allowed and simulation_time - _last_auto_attempt >= 60.0:
 		save_game(true)
+
+
+func _advance_world_step(step: float) -> void:
+	simulation_time += step
+	upkeep.tick(step, simulation_time)
+	for actor in survivors:
+		SurvivalRules.tick(actor, step)
+		_check_warnings(actor)
+		if actor.health <= 0 and actor.state != Survivor.TaskState.DEAD:
+			scheduler.mark_dead(actor)
+	people.tick(self, step)
+	for actor: Survivor in survivors:
+		if actor.health <= 0 and actor.state != Survivor.TaskState.DEAD: scheduler.mark_dead(actor, "严重缺水")
+	scheduler.step(step)
+	if expedition.active:
+		expedition.tick(step, survivors[expedition.actor_id], _expedition_controls())
+	story.tick(self)
 
 
 func _check_warnings(actor: Survivor) -> void:

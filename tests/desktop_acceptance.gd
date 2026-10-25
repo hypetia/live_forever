@@ -41,12 +41,13 @@ func _run() -> void:
 		get_tree().quit(2)
 		return
 	report = {"platform": OS.get_name(), "engine": Engine.get_version_info()["string"], "requested_minutes": minutes, "status": "preflight", "checks": [], "resolutions": [], "screens": DisplayServer.get_screen_count()}
-	game = load("res://scenes/shelter.tscn").instantiate()
+	game = load("res://scenes/campaign.tscn").instantiate()
 	game.persistence_enabled = false
 	game.save_store.path = output.path_join("session.json")
 	root.add_child(game)
 	game.set_process(false)
 	await get_tree().process_frame
+	var initial_campaign := SaveSystem.capture(game)
 	var available := DisplayServer.screen_get_size()
 	for size in [Vector2i(1024, 768), Vector2i(1280, 720), Vector2i(1440, 900), Vector2i(1920, 1080)]:
 		if size.x > available.x or size.y > available.y:
@@ -59,7 +60,7 @@ func _run() -> void:
 		record(actual == size, "actual native window size %dx%d" % [size.x, size.y])
 		record(root.get_visible_rect().size.is_equal_approx(Vector2(1440, 900)), "fixed design viewport and preserved aspect at %dx%d" % [size.x, size.y])
 		game._refresh_hud()
-		record(game.clock_label.visible and game.day_bar.visible and game.phase_label.text.contains("距天黑"), "day clock and dusk progress are visible at %dx%d" % [size.x, size.y])
+		record(game.clock_label.visible and game.day_bar.visible and game.phase_label.text.contains("20:00"), "day clock and dusk progress are visible at %dx%d" % [size.x, size.y])
 		var design := Rect2(Vector2.ZERO, Vector2(1440, 900))
 		record(game.cards.all(func(card): return design.encloses(card.get_global_rect())), "complete roster cards fit at %dx%d" % [size.x, size.y])
 		await RenderingServer.frame_post_draw
@@ -68,6 +69,12 @@ func _run() -> void:
 		record(design.encloses(game.assign_button.get_global_rect()) and game.assign_button.text.contains(game.survivors[game.selected_id].display_name), "named treatment confirmation fits at %dx%d" % [size.x, size.y])
 		game.context_open = false
 		game._refresh_hud()
+		game.end_day()
+		for frame in range(3): await get_tree().process_frame
+		record(game.cycle.phase == "planning" and design.encloses(game.interface.depart_button.get_global_rect()) and game.interface.role_options.size() == 3, "night assignment fits and names all roles at %dx%d" % [size.x, size.y])
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png(output.path_join("night_%dx%d.png" % [size.x, size.y]))
+		record(SaveSystem.apply_state(game, initial_campaign).is_empty(), "preflight restores untouched campaign at %dx%d" % [size.x, size.y])
 		game.center.open(7)
 		for frame in range(3): await get_tree().process_frame
 		var bounds := Rect2(Vector2(game.center.position), Vector2(game.center.size))

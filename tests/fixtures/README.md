@@ -17,3 +17,5 @@
 - v4_people.json：来自归档v0.6原程序，运行persistence_people_process.gd的write阶段。实际生存3天、付费招募沈禾，并保存第四位成员外出中的世界；schema4文件未经手工改写。生成日志保存为构建产物m07-legacy-fixture.log。
 
 - v5_story.json：来自归档v0.7原程序persistence_story_process.gd的write阶段。实际生存两天，保存待处理的林舟故事、原有引导、真实库存与工作；schema5文件未经手工改写。生成日志为构建产物m08-legacy-fixture.log。
+
+`v6_campaign.json`由归档v0.9实际运行持久化目标脚本生成：已完成工厂勘查和付费互助，保留原始schema6信封与校验和，用于v1.0旧档迁移检查。

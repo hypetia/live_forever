@@ -1,14 +1,14 @@
-# v0.9 游戏与源码下载
+# v1.0 游戏与源码下载
 
-这些文件已上传到本仓库的[版本下载分支](https://github.com/hypetia/live_forever/tree/downloads-v0.9.0)。主分支中的这个目录提供下载索引。
+发行文件位于[GitHub下载分支](https://github.com/hypetia/live_forever/tree/downloads-v1.0.0)，主分支此目录提供索引。
 
-| 用途 | 直接从GitHub下载 | 使用方法 |
+| 用途 | 直接下载 | 打开方法 |
 | --- | --- | --- |
-| Windows 正常游玩 | [下载 ZIP](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.9.0/live_forever_v09_windows_x64.zip) | 解压后双击 `LiveForever.exe`，无需 Godot |
-| Linux 正常游玩 | [下载 ZIP](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.9.0/live_forever_v09_linux_x64.zip) | 解压后运行 `LiveForever.x86_64` |
-| Windows 一键验收 | [下载 ZIP](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.9.0/live_forever_v09_windows_acceptance.zip) | 解压后运行 `windows_acceptance.cmd`，约30分钟生成结果 |
-| v0.9 完整源码 | [下载 ZIP](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.9.0/live_forever_shelter_m09.zip) | 用 Godot 4.6.3 标准版导入 `project.godot`，按 F5 |
+| Windows游戏 | [live_forever_v10_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.0.0/live_forever_v10_windows_x64.zip) | 解压，双击LiveForever.exe |
+| Linux游戏 | [live_forever_v10_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.0.0/live_forever_v10_linux_x64.zip) | 解压，运行LiveForever.x86_64 |
+| Windows一键验收 | [live_forever_v10_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.0.0/live_forever_v10_windows_acceptance.zip) | 主动运行windows_acceptance.cmd |
+| v1.0完整源码 | [live_forever_shelter_m10.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.0.0/live_forever_shelter_m10.zip) | Godot4.6.3导入project.godot，F5 |
 
-[SHA-256校验文件](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.9.0/v0.9.0-SHA256SUMS.txt) · [正常游玩说明](../docs/PLAYING.md) · [Windows验收说明](../docs/WINDOWS_ACCEPTANCE.md)
+[SHA-256](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.0.0/v1.0.0-SHA256SUMS.txt) · [玩法](../docs/PLAYING.md) · [本轮机制与验证](../docs/CAMPAIGN_V1.md)
 
-Windows运行包已导出并验证文件结构，Windows真机与音频结论仍待实际设备结果；Linux已完成窗口、全屏、连续运行和关窗重启检查。当前GitHub Releases接口受限，文件实际托管在版本下载分支。
+这些ZIP上传到下载分支，未建立GitHub Release。Windows已导出，实际设备验收仍待进行；不要把Linux检查当作Windows通过。

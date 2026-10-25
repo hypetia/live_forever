@@ -15,12 +15,12 @@ static func tick(actor: Survivor, delta: float) -> void:
 	if actor.health <= 0.0:
 		return
 	var sleeping := actor.state == Survivor.TaskState.WORKING and not actor.orders.is_empty() and actor.orders[0] == "sleep"
-	actor.hunger = clampf(actor.hunger + HUNGER_RATE * delta * (1.1 if actor.person.persona == "he" else 1.0), 0.0, 100.0)
+	actor.hunger = clampf(actor.hunger + HUNGER_RATE * delta * actor.metabolism * (1.1 if actor.person.persona == "he" else 1.0), 0.0, 100.0)
 	if sleeping:
 		actor.fatigue = maxf(0, actor.fatigue - SLEEP_RECOVERY_RATE * delta)
 	else:
 		var rate := WORK_FATIGUE_RATE if actor.state == Survivor.TaskState.WORKING else IDLE_FATIGUE_RATE
-		actor.fatigue = minf(100, actor.fatigue + rate * delta * (1.1 if actor.person.persona == "gu" else 1.0))
+		actor.fatigue = minf(100, actor.fatigue + rate * delta * actor.metabolism * (1.1 if actor.person.persona == "gu" else 1.0))
 	var damage := 0.0
 	if actor.hunger >= 95.0:
 		damage += 0.10

@@ -3,7 +3,7 @@ extends RefCounted
 ## Validated snapshots, checksummed JSON, atomic replacement and one backup.
 ## Only data is loaded: no resource paths, scripts or executable expressions.
 
-const VERSION := 6
+const VERSION := 7
 const MAX_BYTES := 2 * 1024 * 1024
 const STATIONS := ["workbench", "stove", "table", "bed"]
 const FLOAT_FIELDS := ["work_elapsed", "work_duration", "hunger", "fatigue", "health", "injury", "infection", "movement_clock", "facing"]
@@ -32,6 +32,7 @@ static func capture(game: Node2D) -> Dictionary:
 	for id in LocationCatalog.IDS:
 		if id != game.expedition.location_id: other_regions[id] = game.regions[id].snapshot()
 	return {
+		"campaign": game.campaign_snapshot() if game.has_method("campaign_snapshot") else {},
 		"destination": game.expedition.location_id, "other_regions": other_regions, "upkeep": game.upkeep.snapshot(), "people": game.people.snapshot(), "story": game.story.snapshot(), "goals": game.goals.snapshot(),
 		"simulation_time": game.simulation_time, "paused": game.paused, "speed": game.speed,
 		"selected_id": game.selected_id, "selected_task": game.selected_task,
@@ -96,7 +97,7 @@ static func _segment(a: Array, b: Array) -> bool:
 static func validate(data: Variant) -> String:
 	if not data is Dictionary:
 		return "存档内容不是对象"
-	var required := ["simulation_time", "paused", "speed", "selected_id", "selected_task", "stock", "history", "stairs_open", "actors", "stations", "logs", "expedition", "destination", "other_regions", "upkeep", "people", "story", "goals"]
+	var required := ["simulation_time", "paused", "speed", "selected_id", "selected_task", "stock", "history", "stairs_open", "actors", "stations", "logs", "expedition", "destination", "other_regions", "upkeep", "people", "story", "goals", "campaign"]
 	if not _exact_keys(data, required):
 		return "存档缺少字段或包含未知字段"
 	if not data["destination"] is String or not LocationCatalog.IDS.has(data["destination"]): return "未知目的地"
@@ -236,6 +237,8 @@ static func validate(data: Variant) -> String:
 		var error := ExpeditionState.validate_snapshot(world, [], id)
 		if not error.is_empty(): return error
 		if world["active"] or world["last_refresh_day"] > ExpeditionState.day_at(data["simulation_time"]): return "非当前地点不能活动或超前刷新"
+	var campaign_error := CampaignCycle.validate(data["campaign"], data)
+	if not campaign_error.is_empty(): return campaign_error
 	return ShelterProgress.validate(data["upkeep"], float(data["simulation_time"]), bool(data["expedition"]["active"]))
 
 
@@ -305,6 +308,7 @@ static func apply_state(game: Node2D, data: Dictionary) -> String:
 		game.logs.append(line)
 	game.game_over = game.survivors.all(func(actor: Survivor): return actor.health <= 0)
 	game.selected_task = data["selected_task"]
+	if game.has_method("restore_campaign"): game.restore_campaign(data["campaign"])
 	game.expedition_view.reset_feedback()
 	game.select_survivor(int(data["selected_id"]))
 	game._refresh_log()
@@ -346,6 +350,8 @@ func _read_file(filename: String) -> Dictionary:
 		data = migrate_v4(data)
 	if int(envelope["version"]) <= 5:
 		data = migrate_v5(data)
+	if int(envelope["version"]) <= 6:
+		data = migrate_v6(data)
 	var error := validate(data)
 	if not error.is_empty():
 		return {"ok": false, "message": error}
@@ -493,3 +499,19 @@ func write_state(game: Node2D) -> Dictionary:
 	if DirAccess.rename_absolute(destination + ".tmp", destination) != OK:
 		return {"ok": false, "message": "存档替换失败，原存档保留"}
 	return {"ok": true, "message": "已保存"}
+
+
+static func migrate_v6(data: Variant) -> Variant:
+	if not data is Dictionary or data.has("campaign") or not data.has_all(["expedition", "other_regions"]): return null
+	var upgraded: Dictionary = data.duplicate(true)
+	upgraded["campaign"] = {}
+	if not upgraded["other_regions"] is Dictionary or not upgraded["expedition"] is Dictionary: return null
+	var worlds: Array = upgraded["other_regions"].values()
+	worlds.append(upgraded["expedition"])
+	for world in worlds:
+		if not world is Dictionary: return null
+		if not world.has("discovered"): world["discovered"] = []
+		if not world.has("capacity"): world["capacity"] = 10
+		if not world.has("manual_loot"): world["manual_loot"] = false
+		if not world.has("loot_site"): world["loot_site"] = -1
+	return upgraded
