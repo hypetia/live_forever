@@ -87,7 +87,7 @@ class XDesktop:
                 if self.x.XFetchName(self.display, window, C.byref(name)) and name:
                     title = name.value.decode('utf8', errors='replace')
                     self.x.XFree(C.cast(name, C.c_void_p))
-                    if 'Live Forever' in title and 'v0.8' in title:
+                    if 'Live Forever' in title and 'v0.9' in title:
                         if expected_pid is None or self.owner_pid(window) == expected_pid:
                             return window
                 pending.extend(self.children(window))

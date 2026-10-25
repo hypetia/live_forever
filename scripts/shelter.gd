@@ -78,6 +78,18 @@ var prep_text: Label
 var base_hud_nodes: Array[Control] = []
 var main_title: Label
 var subtitle: Label
+var world_root: Node2D
+var water_store: Workstation
+var exit_door: Workstation
+const WORLD_SCALE := Vector2(1.3, 1.3)
+const WORLD_OFFSET := Vector2(16, -130)
+var context_nodes: Array[Control] = []
+var context_open := false
+var day_bar: ProgressBar
+var phase_label: Label
+var toast_time := 0.0
+var move_marker := Vector2.ZERO
+var move_marker_time := 0.0
 
 
 func _ready() -> void:
@@ -85,7 +97,7 @@ func _ready() -> void:
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--qa-slot="): save_store.path = argument.trim_prefix("--qa-slot=")
 	get_window().close_requested.connect(_on_window_close_requested)
-	if DisplayServer.get_name() != "headless": get_window().title = "Live Forever · 留一盏灯 v0.8"
+	if DisplayServer.get_name() != "headless": get_window().title = "Live Forever · 留一盏灯 v0.9"
 	for id in LocationCatalog.IDS:
 		regions[id] = expedition if id == "street" else ExpeditionState.new(id)
 	_create_world()
@@ -121,28 +133,47 @@ func _ready() -> void:
 
 
 func _create_world() -> void:
+	world_root = Node2D.new()
+	world_root.position = WORLD_OFFSET
+	world_root.scale = WORLD_SCALE
+	add_child(world_root)
 	facility = Workstation.new()
 	facility.position = Vector2(485, ShelterNavigation.LOWER_Y)
-	facility.clicked.connect(assign_task.bind("repair"))
-	add_child(facility)
+	facility.clicked.connect(open_station.bind("repair"))
+	world_root.add_child(facility)
 	stove = Workstation.new()
 	stove.facility_id = "stove"
 	stove.display_name = "灶台"
 	stove.position = Vector2(930, ShelterNavigation.UPPER_Y)
-	stove.clicked.connect(assign_task.bind("cook"))
-	add_child(stove)
+	stove.clicked.connect(open_station.bind("cook"))
+	world_root.add_child(stove)
 	dining_table = Workstation.new()
 	dining_table.facility_id = "table"
 	dining_table.display_name = "餐桌"
 	dining_table.position = Vector2(555, ShelterNavigation.UPPER_Y)
-	dining_table.clicked.connect(assign_task.bind("eat"))
-	add_child(dining_table)
+	dining_table.clicked.connect(open_station.bind("eat"))
+	world_root.add_child(dining_table)
 	bed = Workstation.new()
 	bed.facility_id = "bed"
 	bed.display_name = "床位"
 	bed.position = Vector2(345, ShelterNavigation.UPPER_Y)
-	bed.clicked.connect(assign_task.bind("sleep"))
-	add_child(bed)
+	bed.clicked.connect(open_station.bind("sleep"))
+	world_root.add_child(bed)
+	water_store = Workstation.new()
+	water_store.facility_id = "water"
+	water_store.display_name = "饮水储备"
+	water_store.position = Vector2(190, ShelterNavigation.LOWER_Y)
+	water_store.clicked.connect(func():
+		if not people.drink(self, selected_id): _log("%s饮水未执行：检查水库存、口渴和人物状态。" % survivors[selected_id].display_name)
+		_refresh_hud()
+	)
+	world_root.add_child(water_store)
+	exit_door = Workstation.new()
+	exit_door.facility_id = "exit"
+	exit_door.display_name = "外出入口"
+	exit_door.position = Vector2(115, ShelterNavigation.LOWER_Y)
+	exit_door.clicked.connect(request_expedition)
+	world_root.add_child(exit_door)
 	for index in range(PeopleCatalog.ORIGINALS.size()):
 		var actor := add_survivor(PeopleCatalog.ORIGINALS[index])
 		actor.position = [Vector2(330, 430), Vector2(560, 430), Vector2(260, 640)][index]
@@ -155,6 +186,8 @@ func _create_world() -> void:
 
 func _process(delta: float) -> void:
 	weather_time += delta
+	toast_time = maxf(0, toast_time - delta)
+	move_marker_time = maxf(0, move_marker_time - delta)
 	# Window stalls must not silently simulate a long unattended period.
 	advance_simulation(minf(delta, 0.1))
 	_refresh_hud()
@@ -233,6 +266,15 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		return
 	if not event is InputEventKey or not event.pressed or event.echo:
 		return
+	if event.physical_keycode == KEY_ESCAPE and expedition.active and expedition_view.bag_open:
+		expedition_view.toggle_bag()
+		get_viewport().set_input_as_handled()
+		return
+	if event.physical_keycode == KEY_ESCAPE and context_open:
+		context_open = false
+		_refresh_hud()
+		get_viewport().set_input_as_handled()
+		return
 	if event.physical_keycode in [KEY_ESCAPE, KEY_F1, KEY_M, KEY_P, KEY_N, KEY_O]:
 		open_center(7 if event.physical_keycode == KEY_O else 6 if event.physical_keycode == KEY_N else 5 if event.physical_keycode == KEY_P else 3 if event.physical_keycode == KEY_F1 else 0 if event.physical_keycode == KEY_M else 4)
 		get_viewport().set_input_as_handled()
@@ -246,6 +288,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			KEY_R: expedition_medicine()
 			KEY_B: people.drink(self, selected_id)
 			KEY_T: expedition_retreat()
+			KEY_I: expedition_view.toggle_bag()
 		get_viewport().set_input_as_handled()
 		return
 	match event.physical_keycode:
@@ -290,13 +333,53 @@ func assign_selected() -> void:
 
 
 func select_task(task_id: String) -> void:
+	context_open = true
 	selected_task = task_id
 	_refresh_hud()
 
 
 func assign_task(task_id: String) -> void:
+	context_open = true
 	selected_task = task_id
 	assign_selected()
+
+
+func open_station(task_id: String) -> void:
+	if expedition.active or game_over: return
+	select_task(task_id)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if expedition.active or game_over or center.visible: return
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_RIGHT:
+			var point: Vector2 = (event.position - WORLD_OFFSET) / WORLD_SCALE
+			if Rect2(113, 300, 874, 355).has_point(point):
+				move_selected(point)
+				get_viewport().set_input_as_handled()
+		elif event.button_index == MOUSE_BUTTON_LEFT and context_open:
+			context_open = false
+			_refresh_hud()
+
+
+func move_selected(point: Vector2) -> bool:
+	if expedition.active or game_over or center.visible or prep_dialog.visible or load_dialog.visible or new_dialog.visible or exit_dialog.visible: return false
+	var actor := survivors[selected_id]
+	if actor.health <= 0: return false
+	var destination := Vector2(clampf(point.x, 140, 960), ShelterNavigation.UPPER_Y if scheduler.navigation.floor_at(point) == 1 else ShelterNavigation.LOWER_Y)
+	var route := scheduler.navigation.route_between(actor.position, destination)
+	if route.is_empty():
+		_log("楼梯不可通行，无法前往该处。")
+		return false
+	scheduler.cancel(actor)
+	actor.route = route
+	actor.state = Survivor.TaskState.RETURNING
+	actor.feedback = "移动到指定位置"
+	move_marker = destination
+	move_marker_time = 1.0
+	context_open = false
+	_refresh_hud()
+	return true
 
 
 func cancel_selected() -> void:
@@ -322,6 +405,7 @@ func toggle_speed() -> void:
 
 func _log(message: String) -> void:
 	if is_instance_valid(game_audio): game_audio.cue(message)
+	toast_time = 6.0
 	logs.push_front("%02d:%02d   %s" % [int(simulation_time) / 60, int(simulation_time) % 60, message])
 	if logs.size() > 4:
 		logs.pop_back()
@@ -330,7 +414,7 @@ func _log(message: String) -> void:
 
 func _refresh_log() -> void:
 	if is_instance_valid(log_label):
-		log_label.text = "\n\n".join(logs)
+		log_label.text = logs[0] if not logs.is_empty() else ""
 		log_label.tooltip_text = "\n\n".join(logs)
 
 
@@ -506,6 +590,7 @@ func start_expedition(take_tool: bool = false, take_medicine: bool = false) -> b
 	actor.feedback = "外出探索中"
 	upkeep.begin_trip(loadout)
 	expedition.begin(selected_id, loadout, speed)
+	context_open = false
 	speed = 1.0
 	paused = false
 	_save_status = _save_status.replace("（已暂停）", "")
@@ -552,6 +637,7 @@ func _on_expedition_returned(id: int, cargo: Dictionary, survived: bool) -> void
 		_log("%s归来，带回%s。伤势%d、感染%d；先检查再继续。" % [actor.display_name, ShelterInventory.describe(recovered), ceili(actor.injury), ceili(actor.infection)])
 		if (actor.injury > 0 or actor.infection > 0) and inventory.amount("medicine") > 0:
 			selected_task = "heal"
+			context_open = true
 	else:
 		if actor.state != Survivor.TaskState.DEAD: scheduler.mark_dead(actor, "外出遭遇")
 		_log("%s未能返回，背包与携带物资全部丢失。其余成员必须重新分工。" % actor.display_name)
@@ -565,14 +651,21 @@ func _on_expedition_returned(id: int, cargo: Dictionary, survived: bool) -> void
 
 func _sync_mode() -> void:
 	var base := not expedition.active
+	world_root.visible = base
 	for node in base_hud_nodes: node.visible = base
+	for node in context_nodes: node.visible = base and context_open
+	completed_label.hide()
+	log_label.visible = base and toast_time > 0
+	for task_id in task_tabs:
+		task_tabs[task_id].visible = base and context_open and TaskCatalog.TASKS[task_id]["facility"] == TaskCatalog.TASKS[selected_task]["facility"]
 	for actor in survivors: actor.visible = base
 	for station: Workstation in scheduler.facilities.values(): station.visible = base
 	game_over_label.visible = base and game_over
 	expedition_view.visible = not base
 	expedition_view.layer.visible = not base
-	main_title.text = "让这里，再多亮一晚。" if base else "留一条，回家的路。"
-	subtitle.text = "单人末日生存  /  基地生活、治疗与外出补给" if base else str(expedition.area()["name"]) + "  /  潜行、搜刮、攀爬与主动撤退"
+	if not base: expedition_view.refresh()
+	main_title.text = "临时避难所  /  留一盏灯"
+	subtitle.text = "点击人物选择 · 点击设施查看行动 · 右键地面移动 · 空格暂停"
 
 
 func _style(background: Color, border: Color, radius: int = 5) -> StyleBoxFlat:
@@ -638,84 +731,74 @@ func _create_hud() -> void:
 	hud.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(hud)
-	_label("L I V E   /   F O R E V E R", Vector2(48, 30), Vector2(580, 24), 16, GOLD)
-	main_title = _label("让这里，再多亮一晚。", Vector2(46, 66), Vector2(650, 53), 34)
-	subtitle = _label("单人末日生存  /  基地生活、治疗与外出补给", Vector2(50, 123), Vector2(650, 25), 14, MUTED)
-	_label("SURVIVAL / v0.8", Vector2(1092, 29), Vector2(170, 26), 14, MUTED)
-	_button("故事 / 引导 N", Vector2(720, 25), Vector2(150, 30), open_center.bind(6), false, true)
-	_button("长期目标 / 互助 O", Vector2(884, 25), Vector2(184, 30), open_center.bind(7), false, true)
-	_button("保存 F6", Vector2(720, 72), Vector2(108, 44), save_game)
-	_button("读档 F9", Vector2(840, 72), Vector2(108, 44), request_load)
-	_button("新的一局", Vector2(960, 72), Vector2(116, 44), request_new_game)
-	save_label = _label("", Vector2(720, 123), Vector2(350, 26), 12, MUTED)
-	save_label.clip_text = true
+	_label("留 一 盏 灯  /  LIVE FOREVER", Vector2(30, 20), Vector2(310, 32), 19, GOLD)
+	clock_label = _label("", Vector2(350, 14), Vector2(550, 38), 25)
+	phase_label = _label("", Vector2(350, 55), Vector2(560, 26), 14, GOLD)
+	day_bar = ProgressBar.new()
+	day_bar.position = Vector2(350, 88)
+	day_bar.show_percentage = false
+	day_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for state in ["background", "fill"]:
+		var box := _style(Color("2b3838") if state == "background" else GOLD, Color("2b3838"), 2)
+		box.set_content_margin_all(0)
+		day_bar.add_theme_stylebox_override(state, box)
+	hud.add_child(day_bar)
+	day_bar.size = Vector2(560, 6)
+	pause_button = _button("暂停  空格", Vector2(960, 18), Vector2(140, 38), toggle_pause)
+	speed_button = _button("×1", Vector2(1110, 18), Vector2(90, 38), toggle_speed)
+	_button("菜单  Esc", Vector2(1210, 18), Vector2(200, 38), open_center.bind(4))
+	_button("街区 M", Vector2(960, 67), Vector2(140, 30), open_center.bind(0), false, true)
+	_button("人物 P", Vector2(1110, 67), Vector2(90, 30), open_center.bind(5), false, true)
+	_button("故事 N / 目标 O", Vector2(1210, 67), Vector2(200, 30), open_center.bind(7), false, true)
+	save_label = _label("", Vector2(30, 62), Vector2(300, 28), 12, MUTED)
 	save_label.mouse_filter = Control.MOUSE_FILTER_PASS
-	pause_button = _button("暂停  /  空格", Vector2(1090, 72), Vector2(166, 44), toggle_pause)
-	speed_button = _button("速度 ×1", Vector2(1268, 72), Vector2(126, 44), toggle_speed)
-	clock_label = _label("", Vector2(1092, 123), Vector2(300, 26), 14, MUTED)
-	_button("菜单 Esc", Vector2(1270, 25), Vector2(124, 30), open_center.bind(4), false, true)
+	stock_label = _label("", Vector2(30, 111), Vector2(1380, 28), 16, GOLD)
 	var header_nodes := hud.get_child_count()
-	_label("01   /   临时庇护所", Vector2(50, 185), Vector2(330, 30), 18)
-	stock_label = _label("", Vector2(390, 187), Vector2(670, 27), 15, GOLD)
-	upkeep_label = _label("", Vector2(555, 225), Vector2(505, 28), 12, MUTED)
-	_button("街区 / 据点 / 记录  [M]", Vector2(280, 225), Vector2(250, 32), open_center.bind(0), false, true)
-	var depart := _button("外出搜刮  [V]", Vector2(48, 225), Vector2(220, 32), request_expedition, false, true)
-	depart.tooltip_text = "选择地点与一名出发者，取消其当前任务并退料；可选携带工具与药品。其余人留守继续工作。"
-	_label("02  /  休息层", Vector2(119, 295), Vector2(200, 24), 12, MUTED)
-	_label("01  /  工作层", Vector2(119, 461), Vector2(200, 24), 12, MUTED)
-	_label("楼梯", Vector2(833, 514), Vector2(80, 24), 12, MUTED)
-	_label("工作台", Vector2(454, 665), Vector2(150, 26), 14, GOLD)
-	_label("灶台 [F]", Vector2(896, 452), Vector2(100, 22), 12, GOLD)
-	_label("餐桌 [G]", Vector2(520, 452), Vector2(100, 22), 12, GOLD)
-	_label("床位 [H]", Vector2(312, 452), Vector2(100, 22), 12, GOLD)
-	_label("1–6选人 / P人物 / E派工  F做饭  G吃饭  H睡觉  C制作  R治疗  /  Q取消  V外出", Vector2(50, 697), Vector2(1000, 28), 13, MUTED)
-	_label("幸存者  /  饥饿与疲劳越低越好", Vector2(50, 731), Vector2(500, 24), 14, MUTED)
-	_label("F1 操作指南 / Esc 菜单", Vector2(805, 733), Vector2(260, 24), 12, MUTED)
+	main_title = _label("", Vector2(32, 155), Vector2(440, 30), 21)
+	subtitle = _label("", Vector2(32, 188), Vector2(650, 25), 13, MUTED)
+	upkeep_label = _label("", Vector2(530, 157), Vector2(690, 26), 14, MUTED)
+	var depart := _button("出门搜刮 V →", Vector2(1220, 150), Vector2(190, 42), request_expedition, true)
+	depart.tooltip_text = "派当前选中的人外出；其余人继续留守任务。"
+	log_label = _label("", Vector2(32, 217), Vector2(1000, 35), 14, GOLD)
+	log_label.clip_text = true
+	log_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tutorial_label = _label("", Vector2(32, 739), Vector2(1380, 28), 14, MUTED)
+	tutorial_label.clip_text = true
 	sync_roster_cards()
-	_label("当前选中", Vector2(1112, 202), Vector2(240, 26), 13, MUTED)
-	selected_label = _label("", Vector2(1110, 236), Vector2(250, 45), 28)
-	speciality_label = _label("", Vector2(1113, 286), Vector2(250, 24), 14, GREEN)
-	detail_label = _label("", Vector2(1112, 321), Vector2(260, 55), 14, MUTED)
-	var choices := [["repair", "修整", 1112, 391, 80], ["cook", "做饭 F", 1200, 391, 80], ["eat", "吃饭 G", 1288, 391, 84], ["sleep", "睡觉 H", 1112, 433, 80], ["craft", "制作 C", 1200, 433, 80], ["heal", "治疗 R", 1288, 433, 84]]
+	var context_start := hud.get_child_count()
+	var background := Panel.new()
+	background.position = Vector2(1055, 228)
+	background.size = Vector2(355, 494)
+	background.add_theme_stylebox_override("panel", _style(Color("172321"), Color("697461"), 4))
+	hud.add_child(background)
+	selected_label = _label("", Vector2(1075, 241), Vector2(270, 36), 23)
+	_button("×", Vector2(1360, 239), Vector2(36, 32), func(): context_open = false; _refresh_hud(), false, true)
+	speciality_label = _label("", Vector2(1075, 282), Vector2(310, 24), 13, GREEN)
+	detail_label = _label("", Vector2(1075, 314), Vector2(310, 48), 14, MUTED)
+	var choices := [["repair", "修整", 1075, 375], ["craft", "制工具 C", 1229, 375], ["eat", "吃饭 G", 1075, 375], ["heal", "本人用药 R", 1229, 375], ["sleep", "休息 H", 1075, 375], ["cook", "做饭 F", 1075, 375]]
 	for choice in choices:
-		var tab := _button(choice[1], Vector2(choice[2], choice[3]), Vector2(choice[4], 34), select_task.bind(choice[0]), false, true)
+		var tab := _button(choice[1], Vector2(choice[2], choice[3]), Vector2(145, 32), select_task.bind(choice[0]), false, true)
 		task_tabs[choice[0]] = tab
 	workbench_tab = task_tabs["repair"]
 	stove_tab = task_tabs["cook"]
-	task_heading = _label("", Vector2(1112, 480), Vector2(260, 26), 17)
-	facility_label = _label("", Vector2(1112, 510), Vector2(260, 22), 12, MUTED)
-	recipe_label = _label("", Vector2(1112, 538), Vector2(260, 43), 12, MUTED)
-	assign_button = _button("安排修整   [E]", Vector2(1112, 588), Vector2(260, 44), assign_selected, true)
-	assign_button.tooltip_text = "每人最多三项；开工扣料，完成才产出或恢复饱腹。手动取消会退还当前用料。"
-	cancel_button = _button("取消此人的全部任务   [Q]", Vector2(1112, 642), Vector2(260, 38), cancel_selected)
-	cancel_button.tooltip_text = "清空此人全部任务；手动取消退料。睡眠保留已经获得的休息，死亡不退料。"
-	status_label = _label("", Vector2(1112, 691), Vector2(265, 24), 13, GOLD)
-	queue_label = _label("", Vector2(1112, 720), Vector2(265, 45), 12, MUTED)
+	task_heading = _label("", Vector2(1075, 422), Vector2(310, 28), 18, GOLD)
+	facility_label = _label("", Vector2(1075, 455), Vector2(310, 24), 13, MUTED)
+	recipe_label = _label("", Vector2(1075, 486), Vector2(310, 52), 14, MUTED)
+	assign_button = _button("", Vector2(1075, 551), Vector2(315, 44), assign_selected, true)
+	assign_button.add_theme_font_size_override("font_size", 15)
+	cancel_button = _button("取消此人的任务 Q", Vector2(1075, 605), Vector2(315, 34), cancel_selected, false, true)
+	status_label = _label("", Vector2(1075, 646), Vector2(315, 24), 13, GOLD)
+	queue_label = _label("", Vector2(1075, 675), Vector2(315, 40), 12, MUTED)
 	progress_bar = ProgressBar.new()
-	progress_bar.position = Vector2(1112, 779)
+	progress_bar.position = Vector2(1075, 717)
 	progress_bar.show_percentage = false
-	var track := _style(Color("2b3838"), Color("2b3838"), 2)
-	var fill := _style(GOLD, GOLD, 2)
-	track.set_content_margin_all(0)
-	fill.set_content_margin_all(0)
-	progress_bar.add_theme_stylebox_override("background", track)
-	progress_bar.add_theme_stylebox_override("fill", fill)
 	hud.add_child(progress_bar)
-	# Resolve the inherited theme by entering the tree before setting size.
-	# Before that, the default font can clamp the Control to a 27px minimum.
-	progress_bar.size = Vector2(260, 5)
-	completed_label = _label("", Vector2(1112, 796), Vector2(260, 24), 12, MUTED)
-	tutorial_label = _label("", Vector2(1112, 830), Vector2(260, 24), 11, MUTED)
-	tutorial_label.size.y = 45
-	tutorial_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	game_over_label = _label("", Vector2(290, 250), Vector2(700, 65), 23, GOLD)
+	progress_bar.size = Vector2(315, 5)
+	completed_label = _label("", Vector2(1075, 725), Vector2(315, 20), 11, MUTED)
+	completed_label.hide()
+	for index in range(context_start, hud.get_child_count()): context_nodes.append(hud.get_child(index))
+	game_over_label = _label("", Vector2(370, 310), Vector2(700, 85), 25, GOLD)
 	game_over_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_label("庇护所记录", Vector2(56, 491), Vector2(185, 24), 13, MUTED)
-	log_label = _label("", Vector2(56, 526), Vector2(172, 130), 12, Color("a2ada1"))
-	log_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	log_label.clip_text = true
-	log_label.mouse_filter = Control.MOUSE_FILTER_STOP
-	_label("每60秒与正常关窗保存；读档后暂停，无离线消耗。外出物资必须回到入口才能带回；受伤或感染后记得治疗。", Vector2(48, 877), Vector2(1350, 20), 11, Color("60716c"))
 	for index in range(header_nodes, hud.get_child_count()): base_hud_nodes.append(hud.get_child(index))
 	load_dialog = _confirmation("读取存档", "读取最近的本地存档？\n当前尚未保存的进度会被替换，读取后保持暂停。")
 	load_dialog.confirmed.connect(load_game)
@@ -760,7 +843,7 @@ func _refresh_hud() -> void:
 	var definition: Dictionary = TaskCatalog.TASKS[selected_task]
 	var target: Workstation = scheduler.facilities[definition["facility"]]
 	upkeep_label.text = "结构 %d%% / 据点 %d级 / %s / %s" % [ceili(upkeep.integrity), upkeep.level, LocationCatalog.weather(ExpeditionState.day_at(simulation_time))["name"], "有待处理事件 M" if upkeep.pending_event >= 0 else "修整可恢复结构"]
-	stock_label.text = "生食%d / 水%d / 燃料%d / 熟食%d / 材料%d / 工具%d / 药品%d" % [inventory.amount("raw_food"), inventory.amount("water"), inventory.amount("fuel"), inventory.amount("meals"), inventory.amount("materials"), inventory.amount("tools"), inventory.amount("medicine")]
+	stock_label.text = "据点库存   生食%d / 水%d / 燃料%d / 熟食%d / 材料%d / 工具%d / 药品%d" % [inventory.amount("raw_food"), inventory.amount("water"), inventory.amount("fuel"), inventory.amount("meals"), inventory.amount("materials"), inventory.amount("tools"), inventory.amount("medicine")]
 	selected_label.text = actor.display_name
 	speciality_label.text = "%s / %s基础%.1f秒" % [actor.speciality, definition["label"], TaskCatalog.duration_for(selected_task, actor)]
 	detail_label.text = "生命%d / 饥饿%d / 疲劳%d\n伤势%d / 感染%d / 效率%d%%" % [ceili(actor.health), ceili(actor.hunger), ceili(actor.fatigue), ceili(actor.injury), ceili(actor.infection), int(actor.effort_factor() * 100)]
@@ -781,12 +864,13 @@ func _refresh_hud() -> void:
 		"cook", "craft": recipe_label.text = "%s\n→ %s · 开工扣料 / 取消退料" % [ShelterInventory.describe(definition["cost"]), ShelterInventory.describe(definition["output"])]
 		"eat": recipe_label.text = "熟食×1 · 完成后饥饿降低55\n中途取消退料，不恢复饱腹"
 		"sleep": recipe_label.text = "休息20秒，每秒恢复疲劳3\n可中断，保留已获得的休息"
-		"heal": recipe_label.text = "药品×1 · 生命+25 伤势-50\n感染-40；完成时生效，取消退药"
+		"heal": recipe_label.text = "%s给自己用药 · 药品×1\n生命+25 / 伤势−50 / 感染−40" % actor.display_name
 		_: recipe_label.text = "材料×1 → 完成后结构+18\n低于40%会降效；取消退料"
 	if not has_materials:
 		recipe_label.text = "现货不足，依赖前置任务产出\n开工仍会检查库存，不预留材料" if scheduler.can_plan_materials(actor, selected_task) else "缺料：%s\n任务不会加入队列" % inventory.missing_text(definition["cost"])
 	recipe_label.add_theme_color_override("font_color", MUTED if has_materials else Color("dca184"))
-	assign_button.text = "安排%s   [E]" % definition["label"]
+	assign_button.text = "让%s接受治疗 [E]" % actor.display_name if selected_task == "heal" else "让%s%s [E]" % [actor.display_name, definition["label"]]
+	assign_button.tooltip_text = "治疗对象：%s本人。去餐桌自行用药；不治疗其他人。若要医护帮助同伴，按P选择医护和受助者。" % actor.display_name if selected_task == "heal" else "为%s追加此项行动。走到设施后开工扣料；手动取消退料。最多三项。" % actor.display_name
 	# Keep the button usable when short of stock so it can explain rejection;
 	# the scheduler remains the authority for both mouse and keyboard orders.
 	assign_button.disabled = actor.orders.size() >= TaskScheduler.MAX_ORDERS or actor.state == Survivor.TaskState.BLOCKED or actor.health <= 0 or game_over
@@ -797,14 +881,22 @@ func _refresh_hud() -> void:
 	pause_button.disabled = game_over
 	speed_button.text = "速度 ×%d" % int(speed)
 	speed_button.disabled = expedition.active
-	clock_label.text = SurvivalRules.clock_text(simulation_time) + (" · 暂停" if paused else "")
+	clock_label.text = SurvivalRules.clock_text(simulation_time) + (" · 已暂停" if paused else "")
+	var minute := fposmod(480 + simulation_time * SurvivalRules.MINUTES_PER_SECOND, 1440)
+	var boundary := 360.0 if minute < 360 else 1080.0 if minute < 1080 else 1800.0
+	var remaining := (boundary - minute) / SurvivalRules.MINUTES_PER_SECOND / speed
+	phase_label.text = "%s %02d:%02d · %s" % ["距日出" if SurvivalRules.is_night(simulation_time) else "距天黑", int(ceil(remaining)) / 60, int(ceil(remaining)) % 60, "暂停中，时间停止" if paused else "现实时间 / 当前×%d" % int(speed)]
+	day_bar.value = minute / 1440.0 * 100
+	day_bar.tooltip_text = "全天进度：06:00日出，18:00天黑。1倍速下现实1秒=游戏2分钟；清晨结算补给与损耗。"
+	day_bar.mouse_filter = Control.MOUSE_FILTER_PASS
 	save_label.text = _save_status
 	save_label.tooltip_text = _save_status + "\n" + ProjectSettings.globalize_path(save_store.path)
 	game_over_label.visible = game_over
 	game_over_label.text = "庇护所失守\n所有幸存者已死亡。可读档或新开一局。" if game_over else ""
 	for index in range(cards.size()):
 		var person := survivors[index]
-		cards[index].text = "%d %s/%s\n生命%d 饥饿%d 疲劳%d\n心境%d 压力%d 感染%d 渴%d\n%s" % [index + 1, person.display_name, person.speciality, ceili(person.health), ceili(person.hunger), ceili(person.fatigue), roundi(person.person.morale), roundi(person.person.stress), ceili(person.infection), roundi(person.person.thirst), person.status_text()]
+		cards[index].text = "%d  %s · %s\n生命%d  饥饿%d  疲劳%d  口渴%d\n%s" % [index + 1, person.display_name, person.speciality, ceili(person.health), ceili(person.hunger), ceili(person.fatigue), roundi(person.person.thirst), person.status_text()]
+		cards[index].tooltip_text = "伤势%d / 感染%d / 心境%d / 压力%d\n点击选中；P查看人物、照料授权与医疗援助。" % [ceili(person.injury), ceili(person.infection), roundi(person.person.morale), roundi(person.person.stress)]
 		cards[index].add_theme_color_override("font_color", Color("dca184") if person.health <= 30 or person.hunger >= 80 or person.fatigue >= 85 or person.infection >= 30 or person.person.thirst >= 80 else INK)
 		cards[index].add_theme_stylebox_override("normal", _style(Color("27332e") if index == selected_id else Color("142125"), GOLD if index == selected_id else Color("2d3c3b")))
 	tutorial_label.text = story.hint(self)
@@ -818,9 +910,9 @@ func _draw() -> void:
 	# match the explicit navigation graph, so walls and paths stay consistent.
 	draw_rect(Rect2(0, 0, 1440, 900), Color("101a1e"))
 	if expedition.active:
-		draw_line(Vector2(48, 164), Vector2(1393, 164), Color("2b3b3a"), 1)
 		return
-	draw_rect(Rect2(0, 165, 1070, 565), Color("142126"))
+	draw_set_transform(WORLD_OFFSET, 0, WORLD_SCALE)
+	draw_rect(Rect2(0, 200, 1095, 490), Color("142126"))
 	_draw_city()
 	for i in range(65):
 		var rain_x := fposmod(i * 137.0 - weather_time * 37, 1040)
@@ -883,12 +975,49 @@ func _draw() -> void:
 	draw_rect(Rect2(383, 320, 18, 5), Color("e1c38d"))
 	if SurvivalRules.is_night(simulation_time):
 		draw_rect(Rect2(0, 255, 1070, 430), Color(0, 0.02, 0.05, 0.18))
+	_draw_house_details()
+	if move_marker_time > 0:
+		draw_arc(move_marker + Vector2(0, -3), 16 + (1 - move_marker_time) * 10, 0, TAU, 24, Color(0.85, 0.73, 0.52, move_marker_time), 2, true)
+	draw_set_transform(Vector2.ZERO)
+	_draw_chrome()
+
+
+func _draw_chrome() -> void:
+	draw_rect(Rect2(0, 0, 1440, 143), Color("101a1e"))
+	draw_line(Vector2(30, 143), Vector2(1410, 143), Color("425047"), 1)
+	draw_rect(Rect2(0, 772, 1440, 128), Color("101a1e"))
+	# Dawn and dusk ticks on the same 24-hour timeline as the model clock.
+	for minute in [360, 720, 1080]:
+		var x: float = 350.0 + 560.0 * minute / 1440.0
+		draw_line(Vector2(x, 86), Vector2(x, 97), GOLD, 1)
+	if paused:
+		draw_style_box(_style(Color("25322d"), GOLD), Rect2(580, 262, 280, 42))
+		draw_string(FONT, Vector2(605, 289), "已暂停 · 空格继续", HORIZONTAL_ALIGNMENT_LEFT, -1, 19, GOLD)
 	if game_over:
-		draw_style_box(_style(Color("182724"), GOLD, 6), Rect2(265, 237, 750, 90))
-	draw_style_box(_style(Color("142125"), Color("2c3b39"), 8), Rect2(1090, 185, 305, 680))
-	draw_style_box(_style(Color("152123"), Color("35413a"), 4), Rect2(44, 480, 193, 187))
-	draw_line(Vector2(48, 164), Vector2(1393, 164), Color("2b3b3a"), 1)
-	draw_line(Vector2(1112, 386), Vector2(1372, 386), Color("2e3b38"), 1)
+		draw_style_box(_style(Color("182724"), GOLD, 6), Rect2(350, 305, 740, 100))
+
+
+func _draw_house_details() -> void:
+	# Context comes from physical rooms and props; no permanent task dashboard.
+	for x in [118, 433, 865]:
+		draw_line(Vector2(x, 300), Vector2(x, 424), Color("434c43"), 4)
+	for x in range(124, 984, 29):
+		draw_line(Vector2(x, 640), Vector2(x + 16, 632), Color("53564a"), 1)
+	# Water store, coats, a broken radio and electrical wiring.
+	for x in [239, 261]:
+		draw_line(Vector2(x, 339), Vector2(x, 354), Color("a39271"), 2)
+		draw_colored_polygon(PackedVector2Array([Vector2(x - 8, 354), Vector2(x + 8, 354), Vector2(x + 14, 390), Vector2(x - 12, 390)]), Color("536558"))
+	draw_polyline(PackedVector2Array([Vector2(117, 306), Vector2(390, 306), Vector2(390, 317), Vector2(865, 308), Vector2(865, 475)]), Color("1b2221"), 2)
+	draw_rect(Rect2(881, 489, 42, 10), Color("6f725a"))
+	draw_circle(Vector2(912, 494), 3, GOLD)
+	draw_line(Vector2(884, 489), Vector2(875, 467), Color("929878"), 2)
+	# A visible first-aid box shares the table used by the actual treatment rule.
+	draw_rect(Rect2(584, 396, 20, 21), Color("879781"))
+	draw_line(Vector2(589, 406), Vector2(599, 406), Color("d8ded7"), 3)
+	draw_line(Vector2(594, 401), Vector2(594, 411), Color("d8ded7"), 3)
+	var light := 0.32 if SurvivalRules.is_night(simulation_time) else 0.12
+	for radius in range(76, 12, -8):
+		draw_circle(Vector2(392, 345), radius, Color(0.95, 0.72, 0.37, light / 12))
 
 
 func _draw_city() -> void:
@@ -943,7 +1072,7 @@ func add_survivor(persona: String) -> Survivor:
 	actor.work_duration = TaskCatalog.duration_for("repair", actor)
 	actor.repair_duration = actor.work_duration
 	actor.clicked.connect(func(member: Survivor): select_survivor(member.survivor_id))
-	add_child(actor)
+	world_root.add_child(actor)
 	survivors.append(actor)
 	return actor
 
@@ -970,11 +1099,11 @@ func sync_roster_cards() -> void:
 		card.free()
 	cards.clear()
 	var count := survivors.size()
-	var stride := 341.0 if count == 3 else 1023.0 / count
+	var stride := 1380.0 / count
 	for index in range(count):
-		var card := _button("", Vector2(48 + index * stride, 762), Vector2(stride - 15, 104), select_survivor.bind(index))
+		var card := _button("", Vector2(30 + index * stride, 782), Vector2(stride - 10, 94), select_survivor.bind(index))
 		card.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		card.clip_text = true
-		card.add_theme_font_size_override("font_size", 13 if count == 3 else 11)
+		card.add_theme_font_size_override("font_size", 15 if count <= 3 else 12)
 		cards.append(card)
 		if not base_hud_nodes.is_empty(): base_hud_nodes.append(card)

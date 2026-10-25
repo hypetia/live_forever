@@ -58,6 +58,16 @@ func _run() -> void:
 		var actual := root.size
 		record(actual == size, "actual native window size %dx%d" % [size.x, size.y])
 		record(root.get_visible_rect().size.is_equal_approx(Vector2(1440, 900)), "fixed design viewport and preserved aspect at %dx%d" % [size.x, size.y])
+		game._refresh_hud()
+		record(game.clock_label.visible and game.day_bar.visible and game.phase_label.text.contains("距天黑"), "day clock and dusk progress are visible at %dx%d" % [size.x, size.y])
+		var design := Rect2(Vector2.ZERO, Vector2(1440, 900))
+		record(game.cards.all(func(card): return design.encloses(card.get_global_rect())), "complete roster cards fit at %dx%d" % [size.x, size.y])
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png(output.path_join("shelter_%dx%d.png" % [size.x, size.y]))
+		game.open_station("heal")
+		record(design.encloses(game.assign_button.get_global_rect()) and game.assign_button.text.contains(game.survivors[game.selected_id].display_name), "named treatment confirmation fits at %dx%d" % [size.x, size.y])
+		game.context_open = false
+		game._refresh_hud()
 		game.center.open(7)
 		for frame in range(3): await get_tree().process_frame
 		var bounds := Rect2(Vector2(game.center.position), Vector2(game.center.size))

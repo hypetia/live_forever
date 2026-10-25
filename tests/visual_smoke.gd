@@ -51,14 +51,15 @@ func _run() -> void:
 	scene.set_process(false)
 	await process_frame
 	await process_frame
-	await click_at(Vector2(450, 820))
+	await click_at(scene.cards[1].get_global_rect().get_center())
 	check(scene.selected_id == 1, "avatar card selects the second survivor")
-	await click_at(Vector2(330, 390))
+	await click_at(scene.survivors[0].global_position + Vector2(0, -42))
 	check(scene.selected_id == 0, "clicking a scene character selects that survivor")
-	await click_at(Vector2(450, 820))
-	await click_at(Vector2(500, 590))
+	await click_at(scene.cards[1].get_global_rect().get_center())
+	await click_at(scene.facility.global_position + Vector2(0, -40))
+	await click_at(scene.assign_button.get_global_rect().get_center())
 	check(scene.survivors[1].orders.size() == 1, "scene workbench receives a mouse click")
-	await click_at(Vector2(1230, 610))
+	await click_at(scene.assign_button.get_global_rect().get_center())
 	check(scene.survivors[1].orders.size() == 2, "action button appends a task")
 	await keypress(KEY_SPACE)
 	check(scene.paused, "Space pauses after clicking a GUI button")
@@ -66,7 +67,7 @@ func _run() -> void:
 	check(not scene.paused, "Space resumes")
 	await keypress(KEY_3)
 	check(scene.selected_id == 2, "keyboard selection is dispatched")
-	await click_at(Vector2(1230, 661))
+	await keypress(KEY_Q)
 	await keypress(KEY_E)
 	check(scene.survivors[2].orders.size() == 1, "keyboard assignment works")
 	await keypress(KEY_Q)
@@ -74,18 +75,20 @@ func _run() -> void:
 	for actor in scene.survivors:
 		scene.scheduler.cancel(actor)
 	await keypress(KEY_1)
-	await click_at(Vector2(945, 390))
+	await keypress(KEY_ESCAPE)
+	await click_at(scene.stove.global_position + Vector2(0, -40))
+	await click_at(scene.assign_button.get_global_rect().get_center())
 	check(scene.selected_task == "cook" and scene.survivors[0].orders == ["cook"], "clicking stove selects cooking and assigns it")
 	check("生食×1" in scene.recipe_label.text and "熟食×2" in scene.recipe_label.text, "recipe UI shows the real cost and output")
 	for tick_index in range(5 * 60):
 		scene.advance_simulation(1.0 / 60)
 	scene._refresh_hud()
 	check(scene.inventory.amount("fuel") == 2 and "生食3" in scene.stock_label.text, "visible stock reflects the cooking debit")
-	await click_at(Vector2(1230, 661))
+	await keypress(KEY_Q)
 	check(scene.inventory.amount("fuel") == 3 and scene.inventory.amount("meals") == 0, "GUI cancellation refunds active cooking without output")
 	await keypress(KEY_F)
-	await click_at(Vector2(1170, 407))
-	await click_at(Vector2(1230, 610))
+	await click_at(scene.facility.global_position + Vector2(0, -40))
+	await click_at(scene.assign_button.get_global_rect().get_center())
 	check(scene.survivors[0].orders == ["cook", "repair"] and "做饭 → 修整" in scene.queue_label.text, "tabs and assignment show the mixed queue in order")
 	for actor in scene.survivors:
 		scene.scheduler.cancel(actor)
@@ -109,14 +112,16 @@ func _run() -> void:
 		scene.scheduler.cancel(actor)
 	await keypress(KEY_2)
 	scene.survivors[1].hunger = 88
-	await click_at(Vector2(500, 390))
+	await click_at(scene.dining_table.global_position + Vector2(0, -40))
+	await click_at(scene.assign_button.get_global_rect().get_center())
 	check(scene.selected_task == "eat" and scene.survivors[1].orders == ["eat"], "scene dining table assigns eating")
 	for tick_index in range(8 * 60): scene.advance_simulation(1.0 / 60)
 	scene._refresh_hud()
 	check(scene.inventory.amount("meals") == 1 and scene.survivors[1].hunger < 40, "eating consumes actual cooked food and restores hunger")
 	await keypress(KEY_1)
 	scene.survivors[0].fatigue = 90
-	await click_at(Vector2(385, 400))
+	await click_at(scene.bed.global_position + Vector2(45, -30))
+	await click_at(scene.assign_button.get_global_rect().get_center())
 	check(scene.selected_task == "sleep" and scene.survivors[0].orders == ["sleep"], "scene bed assigns rest")
 	for tick_index in range(8 * 60): scene.advance_simulation(1.0 / 60)
 	check(scene.survivors[0].fatigue < 90, "bed rest actually lowers fatigue")
@@ -131,7 +136,7 @@ func _run() -> void:
 	for tick_index in range(11 * 60): scene.advance_simulation(1.0 / 60)
 	check(scene.inventory.amount("tools") == 1 and scene.inventory.amount("materials") == materials_before_craft - 2, "craft action creates a real tool from materials")
 	scene._refresh_hud()
-	check(scene.task_tabs.size() == 6 and scene.task_tabs["cook"].position.y + scene.task_tabs["cook"].size.y < scene.task_tabs["sleep"].position.y, "all six task buttons fit without overlap")
+	check(scene.task_tabs.size() == 6 and scene.task_tabs["repair"].visible and scene.task_tabs["craft"].visible and not scene.task_tabs["cook"].visible, "only actions belonging to the selected physical facility are shown")
 	# UI persistence uses an isolated test slot, never a player's default save.
 	var save_path := ProjectSettings.globalize_path("user://visual_smoke_%d_%d.json" % [OS.get_process_id(), Time.get_ticks_usec()])
 	scene.save_store.path = save_path
@@ -145,7 +150,9 @@ func _run() -> void:
 	await process_frame
 	check(scene.paused and scene.survivors[0].hunger < 99 and not scene.load_dialog.visible, "confirm load restores saved state and remains paused")
 	var preserved := SaveSystem.capture(scene)
-	await click_at(Vector2(1015, 92))
+	await keypress(KEY_ESCAPE)
+	await keypress(KEY_ESCAPE)
+	await click_at(Vector2(scene.center.position) + scene.center.new_button.get_global_rect().get_center())
 	check(scene.new_dialog.visible, "new game button requires confirmation")
 	scene.new_dialog.get_cancel_button().pressed.emit()
 	await process_frame
@@ -170,7 +177,8 @@ func _run() -> void:
 	scene.assign_task("craft")
 	for tick_index in range(13.5 * 60): scene.advance_simulation(1.0 / 60)
 	scene.select_survivor(0)
-	scene.select_task("eat")
+	scene.selected_task = "eat"
+	scene.context_open = false
 	scene._refresh_hud()
 	scene.queue_redraw()
 	check(scene.dining_table.occupant_id == 0 and scene.bed.occupant_id == 1 and scene.facility.occupant_id == 2, "fresh-run frame shows eating, sleeping and crafting simultaneously")
@@ -180,7 +188,7 @@ func _run() -> void:
 	var frame := root.get_texture().get_image()
 	var target := "res://docs/shelter-preview.png"
 	check(frame.save_png(target) == OK, "rendered scene saved to docs/shelter-preview.png")
-	var day_pixel := frame.get_pixel(130, 350)
+	var day_pixel := frame.get_pixel(180, 350)
 	# Actually advance the same run into night; do not just change its clock.
 	for tick_index in range(int((301 - 13.5) * 60)): scene.advance_simulation(1.0 / 60)
 	scene.select_survivor(1)
@@ -190,7 +198,7 @@ func _run() -> void:
 	await process_frame
 	await RenderingServer.frame_post_draw
 	var night_frame := root.get_texture().get_image()
-	check(night_frame.get_pixel(130, 350).get_luminance() < day_pixel.get_luminance(), "night visibly dims the shelter background")
+	check(night_frame.get_pixel(180, 350).get_luminance() < day_pixel.get_luminance(), "night visibly dims the shelter background")
 	check(night_frame.save_png("res://docs/night-preview.png") == OK, "actual night frame is saved")
 	print("VISUAL RESULT: %d checks, %d failures" % [checks, failures])
 	scene.free()

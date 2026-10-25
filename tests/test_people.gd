@@ -221,7 +221,7 @@ func test_dynamic_roster_restore_and_new_game() -> void:
 		b.select_survivor(4)
 		b.start_new_game()
 		expect(b.survivors.size() == 3 and b.cards.size() == 3 and b.people.bonds.size() == 3 and b.selected_id == 0, "new run resets dynamic party state and selection")
-		expect(b.get_children().filter(func(n): return n is Survivor).size() == 3, "removed recruits leave no ghost actor nodes")
+		expect(b.world_root.get_children().filter(func(n): return n is Survivor).size() == 3, "removed recruits leave no ghost actor nodes")
 	a.free()
 	b.free()
 

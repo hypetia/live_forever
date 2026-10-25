@@ -42,6 +42,7 @@ def main():
         return process.stdout
 
     run('import', ['--headless', '--path', str(project), '--editor', '--import', '--quit'])
+    run('font', ['--headless', '--path', str(project), '--script', 'res://tests/test_font.gd'], 'PASS font:')
     logical = 0
     for name, checks, cases in [('shelter', 41, 8), ('cooking', 57, 10), ('survival', 54, 12),
                                ('saves', 74, 12), ('expedition', 76, 17), ('expedition_saves', 88, 12),
@@ -66,7 +67,7 @@ def main():
                 f'res://tests/{name}.gd', '--', phase, str(slot)], 'PASS:')
     graphical = 0
     if args.graphics:
-        for name, count in [('visual_smoke', 36), ('visual_expedition', 36), ('visual_long_term', 24), ('visual_people', 22), ('visual_story', 17), ('visual_goals', 24)]:
+        for name, count in [('visual_smoke', 36), ('visual_expedition', 36), ('visual_long_term', 24), ('visual_people', 22), ('visual_story', 17), ('visual_goals', 24), ('visual_presentation', 45)]:
             run(name, ['--path', str(project), '--resolution', '1440x900', '--audio-driver', 'Dummy',
                 '--script', f'res://tests/{name}.gd'], f'{count} checks, 0 failures')
             graphical += count

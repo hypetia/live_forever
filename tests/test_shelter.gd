@@ -55,7 +55,7 @@ func test_scene_and_selection() -> void:
 	scene._unhandled_key_input(event)
 	expect(scene.selected_id == 1, "keyboard 2 selects the second survivor")
 	scene.facility.clicked.emit()
-	expect(scene.survivors[1].orders.size() == 1, "workstation click orders the selected survivor")
+	expect(scene.context_open and scene.survivors[1].orders.is_empty(), "workstation click opens action details before committing resources")
 	scene.free()
 	print("PASS scenario: selection and facility input")
 

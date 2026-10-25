@@ -6,7 +6,7 @@ v0.7增加`StoryCatalog`与`StorySystem`，分别定义八章内容／六项引�
 
 ## 玩家操作对应什么
 
-点击“林舟”，再点击工作台，程序没有把人瞬间挪过去。它先创建一个 `repair` 任务，再算出“楼梯上端 → 楼梯下端 → 工作台”的路点，角色逐段行走，到达且轮到自己时才开始工作。任务完成后释放工作台，通知界面显示结果。
+点击“林舟”，再点击工作台打开该设施的行动抽屉，确认修整后，程序没有把人瞬间挪过去。它先创建一个 `repair` 任务，再算出“楼梯上端 → 楼梯下端 → 工作台”的路点，角色逐段行走，到达且轮到自己时才开始工作。任务完成后释放工作台，通知界面显示结果。
 
 现在有六种任务：修整、做饭、吃饭、睡觉、制作工具和治疗，使用四处设施。它们复用同一套移动 / 排队 / 占用机制；有材料的任务统一开工扣料，完成后按定义产出或恢复状态。吃饭与治疗共用餐桌，分别排队。
 
@@ -18,10 +18,10 @@ v0.7增加`StoryCatalog`与`StorySystem`，分别定义八章内容／六项引�
 
 ```text
 Shelter (Node2D, shelter.gd)
-├── Workstation 工作台 (Node2D, workstation.gd)
-├── Workstation 灶台 (同一个脚本，不同配置)
-├── Workstation 餐桌 / 床位 (同一个脚本，不同配置)
-├── Survivor × 3起始 / 最多6条身份记录 (Node2D, survivor.gd)
+├── WorldRoot (Node2D，呈现缩放与偏移，保持原有存档坐标)
+│   ├── Workstation 工作台 / 灶台 / 餐桌 / 床位
+│   ├── Workstation 水桶 / 门口（直接交互，不参与工作占用）
+│   └── Survivor × 3起始 / 最多6条身份记录 (Node2D, survivor.gd)
 ├── ExpeditionView (Node2D, expedition_view.gd)
 │   └── CanvasLayer 探索 HUD
 ├── CommandCenter (AcceptDialog, 街区 / 据点 / 记录 / 指南 / 设置 / 人物 / 故事)
@@ -29,7 +29,8 @@ Shelter (Node2D, shelter.gd)
 ├── CanvasLayer
     └── Control
         ├── 角色卡片 × 实际身份数
-        ├── 暂停、速度、派工和存读档按钮
+        ├── 时钟、昼夜进度、暂停、速度与菜单
+        ├── 按需行动抽屉（设施费用、对象、确认、队列）
         └── 状态、进度、队列与记录
 └── ConfirmationDialog 出发准备 / 读档 / 新游戏 / 保存失败退出
 ```

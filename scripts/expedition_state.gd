@@ -6,6 +6,7 @@ extends RefCounted
 signal event_reported(message: String)
 signal returned(survivor_id: int, cargo: Dictionary, survived: bool)
 signal site_searched(index: int)
+signal combat_resolved(kind: String, point: Vector2, damage: int)
 
 const CAPACITY := 10
 const WIDTH := 2600.0
@@ -259,7 +260,7 @@ func attack(actor: Survivor) -> bool:
 	attack_cooldown = 1.1
 	attack_windup = 0.2
 	noise_burst = 100
-	feedback = "挥击有前摇；无工具时只能推开，有工具可消耗一件击倒。"
+	feedback = "准备工具挥击 · 有效距离75，前摇0.2秒。" if bag["tools"] > 0 else "准备徒手推搡 · 只推开，不扣敌人生命。"
 	return true
 
 
@@ -272,26 +273,34 @@ func _resolve_attack(actor: Survivor) -> void:
 			target = enemy
 			closest = distance
 	if target.is_empty():
+		feedback = "挥空：前方75范围内没有同层敌人。工具未消耗。"
+		combat_resolved.emit("miss", Vector2(player_x + facing * 55, player_y - 50), 0)
+		event_reported.emit(feedback)
 		return
 	if bag["tools"] > 0:
 		bag["tools"] -= 1
+		var damage: int = target["hp"]
 		target["hp"] = 0
+		combat_resolved.emit("hit", Vector2(target["x"], FLOOR_Y[int(target["floor"])] - 50), damage)
 		target["mode"] = "dead"
 		target["suspicion"] = 0.0
 		target["timer"] = 0.0
 		target["cooldown"] = 0.0
 		target["brace"] = 0.0
-		feedback = "消耗一件工具，击倒近处的感染者。动静可能引来其他敌人。"
+		feedback = "命中 −40！消耗工具1，感染者已击倒。动静可能引来其他敌人。"
 	else:
 		if target["brace"] > 0:
-			feedback = "感染者正在稳住身形，暂时无法再次推开；拉开距离或使用工具。"
+			feedback = "推搡被挡：感染者正在稳身，不扣生命；拉开距离或使用工具。"
+			combat_resolved.emit("blocked", Vector2(target["x"], player_y - 50), 0)
+			event_reported.emit(feedback)
 			return
 		actor.fatigue = minf(100, actor.fatigue + 2.8)
 		target["brace"] = 3.6
 		target["mode"] = "stunned"
 		target["timer"] = 1.6
 		target["x"] = clampf(float(target["x"]) + facing * 42, 90 if floor_level == 0 else upper_left(), right_edge(floor_level))
-		feedback = "暂时推开感染者！趁它失衡拉开距离。"
+		feedback = "推开成功 · 不造成伤害！趁失衡后退，敌人生命仍为%d。" % target["hp"]
+		combat_resolved.emit("push", Vector2(target["x"], player_y - 50), 0)
 	_reset_search()
 	event_reported.emit(feedback)
 

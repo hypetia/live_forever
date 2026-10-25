@@ -93,7 +93,7 @@ def main():
             pending = children(root)
             while pending:
                 window = pending.pop()
-                if 'Live Forever' in title(window) and 'v0.8' in title(window):
+                if 'Live Forever' in title(window) and 'v0.9' in title(window):
                     if expected_pid is None or owner_pid(window) == expected_pid:
                         return window
                 pending.extend(children(window))
@@ -180,9 +180,19 @@ def main():
     assert not find_ready_window(), 'Use a dedicated empty X display'
     process, window, log = launch('first.log')
     try:
-        press('3')
-        initial = save()
-        assert initial['selected_id'] == 2
+        # A title can appear before the first interactive frame on a busy
+        # software renderer. Require an actual F6 response, not a fixed delay.
+        initial = None
+        deadline = time.monotonic() + 20
+        while time.monotonic() < deadline:
+            press('3')
+            press('F6')
+            files = list((profile / 'data').glob('godot/app_userdata/*/shelter_v1.json'))
+            if files:
+                initial = state()
+                if initial['selected_id'] == 2:
+                    break
+        assert initial is not None and initial['selected_id'] == 2, 'No real selection/save response after startup'
         assert [actor['person']['persona'] for actor in initial['actors']] == ['lin', 'xu', 'chen']
         press('v')
         press('Return')

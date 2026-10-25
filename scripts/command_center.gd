@@ -3,6 +3,8 @@ extends AcceptDialog
 ## Pause menu with real destination choices, upkeep, event decisions and guide.
 
 var game: Node2D
+var new_button: Button
+var load_button: Button
 var tabs: TabContainer
 var map_labels: Dictionary = {}
 var map_buttons: Dictionary = {}
@@ -76,9 +78,9 @@ func _ready() -> void:
 	records = _text(history, "", 16)
 	var help := _page("操作指南")
 	_text(help, "第一次游玩", 23)
-	_text(help, "1. 给留守者排好任务：F做饭 → G吃饭 → H睡觉。没有熟食时也能预排。\n2. 按3选陈野，再按V选地点；初次建议河湾旧街。装备可选。\n3. A/D移动，Ctrl潜行，Shift奔跑；靠近箱柜按住E搜索。\n4. 看敌人朝向和警觉；J有前摇，有工具时消耗一件击倒，徒手只推开。\n5. 带着物资走回最左侧入口按T，才能带回基地。\n6. 归来会暂停，检查伤势 / 感染，必要时R安排治疗，再继续。", 16)
+	_text(help, "1. 给留守者排好任务：F做饭 → G吃饭 → H睡觉。没有熟食时也能预排。\n2. 按3选陈野，再按V选地点；初次建议河湾旧街。装备可选。\n3. A/D移动，Ctrl潜行，Shift奔跑；靠近箱柜按住E搜索。\n4. 看敌人朝向和警觉；J有前摇，有工具时消耗一件击倒，徒手只推开。\n5. 带着物资走回最左侧入口按T，才能带回基地。\n6. 归来会暂停，检查伤势 / 感染，必要时R让归来者给自己用药（医护帮别人请在P页选择双方），再继续。", 16)
 	_text(help, "完整操作", 23)
-	_text(help, "基地：1/2/3或头像选人；E追加所选任务；F做饭、G吃饭、H睡觉、C制工具、R治疗、Q取消、V出发、M街区手册、P人物。\n外出：A/D或方向键移动，W/S上下梯，E按住搜索，J挥击、R急救、B用背包水、T入口撤退；点击背包丢弃一份，无法拾回。\n通用：空格暂停、F6保存、F9确认读档、F1指南、Esc菜单。外出固定1x。\n背包10格，每份资源和携带装备各占一格；未拿走的东西留在箱中。每日仅两处补给轮换，活动中不刷新。\n死亡永久丢失该成员与背包；没有固定天数结局，里程碑后仍可继续。", 15)
+	_text(help, "基地：1–6或底部人物卡选人；点击场景设施展开行动，E确认；右键地面移动（取消此人任务并退料）；F做饭、G吃饭、H睡觉、C制工具、R让选中者自行用药、Q取消、V出发、M街区手册、P人物。\n外出：A/D或方向键移动，W/S上下梯，E按住搜索，J挥击（命中/挥空会在现场显示）、I展开背包、R急救、B用背包水、T入口撤退；按I展开背包后点击资源丢弃一份，无法拾回。\n通用：空格暂停、F6保存、F9确认读档、F1指南、Esc菜单。外出固定1x。\n背包10格，每份资源和携带装备各占一格；未拿走的东西留在箱中。每日仅两处补给轮换，活动中不刷新。\n死亡永久丢失该成员与背包；没有固定天数结局，里程碑后仍可继续。", 15)
 	_text(help, "人物与长期生存", 23)
 	_text(help, "P查看人物、工艺 / 照护 / 探索成长，每项最多3级，加速最多15%。\n可逐人授权自动饮水、做饭、吃饭和睡觉，默认关闭；药品与工具仍由你安排。口渴80起降效、95起伤生命。\n医护可以消耗药品援助队友，共餐安慰消耗熟食；两种行动都有每人180秒冷却。\n第3、6、9天有不同来访者，需要一级据点、生食2、水2、药品1，最多五人存活在队；不会复活旧成员。\n超额食物每清晨按明确比例损耗，升级只提高有限保鲜容量，不会生产物资。\n徒手推搡消耗疲劳；敌人被推后会短暂稳身，不能连续压制，留意扑咬前摇并后退。", 15)
 	var settings := _page("设置 / 退出")
@@ -95,7 +97,9 @@ func _ready() -> void:
 	volume_slider.value_changed.connect(func(value: float): game.game_audio.volume = value; game.game_audio.apply_preferences())
 	settings.add_child(volume_slider)
 	fullscreen_check = _check(settings, "全屏显示", game.game_audio.fullscreen, _set_fullscreen)
-	_action(settings, "保存当前进度", func(): game.save_game())
+	_action(settings, "保存当前进度 F6", func(): game.save_game())
+	load_button = _action(settings, "读取最近存档 F9", func(): close(); game.request_load())
+	new_button = _action(settings, "开始新的一局", func(): close(); game.request_new_game())
 	_action(settings, "保存并退出游戏", _exit_game)
 	_text(settings, "本地自动保存与备份；读档后暂停，无离线消耗。新游戏按钮会另外要求确认。", 14)
 	_create_people_page()
@@ -273,7 +277,7 @@ func _create_people_page() -> void:
 	aid_row.add_theme_constant_override("separation", 12)
 	left.add_child(aid_row)
 	support_button = _action(aid_row, "共餐 · 熟食1", _support)
-	aid_button = _action(aid_row, "援助 · 药品1", _aid)
+	aid_button = _action(aid_row, "治疗所选同伴 · 药品1", _aid)
 	for button in [support_button, aid_button]: button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	support_button.tooltip_text = "共餐安慰：心境+10、压力−20、信任+10；每人180秒冷却，不代替日常进食。"
 	aid_button.tooltip_text = "由当前医护援助所选同伴：生命+20至26、伤势−40、感染−35。消耗药品1，每人180秒冷却。"
@@ -340,6 +344,9 @@ func _refresh_support() -> void:
 		var patient: Survivor = game.survivors[int(support_picker.get_item_metadata(support_picker.selected))]
 		aid_disabled = (patient.health >= 100 and patient.injury <= 0 and patient.infection <= 0) or game.simulation_time - actor.person.last_aid < 180 or game.simulation_time - patient.person.last_aid < 180
 	aid_button.disabled = aid_disabled
+	aid_button.text = "%s → %s · 药品1" % [actor.display_name, game.survivors[int(support_picker.get_item_metadata(support_picker.selected))].display_name] if support_picker.item_count > 0 else "没有可治疗的同伴"
+	aid_button.tooltip_text = "施治者：%s（需要医护）。接受治疗者：下拉框中的同伴。即时消耗药品1，生命+20至26、伤势−40、感染−35；双方180秒冷却。" % actor.display_name
+	support_picker.tooltip_text = "选择接受共餐安慰或医疗援助的同伴。上方当前角色是行动发起者。"
 	support_picker.disabled = game.expedition.active or support_picker.item_count == 0
 
 

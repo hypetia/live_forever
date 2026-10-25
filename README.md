@@ -1,21 +1,21 @@
-# Live Forever · 留一盏灯 v0.8
+# Live Forever · 留一盏灯 v0.9
 
 原创横版末日生存游戏。从三位幸存者开始，管理最多五人的小队，在庇护所做饭、休息、治疗和修缮，再亲自进入街区搜刮。补给有限，感染者会巡逻、听声调查与追击；必须带着物资走回入口，才能交给留守的人。没有固定天数结局。
 
 ## 从 GitHub 下载并开始
 
-**[下载 Windows 游戏运行包](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.8.0/live_forever_v08_windows_x64.zip)** · **[下载 v0.8 完整源码](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.8.0/live_forever_shelter_m08.zip)**
+**[下载 Windows 游戏运行包](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.9.0/live_forever_v09_windows_x64.zip)** · **[下载 v0.9 完整源码](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.9.0/live_forever_shelter_m09.zip)**
 
-下表中的压缩包**已经上传到本仓库的 `downloads-v0.8.0` 下载分支**，点击即可从 GitHub 下载：
+下表中的压缩包**已经上传到本仓库的 `downloads-v0.9.0` 下载分支**，点击即可从 GitHub 下载：
 
 | 用途 | GitHub 下载文件 | 打开方法 |
 | --- | --- | --- |
-| Windows 正常游玩 | [live_forever_v08_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.8.0/live_forever_v08_windows_x64.zip) | 解压后双击 `LiveForever.exe`，无需 Godot |
-| Linux 正常游玩 | [live_forever_v08_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.8.0/live_forever_v08_linux_x64.zip) | 解压后运行 `LiveForever.x86_64` |
-| Windows 一键验收 | [live_forever_v08_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.8.0/live_forever_v08_windows_acceptance.zip) | 解压后运行 `windows_acceptance.cmd`，约30分钟生成结果 |
-| v0.8 完整源码 | [live_forever_shelter_m08.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.8.0/live_forever_shelter_m08.zip) | 用 Godot 4.6.3 标准版导入 `project.godot`，按 F5 |
+| Windows 正常游玩 | [live_forever_v09_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.9.0/live_forever_v09_windows_x64.zip) | 解压后双击 `LiveForever.exe`，无需 Godot |
+| Linux 正常游玩 | [live_forever_v09_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.9.0/live_forever_v09_linux_x64.zip) | 解压后运行 `LiveForever.x86_64` |
+| Windows 一键验收 | [live_forever_v09_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.9.0/live_forever_v09_windows_acceptance.zip) | 解压后运行 `windows_acceptance.cmd`，约30分钟生成结果 |
+| v0.9 完整源码 | [live_forever_shelter_m09.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.9.0/live_forever_shelter_m09.zip) | 用 Godot 4.6.3 标准版导入 `project.godot`，按 F5 |
 
-[查看全部下载文件](https://github.com/hypetia/live_forever/tree/downloads-v0.8.0) · [下载 SHA-256 校验文件](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.8.0/v0.8.0-SHA256SUMS.txt)
+[查看全部下载文件](https://github.com/hypetia/live_forever/tree/downloads-v0.9.0) · [下载 SHA-256 校验文件](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.9.0/v0.9.0-SHA256SUMS.txt)
 
 版本运行包保存在独立下载分支，`main` 保留源码工程。当前环境的 GitHub Releases 接口返回 `Forbidden`，因此本次使用仓库下载分支托管文件，尚未建立本次 GitHub Release；上表链接已经指向实际上传的 ZIP。
 
@@ -33,7 +33,17 @@
 git clone --single-branch --branch main https://github.com/hypetia/live_forever.git
 ```
 
-![实际运行：北堤机修厂](docs/works-preview.png)
+## v0.9 试玩反馈修整
+
+避难所改为场景操作：选人后点击床、餐桌、灶台或工作台，按需展开该设施的行动并确认；右键地面可走动，跨楼层走楼梯。点击水桶给选中者饮水，点击门口准备外出。背包按I展开，画面以人物与场景为主。
+
+治疗按钮直接写明“让某人接受治疗”：R是选中者自行用药；P页医护援助则显示“施治者 → 接受者”。敌人红条是生命、金条是警觉，攻击显示前摇、命中伤害／推开0伤害／挥空／被挡及倒地反馈。白天和夜间都持续显示时间、全天进度及距天黑／日出的现实倒计时，支持暂停和倍速。
+
+![v0.9 实际运行：避难所内进食、休息和制作](docs/shelter-preview.png)
+
+[本轮改动与验证范围](docs/EXPERIENCE_V09.md) · [正常行走后与首个巡逻敌人的推搡](docs/m09-combat-preview.png)
+
+这轮解决场景操作与信息反馈；整体内容和玩法深度仍未达到《这是我的战争》的成熟度。人物美术仍为原创几何占位，工具仍为命中消耗一件的简化规则，没有加入枪械、耐久装备或完整剧情战役。
 
 [长期目标](docs/goals-preview.png) · [受击反馈](docs/combat-feedback.png) · [正常游玩说明](docs/PLAYING.md) · [同伴故事](docs/story-preview.png) · [新手引导](docs/guide-preview.png) · [30／60天压力报告](docs/ENDURANCE_REPORT.md) · [人物档案](docs/people-preview.png) · [扩充队伍](docs/crew-preview.png) · [14天平衡报告](docs/BALANCE_REPORT.md) · [三处地点](docs/locations-preview.png) · [据点与升级](docs/upkeep-preview.png) · [旧街探索](docs/expedition-preview.png) · [基地](docs/shelter-preview.png) · [独立运行包实测](docs/native-release-preview.png)
 
@@ -41,14 +51,14 @@ git clone --single-branch --branch main https://github.com/hypetia/live_forever.
 
 从上方“从 GitHub 下载并开始”表格选择对应平台。独立运行包已上传到下载分支，下载后无需安装 Godot：
 
-- **Windows 64位：** 解压 `live_forever_v08_windows_x64.zip`，双击 `LiveForever.exe`。
-- **Linux x86_64：** 解压 `live_forever_v08_linux_x64.zip`，运行 `LiveForever.x86_64`。若解压工具没有保留权限，先执行 `chmod +x LiveForever.x86_64`。
+- **Windows 64位：** 解压 `live_forever_v09_windows_x64.zip`，双击 `LiveForever.exe`。
+- **Linux x86_64：** 解压 `live_forever_v09_linux_x64.zip`，运行 `LiveForever.x86_64`。若解压工具没有保留权限，先执行 `chmod +x LiveForever.x86_64`。
 
 源码工程按照上方“只下载最新源码”的步骤打开。普通游戏不需要账号、.NET、收费插件、联网服务或在线 AI。
 
 Linux 已实际导入、运行与交互验证。Windows 使用匹配的官方 4.6.3 模板导出，**尚未在 Windows 真机运行验证**。软件没有自动更新、在线遥测或云存档。另有Windows一键验收包，运行方式、真实结果与人工检查见[Windows验收说明](docs/WINDOWS_ACCEPTANCE.md)；普通游戏不包含自动验收控制。
 
-有存档会自动恢复并保持暂停；先检查状态，再按空格继续。v0.3 / v0.4 / v0.5 / v0.6 / v0.7 的旧进度会迁移，不要求重开。
+有存档会自动恢复并保持暂停；先检查状态，再按空格继续。v0.3 / v0.4 / v0.5 / v0.6 / v0.7 / v0.8 的旧进度会迁移，不要求重开。
 
 ## 第一次往返
 
@@ -56,7 +66,7 @@ Linux 已实际导入、运行与交互验证。Windows 使用匹配的官方 4.
 2. 按 **3** 选陈野，再按 **V**。初次选“河湾旧街”；工具、药品可选携带，各占背包一格。
 3. **A/D** 移动，到街口箱子旁**按住 E**搜索。物资先留在背包，不会远程进入基地。
 4. 走回最左侧入口，按 **T** 撤退。第一趟可以少拿一些，先熟悉路线。
-5. 归来暂停，检查伤势 / 感染，安排吃饭、睡觉或 **R** 治疗。按 **M** 查看地图、据点和事件，**F1** 打开游戏内完整指南。
+5. 归来暂停，检查伤势 / 感染，安排吃饭、睡觉或 **R** 让选中者自行用药。按 **M** 查看地图、据点和事件，**F1** 打开游戏内完整指南。
 
 按 **N** 打开六项新手目标：认识队伍、进食、饮水、休息、带回补给、维护据点。目标由实际行动记录，顺序不限，可隐藏提示；完成后仍可重看。
 
@@ -89,18 +99,18 @@ Linux 已实际导入、运行与交互验证。Windows 使用匹配的官方 4.
 | 操作 | 基地 | 外出 |
 | --- | --- | --- |
 | 选人 | 点击人物 / 头像，1—6 / Tab（含已故记录） | 固定控制出发者 |
-| 移动 | 派工后自动沿路行走 | A/D 或 ←/→ |
+| 移动 | 右键地面行走；派工后沿路走到设施 | A/D 或 ←/→ |
 | 潜行 / 奔跑 | — | 按住 Ctrl / Shift |
 | 攀梯 | 自动经过楼梯 | 梯子旁 W/S 或 ↑/↓ |
-| E | 追加所选任务 | 按住搜索；也可按住搜索按钮 |
+| E | 确认设施行动，追加所选者任务 | 按住搜索；也可按住搜索按钮 |
 | F / G / H / C | 做饭 / 吃饭 / 睡觉 / 制工具 | — |
-| R | 安排治疗 | 消耗背包药品急救，3秒冷却 |
+| R | 选中者给自己用药；医护帮别人请用P页 | 消耗背包药品急救，3秒冷却 |
 | J | — | 挥击：工具击倒，徒手推开；会消耗疲劳 |
-| B | P人物页可饮水 | 使用背包中的水，口渴−60 |
+| B | 点击场景水桶或P人物页饮水 | 使用背包中的水，口渴−60 |
 | Q | 取消此人全部任务 | — |
 | V | 选择地点、装备并准备出发 | — |
 | T | — | 必须回到左侧入口才可撤退 |
-| 丢弃 | — | 点击背包行，丢1份，无法拾回 |
+| I / 丢弃 | — | I展开背包，再点一行丢1份；无法拾回 |
 | N | 故事、选择结果与新手目标 | 查看引导；谈话需回基地才能处理 |
 | O | 长期目标、阶段建设与互助 | 查看条件；回基地后才能支付和提交 |
 | F11 | 全屏／窗口切换 | 同样可用，设置复选框保持一致 |
@@ -109,7 +119,7 @@ Linux 已实际导入、运行与交互验证。Windows 使用匹配的官方 4.
 | 速度 | 1x / 3x | 固定1x，归来恢复原速度并暂停 |
 | F6 / F9 | 保存 / 确认读档 | 包括搜索、攀梯、战斗途中 |
 
-外出时其余留守者继续原队列及事先授权的照料，不能远程重新派工。打开准备、手册或确认窗口暂停世界；取消恢复原暂停状态。窗口右上角可打开菜单，里面提供音量、提示音、原创风声、全屏和保存退出；偏好设置独立保存，不随新游戏清除。切换到其他应用会暂停并清除持续移动／搜索输入，返回后按空格继续；画面保持比例，帧率上限60。
+外出时其余留守者继续原队列及事先授权的照料，不能远程重新派工。打开准备、手册或确认窗口暂停世界；取消恢复原暂停状态。Esc优先关闭当前行动面板／背包；再次按Esc打开菜单。窗口右上角也可打开菜单，里面提供读档、新局、音量、提示音、原创风声、全屏和保存退出；偏好设置独立保存，不随新游戏清除。切换到其他应用会暂停并清除持续移动／搜索输入，返回后按空格继续；画面保持比例，帧率上限60。
 
 ## 背包与战斗
 
@@ -191,7 +201,7 @@ python tests/run_checks.py
 python tests/run_checks.py --graphics
 ```
 
-运行器复制到干净临时目录和独立用户目录，执行十二套逻辑检查（含14天对照、三人30天、五人60天与逆境恢复）、主场景启动和17个持久化进程，不改玩家存档。也可直接执行单套：
+运行器复制到干净临时目录和独立用户目录，先验证自带中文字体，再执行十二套逻辑检查（含14天对照、三人30天、五人60天与逆境恢复）、主场景启动和17个持久化进程，不改玩家存档。加上`--graphics`执行204项真实图形交互检查（含45项本轮新增）；实际平台与连续运行时长见[本轮验证](docs/EXPERIENCE_V09.md)。也可直接执行单套：
 
 ```sh
 godot --headless --editor --import --quit

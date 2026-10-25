@@ -4,3 +4,4 @@ builds/
 __pycache__/
 docs/*.translation
 docs/*.csv.import
+docs/*.png.import

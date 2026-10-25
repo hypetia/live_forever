@@ -62,7 +62,7 @@ func _run() -> void:
 	scene.prep_dialog.get_cancel_button().pressed.emit()
 	await process_frame
 	check(not scene.expedition.active and not scene.paused and scene.inventory.snapshot() == stock, "cancel departure consumes no equipment and resumes prior state")
-	await click_at(Vector2(150, 241))
+	await click_at(Vector2(1300, 171))
 	check(scene.prep_dialog.visible, "departure button opens the same preparation flow")
 	scene.prep_dialog.get_ok_button().pressed.emit()
 	await process_frame
@@ -99,9 +99,9 @@ func _run() -> void:
 	scene.survivors[0].infection = 15
 	await keypress(KEY_R)
 	check(scene.survivors[0].health == 95 and scene.survivors[0].infection == 0 and scene.expedition.bag["medicine"] == 0, "R consumes carried medicine and treats actual injury")
-	await held_mouse(Vector2(1230, 630), true)
+	await held_mouse(scene.expedition_view.search_button.get_global_rect().get_center(), true)
 	simulate(scene, 1.2)
-	await held_mouse(Vector2(1230, 630), false)
+	await held_mouse(scene.expedition_view.search_button.get_global_rect().get_center(), false)
 	check(scene.expedition.bag["raw_food"] == 2 and not scene.expedition_view.search_held, "holding and releasing search button works like held E")
 	await keypress(KEY_F9)
 	check(scene.load_dialog.visible and scene.paused, "F9 requests safe restore during expedition")
