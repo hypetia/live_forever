@@ -2,18 +2,44 @@
 
 原创横版末日生存游戏。从三位幸存者开始，管理最多五人的小队，在庇护所做饭、休息、治疗和修缮，再亲自进入街区搜刮。补给有限，感染者会巡逻、听声调查与追击；必须带着物资走回入口，才能交给留守的人。没有固定天数结局。
 
+## 源码下载入口
+
+**[点击下载 v0.8 完整源码 ZIP](https://github.com/hypetia/live_forever/archive/4ef44ccf25fcea6ebfe80242be8c7ced2f72e1d2.zip)** · **[下载 main 分支最新源码 ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)**
+
+源码已经提交到本仓库的 **main 分支**，包含 `project.godot`、`scripts/`、`scenes/`、`assets/`、`docs/`、`tests/` 和 `tools/`。上面的 v0.8 链接固定到提交 [`4ef44cc`](https://github.com/hypetia/live_forever/commit/4ef44ccf25fcea6ebfe80242be8c7ced2f72e1d2)，最新源码链接则包含后续文档与代码更新。
+
+也可以在 GitHub 页面操作：
+
+1. 回到[仓库首页](https://github.com/hypetia/live_forever)，确认分支为 **main**。
+2. 点击文件列表上方的绿色 **Code** 按钮，再点击 **Download ZIP**。
+3. 解压下载的 ZIP，找到根目录的 `project.godot`。
+4. 用 **Godot 4.6.3 标准版**导入该文件，等待资源导入后按 **F5** 开始游戏。
+
+GitHub 会按提交或分支自动生成源码 ZIP；下载最新分支时文件名通常为 `live_forever-main.zip`。仓库文件列表展示的是解压后的工程内容，聊天中提供的 `live_forever_shelter_m08.zip` 没有作为同名文件放进仓库。
+
+## 源码与运行包的区别
+
+| 你需要什么 | GitHub 上的下载状态 | 如何运行 |
+| --- | --- | --- |
+| v0.8 固定版本源码 | [直接下载源码 ZIP](https://github.com/hypetia/live_forever/archive/4ef44ccf25fcea6ebfe80242be8c7ced2f72e1d2.zip) | 用 Godot 4.6.3 导入 `project.godot`，按 F5 |
+| main 最新源码 | [直接下载最新源码 ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)，也可用 Code → Download ZIP | 同上 |
+| Windows / Linux 独立运行包 | 本次开发已在聊天附件交付，**尚未上传到 GitHub Releases** | Windows 解压后双击 `LiveForever.exe`；Linux 运行 `LiveForever.x86_64` |
+| Windows 一键验收包 | 已在聊天附件交付，**尚未上传到 GitHub Releases** | 解压后运行 `windows_acceptance.cmd` |
+
+**当前从 GitHub 下载的是源码工程，需要 Godot；可直接运行的 EXE 和验收 ZIP 暂由聊天附件提供。** 当前尚未创建本次 v0.8 的 GitHub Release 附件。GitHub 自动生成的源码 ZIP 不包含预编译 EXE。
+
 ![实际运行：北堤机修厂](docs/works-preview.png)
 
 [长期目标](docs/goals-preview.png) · [受击反馈](docs/combat-feedback.png) · [正常游玩说明](docs/PLAYING.md) · [同伴故事](docs/story-preview.png) · [新手引导](docs/guide-preview.png) · [30／60天压力报告](docs/ENDURANCE_REPORT.md) · [人物档案](docs/people-preview.png) · [扩充队伍](docs/crew-preview.png) · [14天平衡报告](docs/BALANCE_REPORT.md) · [三处地点](docs/locations-preview.png) · [据点与升级](docs/upkeep-preview.png) · [旧街探索](docs/expedition-preview.png) · [基地](docs/shelter-preview.png) · [独立运行包实测](docs/native-release-preview.png)
 
-## 直接开始玩
+## 独立运行包使用方法
 
-本轮另提供两个独立运行包，无需安装 Godot：
+以下是本次聊天已交付的独立运行包文件名与使用方法；这些文件目前尚未发布到 GitHub Releases。拿到运行包后无需安装 Godot：
 
 - **Windows 64位：** 解压 `live_forever_v08_windows_x64.zip`，双击 `LiveForever.exe`。
 - **Linux x86_64：** 解压 `live_forever_v08_linux_x64.zip`，运行 `LiveForever.x86_64`。若解压工具没有保留权限，先执行 `chmod +x LiveForever.x86_64`。
 
-也可打开源码工程：安装 **Godot 4.6.3 标准版**，导入根目录 `project.godot`，等待资源导入后按 **F5**。不需要账号、.NET、收费插件、联网服务或在线 AI。
+从本仓库下载的源码工程按照上方“源码下载入口”的步骤打开。普通游戏不需要账号、.NET、收费插件、联网服务或在线 AI。
 
 Linux 已实际导入、运行与交互验证。Windows 使用匹配的官方 4.6.3 模板导出，**尚未在 Windows 真机运行验证**。软件没有自动更新、在线遥测或云存档。另有Windows一键验收包，运行方式、真实结果与人工检查见[Windows验收说明](docs/WINDOWS_ACCEPTANCE.md)；普通游戏不包含自动验收控制。
 
