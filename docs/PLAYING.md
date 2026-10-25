@@ -1,5 +1,7 @@
 # 正常游戏应该怎样运行
 
+**[从GitHub下载Windows正常游玩包](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.8.0/live_forever_v08_windows_x64.zip)** · [全部下载](../downloads/README.md)
+
 普通Windows运行包解压后，双击LiveForever.exe即可；不需要Godot、Python、服务器、账号或持续联网。windows_acceptance.cmd属于单独验收工具，只有主动运行才会自动测试，普通游戏不会自动控制角色外出或替你建设。
 
 ## 第一次游玩

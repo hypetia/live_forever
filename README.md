@@ -2,31 +2,36 @@
 
 原创横版末日生存游戏。从三位幸存者开始，管理最多五人的小队，在庇护所做饭、休息、治疗和修缮，再亲自进入街区搜刮。补给有限，感染者会巡逻、听声调查与追击；必须带着物资走回入口，才能交给留守的人。没有固定天数结局。
 
-## 源码下载入口
+## 从 GitHub 下载并开始
 
-**[点击下载 v0.8 完整源码 ZIP](https://github.com/hypetia/live_forever/archive/4ef44ccf25fcea6ebfe80242be8c7ced2f72e1d2.zip)** · **[下载 main 分支最新源码 ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)**
+**[下载 Windows 游戏运行包](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.8.0/live_forever_v08_windows_x64.zip)** · **[下载 v0.8 完整源码](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.8.0/live_forever_shelter_m08.zip)**
 
-源码已经提交到本仓库的 **main 分支**，包含 `project.godot`、`scripts/`、`scenes/`、`assets/`、`docs/`、`tests/` 和 `tools/`。上面的 v0.8 链接固定到提交 [`4ef44cc`](https://github.com/hypetia/live_forever/commit/4ef44ccf25fcea6ebfe80242be8c7ced2f72e1d2)，最新源码链接则包含后续文档与代码更新。
+下表中的压缩包**已经上传到本仓库的 `downloads-v0.8.0` 下载分支**，点击即可从 GitHub 下载：
 
-也可以在 GitHub 页面操作：
-
-1. 回到[仓库首页](https://github.com/hypetia/live_forever)，确认分支为 **main**。
-2. 点击文件列表上方的绿色 **Code** 按钮，再点击 **Download ZIP**。
-3. 解压下载的 ZIP，找到根目录的 `project.godot`。
-4. 用 **Godot 4.6.3 标准版**导入该文件，等待资源导入后按 **F5** 开始游戏。
-
-GitHub 会按提交或分支自动生成源码 ZIP；下载最新分支时文件名通常为 `live_forever-main.zip`。仓库文件列表展示的是解压后的工程内容，聊天中提供的 `live_forever_shelter_m08.zip` 没有作为同名文件放进仓库。
-
-## 源码与运行包的区别
-
-| 你需要什么 | GitHub 上的下载状态 | 如何运行 |
+| 用途 | GitHub 下载文件 | 打开方法 |
 | --- | --- | --- |
-| v0.8 固定版本源码 | [直接下载源码 ZIP](https://github.com/hypetia/live_forever/archive/4ef44ccf25fcea6ebfe80242be8c7ced2f72e1d2.zip) | 用 Godot 4.6.3 导入 `project.godot`，按 F5 |
-| main 最新源码 | [直接下载最新源码 ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)，也可用 Code → Download ZIP | 同上 |
-| Windows / Linux 独立运行包 | 本次开发已在聊天附件交付，**尚未上传到 GitHub Releases** | Windows 解压后双击 `LiveForever.exe`；Linux 运行 `LiveForever.x86_64` |
-| Windows 一键验收包 | 已在聊天附件交付，**尚未上传到 GitHub Releases** | 解压后运行 `windows_acceptance.cmd` |
+| Windows 正常游玩 | [live_forever_v08_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.8.0/live_forever_v08_windows_x64.zip) | 解压后双击 `LiveForever.exe`，无需 Godot |
+| Linux 正常游玩 | [live_forever_v08_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.8.0/live_forever_v08_linux_x64.zip) | 解压后运行 `LiveForever.x86_64` |
+| Windows 一键验收 | [live_forever_v08_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.8.0/live_forever_v08_windows_acceptance.zip) | 解压后运行 `windows_acceptance.cmd`，约30分钟生成结果 |
+| v0.8 完整源码 | [live_forever_shelter_m08.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.8.0/live_forever_shelter_m08.zip) | 用 Godot 4.6.3 标准版导入 `project.godot`，按 F5 |
 
-**当前从 GitHub 下载的是源码工程，需要 Godot；可直接运行的 EXE 和验收 ZIP 暂由聊天附件提供。** 当前尚未创建本次 v0.8 的 GitHub Release 附件。GitHub 自动生成的源码 ZIP 不包含预编译 EXE。
+[查看全部下载文件](https://github.com/hypetia/live_forever/tree/downloads-v0.8.0) · [下载 SHA-256 校验文件](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v0.8.0/v0.8.0-SHA256SUMS.txt)
+
+版本运行包保存在独立下载分支，`main` 保留源码工程。当前环境的 GitHub Releases 接口返回 `Forbidden`，因此本次使用仓库下载分支托管文件，尚未建立本次 GitHub Release；上表链接已经指向实际上传的 ZIP。
+
+## 只下载最新源码
+
+**[下载 main 分支最新源码 ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)**
+
+也可以在[仓库首页](https://github.com/hypetia/live_forever)保持 **main** 分支，点击文件列表上方的绿色 **Code → Download ZIP**。这种方式下载的是源码工程；要直接运行游戏，请用上表的 Windows 或 Linux 运行包。
+
+解压源码后，用 **Godot 4.6.3 标准版**导入根目录的 `project.godot`，等待资源导入后按 **F5**。工程包含 `scripts/`、`scenes/`、`assets/`、`docs/`、`tests/` 和 `tools/`。
+
+使用 Git 只获取源码分支，可执行：
+
+```sh
+git clone --single-branch --branch main https://github.com/hypetia/live_forever.git
+```
 
 ![实际运行：北堤机修厂](docs/works-preview.png)
 
@@ -34,12 +39,12 @@ GitHub 会按提交或分支自动生成源码 ZIP；下载最新分支时文件
 
 ## 独立运行包使用方法
 
-以下是本次聊天已交付的独立运行包文件名与使用方法；这些文件目前尚未发布到 GitHub Releases。拿到运行包后无需安装 Godot：
+从上方“从 GitHub 下载并开始”表格选择对应平台。独立运行包已上传到下载分支，下载后无需安装 Godot：
 
 - **Windows 64位：** 解压 `live_forever_v08_windows_x64.zip`，双击 `LiveForever.exe`。
 - **Linux x86_64：** 解压 `live_forever_v08_linux_x64.zip`，运行 `LiveForever.x86_64`。若解压工具没有保留权限，先执行 `chmod +x LiveForever.x86_64`。
 
-从本仓库下载的源码工程按照上方“源码下载入口”的步骤打开。普通游戏不需要账号、.NET、收费插件、联网服务或在线 AI。
+源码工程按照上方“只下载最新源码”的步骤打开。普通游戏不需要账号、.NET、收费插件、联网服务或在线 AI。
 
 Linux 已实际导入、运行与交互验证。Windows 使用匹配的官方 4.6.3 模板导出，**尚未在 Windows 真机运行验证**。软件没有自动更新、在线遥测或云存档。另有Windows一键验收包，运行方式、真实结果与人工检查见[Windows验收说明](docs/WINDOWS_ACCEPTANCE.md)；普通游戏不包含自动验收控制。
 
