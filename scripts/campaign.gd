@@ -8,6 +8,7 @@ var compact: CompactHud
 var scene_art := SceneArt.new()
 var cycle := CampaignCycle.new()
 var expansion := SurvivalExpansion.new()
+var facilities := FacilitySystem.new()
 var residence := ResidenceSystem.new()
 var residence_view: ResidenceInterface
 var interface: CampaignInterface
@@ -58,9 +59,11 @@ func _ready() -> void:
 	expansion.grant("knife", "chen")
 	super._ready()
 	scheduler.external_busy = _external_busy
-	scheduler.station_reserved = func(id: String): return id == "workbench" and expansion.jobs.any(func(job): return job["kind"] != "music" and survivors[int(job["actor"])].route.is_empty() and survivors[int(job["actor"])].position.distance_to(Vector2(485, 640)) <= 10)
+	scheduler.station_reserved = func(id: String): return expansion.reserves_station(self,id)
+	scheduler.production_rate = func(id: String): return facilities.rate(id)
+	facilities.sync(self)
 	expansion.sync(self)
-	get_window().title = "Live Forever · 留一盏灯 v1.3.3"
+	get_window().title = "Live Forever · 留一盏灯 v1.4"
 	for actor in survivors: actor.metabolism = 0.4
 	for field: ExpeditionState in regions.values():
 		field.manual_loot = true
@@ -122,6 +125,14 @@ func _ready() -> void:
 
 func residence_snapshot() -> Dictionary:
 	return residence.snapshot()
+
+
+func facilities_snapshot() -> Dictionary:
+	return facilities.snapshot()
+
+
+func restore_facilities(data: Dictionary) -> void:
+	facilities.restore(data,self)
 
 
 func restore_residence(data: Dictionary) -> void:
@@ -701,6 +712,9 @@ func _refresh_hud() -> void:
 	day_bar.value = clampf((minute - 360) / 840.0 * 100, 0, 100) if cycle.phase == "day" else clampf((simulation_time - cycle.night_start) / maxf(1, cycle.night_end - cycle.night_start) * 100, 0, 100)
 	progress_bar.hide()
 	if selected_task == "heal" and actor_is_starving(): recipe_label.text = "饱腹不足：先吃饭才能恢复生命。\n用药仍可处理伤势与感染，不能代替食物。"
+	if selected_task == "repair":
+		recipe_label.text = "修缮避难所：材料1 → 结构+18\n恢复房屋耐久，不会升级工作台。"
+		task_tabs["repair"].text = "修缮避难所"
 	if is_instance_valid(interface):
 		interface.refresh()
 		_sync_props()
@@ -708,8 +722,14 @@ func _refresh_hud() -> void:
 
 
 func open_station(task_id: String) -> void:
-	if cycle.phase != "day" or game_over: return
-	if task_id in ["eat", "sleep"]:
+	if cycle.phase != "day" or game_over or center.visible: return
+	if task_id in ["repair","cook"]:
+		interface.workshop_section = "kitchen" if task_id == "cook" else "workbench"
+		context_open = false
+		if not interface.workshop_open: interface.toggle_workshop()
+		else: interface._create_workshop()
+		_refresh_hud()
+	elif task_id in ["eat","sleep"]:
 		assign_task(task_id)
 		context_open = false
 		_refresh_hud()

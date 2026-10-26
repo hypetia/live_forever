@@ -24,6 +24,12 @@ var workshop_button: Button
 var workshop_panel: Panel
 var workshop_pause := false
 var workshop_open := false
+var workshop_section := "workbench"
+var workshop_recipes: Dictionary = {}
+var workshop_upgrade: Button
+var workshop_summary: Label
+var kitchen_batches: SpinBox
+var workshop_scroll: ScrollContainer
 var map_page := 0
 var part_button: Button
 var survey_button: Button
@@ -418,54 +424,7 @@ func _create_workshop() -> void:
 	if is_instance_valid(workshop_panel):
 		workshop_panel.hide()
 		workshop_panel.queue_free()
-	workshop_panel = panel(root, Vector2(25, 20), Vector2(1390, 860))
-	label(workshop_panel, "工作台与战役 · 已暂停", Vector2(25, 17), Vector2(1070, 40), 27, game.GOLD)
-	button(workshop_panel, "关闭 K", Vector2(1180, 17), Vector2(180, 40), close_workshop)
-	label(workshop_panel, "第%d/35天 · %s\n%s" % [game.expansion.day(game), SurvivalExpansion.STAGES[game.expansion.stage], game.expansion.objective(game)], Vector2(25, 70), Vector2(1335, 65), 17)
-	for index in range(game.survivors.size()):
-		var actor: Survivor = game.survivors[index]
-		button(workshop_panel, ("✓ " if game.selected_id == index else "") + actor.display_name, Vector2(25 + index * 150, 142), Vector2(140, 36), func(): game.select_survivor(index); _create_workshop())
-	button(workshop_panel, "点燃炉火 · 燃料1", Vector2(810, 142), Vector2(240, 36), func(): game.expansion.ignite(game); _create_workshop())
-	button(workshop_panel, "夜间取暖 " + ("开" if game.expansion.use_night_heat else "关"), Vector2(1065, 142), Vector2(295, 36), func(): game.expansion.use_night_heat = not game.expansion.use_night_heat; _create_workshop())
-	label(workshop_panel, "夜间取暖出发前扣燃料（每份8小时，最多2份），归来物资不能补烧过去的夜晚。", Vector2(25, 189), Vector2(1040, 26), 14)
-	button(workshop_panel, "净水泵 " + ("开：燃料1换水3/日" if game.expansion.pump_on else "关"), Vector2(1065, 187), Vector2(295, 36), func(): game.expansion.pump_on = not game.expansion.pump_on; _create_workshop())
-	var scroll := ScrollContainer.new()
-	scroll.position = Vector2(25, 235)
-	scroll.size = Vector2(1335, 595)
-	workshop_panel.add_child(scroll)
-	var content := Control.new()
-	content.custom_minimum_size = Vector2(1300, 1)
-	scroll.add_child(content)
-	var y := 0.0
-	label(content, "制作需要人物走到工作台并花时间；点击已装备物品可卸下。修理消耗材料2，恢复60耐久。", Vector2(0, y), Vector2(1280, 30), 15, game.GOLD)
-	y += 42
-	for kind in GearCatalog.ITEMS.keys() + GearCatalog.PROJECTS.keys():
-		var recipe := GearCatalog.recipe(kind)
-		label(content, recipe["name"] + " · " + ShelterInventory.describe(recipe["cost"]), Vector2(0, y), Vector2(610, 30), 17)
-		var hint := GearCatalog.describe(kind) if GearCatalog.ITEMS.has(kind) else "弹药供手枪使用，射击会引来尸群。" if kind == "ammo" else "消耗带回的专属零件，完成后推进战役。"
-		label(content, hint, Vector2(0, y + 30), Vector2(1025, 28), 14)
-		var make := button(content, "制作 · %d秒" % recipe["seconds"], Vector2(1080, y + 3), Vector2(200, 42), func():
-			if game.expansion.start_job(game, kind): close_workshop()
-			else: _create_workshop()
-		)
-		make.disabled = game.cycle.phase != "day" or not game.inventory.can_take(recipe["cost"]) or (recipe.has("part") and not game.expansion.parts.has(recipe["part"])) or (kind == "radio" and game.expansion.stage != 0) or (kind == "pump" and game.expansion.stage != 2) or (kind == "beacon" and (game.expansion.stage != 3 or not game.expansion.parts.has("power_cell")))
-		y += 73
-	label(content, "装备仓库 · 弹药库存%d · 装备占背包，冬衣保暖不占格" % game.expansion.ammo, Vector2(0, y), Vector2(1200, 30), 21, game.GOLD)
-	y += 43
-	for item in game.expansion.gear:
-		var kind: String = item["kind"]
-		var name: String = GearCatalog.ITEMS[kind]["name"]
-		label(content, "%s · 耐久%d/%d · %s" % [name, item["durability"], GearCatalog.ITEMS[kind]["durability"], "仓库" if item["owner"] == "" else PeopleCatalog.DATA[item["owner"]]["name"]], Vector2(0, y), Vector2(820, 36), 17)
-		button(content, "装备 / 卸下", Vector2(850, y), Vector2(200, 36), func(): game.expansion.equip(game, int(item["id"]), game.selected_id); _create_workshop())
-		var repair := button(content, "修理 · 材料2", Vector2(1080, y), Vector2(200, 36), func():
-			if game.expansion.start_job(game, "repair", int(item["id"])): close_workshop()
-		)
-		repair.disabled = game.cycle.phase != "day" or item["durability"] >= GearCatalog.ITEMS[kind]["durability"]
-		y += 51
-	if game.expansion.gear.is_empty():
-		label(content, "暂无装备，请在白天制作。", Vector2(0, y), Vector2(1200, 35))
-		y += 45
-	content.custom_minimum_size.y = y + 20
+	workshop_panel = WorkshopView.render(self)
 
 
 func _loot_icon(action: Button, resource: String) -> void:

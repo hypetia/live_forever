@@ -162,7 +162,7 @@ func test_mixed_queue() -> void:
 	expect(actor.orders == ["cook", "repair", "cook"], "mixed tasks preserve exact queue order")
 	expect(not scene.scheduler.submit(actor, "repair"), "mixed queue still shares the three-task limit")
 	advance(scene, 10)
-	expect(actor.task_label == "修整" and is_equal_approx(actor.work_duration, 4.5), "switching from cooking restores the craftsman's repair speed")
+	expect(actor.task_label == "修缮避难所" and is_equal_approx(actor.work_duration, 4.5), "switching from cooking restores the craftsman's repair speed")
 	advance(scene, 45)
 	expect(actor.completed_by_task["cook"] == 2 and actor.completed_by_task["repair"] == 1, "one actor completes mixed tasks across floors")
 	expect(actor.orders.is_empty() and scene.inventory.amount("meals") == 4 and scene.inventory.amount("fuel") == 1, "mixed queue has exact final output and costs")

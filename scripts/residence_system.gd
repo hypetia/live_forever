@@ -160,6 +160,7 @@ func finish_move(game: Node2D, report: Array[String]) -> void:
 	if convoy.is_empty() or game.survivors.all(func(a): return a.health <= 0): return
 	var old := current
 	var salvage := 0
+	if game.has_method("facilities_snapshot"): salvage += game.facilities.move_home(game)
 	for build in game.cycle.builds:
 		if build["state"] == "complete": salvage += int(CampaignCycle.RECIPES[build["type"]]["cost"].get("materials",0)) / 2
 	for kind in security:

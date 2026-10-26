@@ -3,7 +3,7 @@ extends RefCounted
 ## The UI and scheduler share these prototype recipes.
 
 const TASKS := {
-	"repair": {"label": "修整", "facility": "workbench", "cost": {"materials": 1}, "output": {}},
+	"repair": {"label": "修缮避难所", "facility": "workbench", "cost": {"materials": 1}, "output": {}},
 	"cook": {"label": "做饭", "facility": "stove", "cost": {"raw_food": 1, "water": 1, "fuel": 1}, "output": {"meals": 2}},
 	"eat": {"label": "吃饭", "facility": "table", "cost": {"meals": 1}, "output": {}},
 	"sleep": {"label": "睡觉", "facility": "bed", "cost": {}, "output": {}},

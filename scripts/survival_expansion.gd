@@ -156,16 +156,20 @@ func tick_day(game: Node2D, delta: float) -> void:
 		if actor.health <= 0 and actor.state != Survivor.TaskState.DEAD:
 			game._cancel_external(actor.survivor_id, false)
 			game.scheduler.mark_dead(actor, "严重疾病")
+	var used_stations: Array[String] = []
 	for job in jobs.duplicate():
 		var actor: Survivor = game.survivors[int(job["actor"])]
 		if actor.health <= 0:
 			cancel(game, actor.survivor_id, false)
 			continue
 		if not actor.route.is_empty() or actor.position.distance_to(job_position(job["kind"])) > 10: continue
-		if job["kind"] != "music" and (job != jobs.filter(func(work): return work["kind"] != "music")[0] or game.facility.occupant_id >= 0):
-			actor.feedback = "等待工作台空闲"
+		var station := FacilitySystem.station_for(job["kind"])
+		if not station.is_empty() and (used_stations.has(station) or job != jobs.filter(func(work): return FacilitySystem.station_for(work["kind"]) == station)[0] or game.scheduler.facilities[station].occupant_id >= 0):
+			actor.feedback = "等待厨房空闲" if station == "stove" else "等待工作台空闲"
 			continue
-		job["elapsed"] = minf(job["duration"], job["elapsed"] + delta * actor.effort_factor() * actor.person.bonus("craft"))
+		if not station.is_empty(): used_stations.append(station)
+		var rate: float = game.facilities.rate(station) if not station.is_empty() and not FacilitySystem.RECIPES.get(job["kind"],{}).has("from") else 1.0
+		job["elapsed"] = minf(job["duration"], job["elapsed"] + delta * actor.effort_factor() * actor.person.bonus("craft") * rate)
 		actor.activity = {"kind": "music" if job["kind"] == "music" else "build", "label": job["label"], "progress": job["elapsed"] / job["duration"]}
 		if job["elapsed"] >= job["duration"]:
 			finish(game, job)
@@ -173,13 +177,20 @@ func tick_day(game: Node2D, delta: float) -> void:
 			actor.activity.clear()
 
 static func job_position(kind: String) -> Vector2:
-	return Vector2(584,430) if kind == "music" else Vector2(485,640)
+	return Vector2(584,430) if kind == "music" else Vector2(900,430) if FacilitySystem.station_for(kind) == "stove" else Vector2(485,640)
+
+func reserves_station(game: Node2D, station: String) -> bool:
+	return jobs.any(func(job): return FacilitySystem.station_for(job["kind"]) == station and game.survivors[int(job["actor"])].route.is_empty() and game.survivors[int(job["actor"])].position.distance_to(job_position(job["kind"])) <= 10)
 
 func start_job(game: Node2D, kind: String, item_id: int = -1) -> bool:
 	if game.cycle.phase != "day" or game.survivors[game.selected_id].health <= 0: return false
 	var recipe := GearCatalog.recipe(kind)
 	if kind == "repair": recipe = {"name": "修理装备", "cost": {"materials": 2}, "seconds": 18.0}
 	if recipe.is_empty(): return false
+	var facility_error: String = game.facilities.job_error(game,kind)
+	if not facility_error.is_empty():
+		game._log(facility_error)
+		return false
 	if ResidenceSystem.PROJECTS.has(kind):
 		var error: String = game.residence.job_error(game, kind)
 		if not error.is_empty():
@@ -206,7 +217,7 @@ func start_job(game: Node2D, kind: String, item_id: int = -1) -> bool:
 	jobs.append({"actor": actor.survivor_id, "kind": kind, "item": item_id, "elapsed": 0.0, "duration": recipe["seconds"], "cost": recipe["cost"].duplicate(), "label": recipe["name"]})
 	actor.route = route
 	actor.state = Survivor.TaskState.RETURNING
-	game._log(actor.display_name + "前往工作台：" + recipe["name"] + "。取消或日落退还未完成用料。")
+	game._log(actor.display_name + ("前往厨房：" if FacilitySystem.station_for(kind) == "stove" else "前往工作台：") + recipe["name"] + "。取消或日落退还未完成用料。")
 	return true
 
 func cancel(game: Node2D, id: int, refund: bool = true) -> void:
@@ -218,7 +229,8 @@ func cancel(game: Node2D, id: int, refund: bool = true) -> void:
 func finish(game: Node2D, job: Dictionary) -> void:
 	var kind: String = job["kind"]
 	if not ResidenceSystem.PROJECTS.has(kind): game.residence.noise = minf(100, game.residence.noise + 6)
-	if GearCatalog.ITEMS.has(kind): grant(kind)
+	if FacilitySystem.RECIPES.has(kind): game.facilities.complete(game,kind,game.survivors[int(job["actor"])])
+	elif GearCatalog.ITEMS.has(kind): grant(kind)
 	elif kind == "ammo": ammo += 8
 	elif ResidenceSystem.PROJECTS.has(kind): game.residence.finish(game, kind, game.survivors[int(job["actor"])])
 	elif kind == "repair":

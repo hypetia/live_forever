@@ -25,7 +25,7 @@ const PARTS := {
 }
 
 static func recipe(id: String) -> Dictionary:
-	return ITEMS.get(id, PROJECTS.get(id, ResidenceSystem.PROJECTS.get(id, {})))
+	return ITEMS.get(id, PROJECTS.get(id, ResidenceSystem.PROJECTS.get(id, FacilitySystem.RECIPES.get(id, {}))))
 
 static func describe(kind: String) -> String:
 	var item: Dictionary = ITEMS[kind]

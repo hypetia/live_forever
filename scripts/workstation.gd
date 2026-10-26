@@ -12,6 +12,7 @@ var waiting_ids: Array[int] = []
 const FONT := preload("res://assets/fonts/interface.otf")
 var hovered := false
 var animation_time := 0.0
+var tier := 1
 
 
 func _process(delta: float) -> void:
@@ -81,6 +82,13 @@ func _draw() -> void:
 	draw_line(Vector2(37, -44), Vector2(37, -85), Color("a9926a"), 3, true)
 	draw_line(Vector2(37, -85), Vector2(17, -85), Color("a9926a"), 3, true)
 	draw_colored_polygon(PackedVector2Array([Vector2(11, -84), Vector2(23, -84), Vector2(29, -73), Vector2(5, -73)]), Color("d5bd88"))
+	if tier >= 2:
+		draw_rect(Rect2(-46,-101,49,34),Color("485953"))
+		for x in [-38,-22,-7]: draw_line(Vector2(x,-95),Vector2(x+5,-76),Color("c5c0a2"),3,true)
+	if tier >= 3:
+		draw_rect(Rect2(-52,-77,8,33),Color("8a9b97"))
+		draw_rect(Rect2(-58,-84,25,10),Color("748b83"))
+		draw_line(Vector2(-35,-74),Vector2(-35,-57),Color("c7d6c7"),3,true)
 	if hovered:
 		draw_arc(Vector2(0, -5), 35, PI * 0.05, PI * 0.95, 40, Color(0.84, 0.69, 0.47, 0.5), 1.2, true)
 
@@ -91,7 +99,7 @@ func _draw_stove() -> void:
 	draw_rect(Rect2(-37, -45, 79, 44), Color("59605a"))
 	draw_rect(Rect2(-42, -49, 89, 7), Color("92937c"))
 	draw_rect(Rect2(3, -32, 25, 22), Color("222e2e"))
-	if occupant_id != -1:
+	if occupant_id != -1 or not _external_job().is_empty():
 		draw_rect(Rect2(8, -27, 15, 12), Color("db9b5f"))
 		draw_line(Vector2(-12 + sin(animation_time * 2) * 3, -79), Vector2(-15 + sin(animation_time * 2 + 1) * 4, -89), Color(0.8, 0.84, 0.75, 0.4), 2, true)
 		draw_line(Vector2(sin(animation_time * 2 + 1) * 3, -80), Vector2(4 + sin(animation_time * 2) * 4, -94), Color(0.8, 0.84, 0.75, 0.4), 2, true)
@@ -99,13 +107,20 @@ func _draw_stove() -> void:
 	draw_line(Vector2(-32, -69), Vector2(18, -69), Color("bec2a7"), 4, true)
 	draw_circle(Vector2(-7, -74), 3, Color("929a88"))
 	draw_line(Vector2(32, -50), Vector2(32, -92), Color("646f68"), 7, true)
+	if tier >= 2:
+		draw_line(Vector2(32,-92),Vector2(32,-126),Color("829388"),9,true)
+		draw_rect(Rect2(-43,-20,85,5),Color("899b87"))
+	if tier >= 3:
+		draw_rect(Rect2(17,-70,24,18),Color("a0ac93"))
+		draw_line(Vector2(14,-71),Vector2(44,-71),Color("d4dac3"),3,true)
 	if hovered:
 		draw_arc(Vector2(0, -3), 35, PI * 0.05, PI * 0.95, 32, Color(0.84, 0.69, 0.47, 0.5), 1.2, true)
 
 
 func _draw_interaction() -> void:
 	var quiet: bool = get_parent().get_parent().has_method("_compact_card")
-	if quiet and not hovered and occupant_id < 0: return
+	var job := _external_job()
+	if quiet and not hovered and occupant_id < 0 and job.is_empty(): return
 	var point := Vector2(0, -118)
 	var game := get_parent().get_parent()
 	var actor: Survivor = game.survivors[game.selected_id]
@@ -127,8 +142,22 @@ func _draw_interaction() -> void:
 	if quiet and occupant_id >= 0:
 		var worker: Survivor = game.survivors[occupant_id]
 		draw_arc(point,19,-PI/2,-PI/2+TAU*worker.progress(),30,Color("eed2a0"),2.5,true)
+	elif quiet and not job.is_empty():
+		draw_arc(point,19,-PI/2,-PI/2+TAU*float(job["elapsed"])/float(job["duration"]),30,Color("eed2a0"),2.5,true)
+	if quiet and facility_id in ["workbench","stove"]:
+		for level in range(3): draw_circle(point+Vector2((level-1)*8,27),2.5,Color("d5bd88") if level < tier else Color("44514b"))
 	if occupant_id >= 0:
 		draw_circle(point + Vector2(14, 12), 4, Color("9abca1"))
+
+
+func _external_job() -> Dictionary:
+	var game := get_parent().get_parent()
+	if not game.has_method("facilities_snapshot"): return {}
+	for job in game.expansion.jobs:
+		if FacilitySystem.station_for(job["kind"]) != facility_id: continue
+		var actor: Survivor = game.survivors[int(job["actor"])]
+		return job if occupant_id < 0 and actor.route.is_empty() and actor.position.distance_to(SurvivalExpansion.job_position(job["kind"])) <= 10 else {}
+	return {}
 
 
 func interaction_rect() -> Rect2:

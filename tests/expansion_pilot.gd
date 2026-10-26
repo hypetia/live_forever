@@ -82,6 +82,10 @@ func _manage_expansion() -> void:
 	var builder: Survivor = game.survivors[0]
 	if builder.hunger >= 65 or builder.fatigue >= 80 or builder.health <= 0 or game._external_busy(0) or not builder.orders.is_empty(): return
 	game.select_survivor(0)
+	if game.facilities.levels["workbench"] < 2:
+		if game.inventory.amount("tools") < 1 and game.inventory.amount("materials") >= 8: game.scheduler.submit(builder,"craft")
+		elif game.inventory.can_take(FacilitySystem.RECIPES["workbench_2"]["cost"]): game.expansion.start_job(game,"workbench_2")
+		return
 	if not game.expansion.gear.any(func(item): return item["kind"] == "spear"):
 		if game.inventory.amount("tools") == 0 and game.inventory.amount("materials") >= 6: game.scheduler.submit(builder, "craft")
 		elif game.inventory.can_take(GearCatalog.ITEMS["spear"]["cost"]): game.expansion.start_job(game, "spear")

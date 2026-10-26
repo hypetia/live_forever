@@ -81,7 +81,7 @@ func test_three_survivors_and_fairness() -> void:
 	var scene := make_scene()
 	var completion_order: Array[String] = []
 	scene.scheduler.event_reported.connect(func(message: String):
-		if "完成修整。" in message:
+		if "完成修缮避难所。" in message:
 			completion_order.append(message.substr(0, 2))
 	)
 	for index in range(3):

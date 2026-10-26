@@ -59,6 +59,8 @@ func _run() -> void:
 	game.begin_day()
 	game.inventory.deposit({"materials": 20, "tools": 4, "fuel": 5}, "test fixture for crafting")
 	game.select_survivor(2)
+	game.facilities.levels["workbench"] = 3 # Isolated firearm mechanics fixture; tier construction has its own tests.
+	game.facilities.sync(game)
 	expect(game.expansion.start_job(game, "pistol"), "gun can be crafted")
 	advance(game, 65)
 	expect(game.expansion.equip(game, 3, 2), "crafted firearm equips")

@@ -68,6 +68,8 @@ def main():
     logical += 27
     run('departure_equipment', ['--headless', '--path', str(project), '--script', 'res://tests/test_departure_equipment.gd'], '36 checks, 0 failures')
     logical += 36
+    run('facilities', ['--headless', '--path', str(project), '--script', 'res://tests/test_facilities.gd'], '62 checks, 0 failures')
+    logical += 62
     run('startup', ['--headless', '--path', str(project), '--quit-after', '8'])
     for name, phases in [('persistence_process', ['write', 'read']),
                          ('persistence_expedition_process', ['write', 'read', 'verify']),
@@ -78,18 +80,19 @@ def main():
                          ('persistence_campaign_process', ['write', 'read', 'verify']),
                          ('persistence_expansion_process', ['write', 'read', 'verify']),
                          ('persistence_residence_process', ['write', 'pack', 'move', 'verify']),
-                         ('persistence_interactions_process', ['write', 'read', 'return', 'verify'])]:
+                         ('persistence_interactions_process', ['write', 'read', 'return', 'verify']),
+                         ('persistence_facilities_process', ['write', 'read', 'verify'])]:
         slot = workspace / f'{name}.json'
         for phase in phases:
             run(f'{name}-{phase}', ['--headless', '--path', str(project), '--script',
                 f'res://tests/{name}.gd', '--', phase, str(slot)], 'PASS:')
     graphical = 0
     if args.graphics:
-        for name, count in [('visual_smoke', 36), ('visual_expedition', 36), ('visual_long_term', 24), ('visual_people', 22), ('visual_story', 17), ('visual_goals', 24), ('visual_presentation', 45), ('visual_campaign', 47), ('visual_expansion', 15), ('visual_quiet', 20), ('visual_residence', 26), ('visual_interactions', 26), ('visual_keyboard_movement', 10), ('visual_departure_equipment', 21)]:
+        for name, count in [('visual_smoke', 36), ('visual_expedition', 36), ('visual_long_term', 24), ('visual_people', 22), ('visual_story', 17), ('visual_goals', 24), ('visual_presentation', 45), ('visual_campaign', 47), ('visual_expansion', 15), ('visual_quiet', 20), ('visual_residence', 26), ('visual_interactions', 26), ('visual_keyboard_movement', 10), ('visual_departure_equipment', 21), ('visual_facilities', 21)]:
             run(name, ['--path', str(project), '--resolution', '1440x900', '--audio-driver', 'Dummy',
                 '--script', f'res://tests/{name}.gd'], f'{count} checks, 0 failures')
             graphical += count
-    print(f'Validated {logical} logical checks, {graphical} GUI checks, startup and 31 persistence processes.')
+    print(f'Validated {logical} logical checks, {graphical} GUI checks, startup and 34 persistence processes.')
     print(f'Clean project: {project}\nLogs: {output}')
 
 

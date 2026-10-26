@@ -89,7 +89,7 @@ func _run() -> void:
 	await keypress(KEY_F)
 	await click_at(scene.facility.global_position + Vector2(0, -40))
 	await click_at(scene.assign_button.get_global_rect().get_center())
-	check(scene.survivors[0].orders == ["cook", "repair"] and "做饭 → 修整" in scene.queue_label.text, "tabs and assignment show the mixed queue in order")
+	check(scene.survivors[0].orders == ["cook", "repair"] and "做饭 → 修缮避难所" in scene.queue_label.text, "tabs and assignment show the mixed queue in order")
 	for actor in scene.survivors:
 		scene.scheduler.cancel(actor)
 	# Capture a completed first batch, another cook and a repair in parallel.

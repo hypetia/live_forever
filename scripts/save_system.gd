@@ -3,7 +3,7 @@ extends RefCounted
 ## Validated snapshots, checksummed JSON, atomic replacement and one backup.
 ## Only data is loaded: no resource paths, scripts or executable expressions.
 
-const VERSION := 10
+const VERSION := 11
 const MAX_BYTES := 2 * 1024 * 1024
 const STATIONS := ["workbench", "stove", "table", "bed"]
 const FLOAT_FIELDS := ["work_elapsed", "work_duration", "hunger", "fatigue", "health", "injury", "infection", "illness", "cold_exposure", "movement_clock", "facing"]
@@ -32,6 +32,7 @@ static func capture(game: Node2D) -> Dictionary:
 	for id in game.regions:
 		if id != game.expedition.location_id: other_regions[id] = game.regions[id].snapshot()
 	return {
+		"facilities": game.facilities_snapshot() if game.has_method("facilities_snapshot") else {},
 		"residence": game.residence_snapshot() if game.has_method("residence_snapshot") else {},
 		"expansion": game.expansion_snapshot() if game.has_method("expansion_snapshot") else {},
 		"campaign": game.campaign_snapshot() if game.has_method("campaign_snapshot") else {},
@@ -99,7 +100,7 @@ static func _segment(a: Array, b: Array) -> bool:
 static func validate(data: Variant) -> String:
 	if not data is Dictionary:
 		return "存档内容不是对象"
-	var required := ["simulation_time", "paused", "speed", "selected_id", "selected_task", "stock", "history", "stairs_open", "actors", "stations", "logs", "expedition", "destination", "other_regions", "upkeep", "people", "story", "goals", "campaign", "expansion", "residence"]
+	var required := ["simulation_time", "paused", "speed", "selected_id", "selected_task", "stock", "history", "stairs_open", "actors", "stations", "logs", "expedition", "destination", "other_regions", "upkeep", "people", "story", "goals", "campaign", "expansion", "residence", "facilities"]
 	if not _exact_keys(data, required):
 		return "存档缺少字段或包含未知字段"
 	var region_ids: Array = LocationCatalog.IDS if data["expansion"] is Dictionary and data["expansion"].is_empty() else LocationCatalog.ALL_IDS
@@ -244,6 +245,8 @@ static func validate(data: Variant) -> String:
 	if not campaign_error.is_empty(): return campaign_error
 	var expansion_error := SurvivalExpansion.validate(data["expansion"], data)
 	if not expansion_error.is_empty(): return expansion_error
+	var facilities_error := FacilitySystem.validate(data["facilities"],data)
+	if not facilities_error.is_empty(): return facilities_error
 	if data["residence"] is Dictionary and data["residence"].is_empty() and not data["campaign"].is_empty(): return "昼夜战役缺少家园记录"
 	var residence_error := ResidenceSystem.validate(data["residence"], data)
 	if not residence_error.is_empty(): return residence_error
@@ -319,6 +322,7 @@ static func apply_state(game: Node2D, data: Dictionary) -> String:
 	game.game_over = game.survivors.all(func(actor: Survivor): return actor.health <= 0)
 	game.selected_task = data["selected_task"]
 	if game.has_method("restore_campaign"): game.restore_campaign(data["campaign"])
+	if game.has_method("restore_facilities"): game.restore_facilities(data["facilities"])
 	if game.has_method("restore_expansion"): game.restore_expansion(data["expansion"])
 	if game.has_method("restore_residence"): game.restore_residence(data["residence"])
 	game.expedition_view.reset_feedback()
@@ -370,6 +374,8 @@ func _read_file(filename: String) -> Dictionary:
 		data = migrate_v8(data)
 	if int(envelope["version"]) <= 9:
 		data = migrate_v9(data)
+	if int(envelope["version"]) <= 10:
+		data = migrate_v10(data)
 	var error := validate(data)
 	if not error.is_empty():
 		return {"ok": false, "message": error}
@@ -580,4 +586,12 @@ static func migrate_v9(data: Variant) -> Variant:
 	if not upgraded["campaign"].is_empty():
 		if upgraded["campaign"].has("return_requested"): return null
 		upgraded["campaign"]["return_requested"] = false
+	return upgraded
+
+
+static func migrate_v10(data: Variant) -> Variant:
+	if not data is Dictionary or data.has("facilities") or not data.get("campaign") is Dictionary: return null
+	var upgraded: Dictionary = data.duplicate(true)
+	# Keep already paid jobs and owned gear. New crafting uses the tier gates.
+	upgraded["facilities"] = {} if upgraded["campaign"].is_empty() else FacilitySystem.new().snapshot()
 	return upgraded

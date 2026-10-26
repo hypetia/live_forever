@@ -61,13 +61,12 @@ func _run() -> void:
 	await picture("res://docs/v12-cycle-construction.png")
 	await click_at(scene.cards[1].get_global_rect().get_center())
 	await click_at(scene.stove.global_position + Vector2(0, -118))
-	check(scene.context_open and scene.selected_task == "cook", "clicking the stove opens its physical production choices")
-	scene.batch_count.value = 2
-	await click_at(scene.assign_button.get_global_rect().get_center())
+	check(scene.interface.workshop_open and scene.interface.workshop_section == "kitchen", "clicking the stove opens its physical production choices")
+	scene.interface.kitchen_batches.value = 2
+	await click_at(scene.interface.workshop_recipes["cook"].get_global_rect().get_center())
 	check(scene.survivors[1].orders == ["cook", "cook"], "production quantity queues two real batches")
 	sim(scene, 20)
 	check(scene.inventory.amount("meals") == 4 and scene.inventory.amount("raw_food") == 2, "two batches conserve exact ingredients and output")
-	await keypress(KEY_ESCAPE)
 	await click_at(scene.dining_table.global_position + Vector2(-30, -30))
 	check(scene.survivors[1].orders == ["eat"] and not scene.context_open, "table is a direct eating action without another dashboard confirmation")
 	sim(scene, 10)

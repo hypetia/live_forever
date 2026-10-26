@@ -162,7 +162,7 @@ func refresh() -> void:
 	game.interface.workshop_button.position = Vector2(1316,798)
 	game.interface.workshop_button.size = Vector2(86,36)
 	game.interface.workshop_button.text = "制作"
-	game.interface.workshop_button.tooltip_text = "装备与工作台 K"
+	game.interface.workshop_button.tooltip_text = "设施升级、厨房配方、装备与战役 K"
 	end_button.position = Vector2(1218,846)
 	end_button.size = Vector2(184,38)
 	end_button.text = "结束白天"
