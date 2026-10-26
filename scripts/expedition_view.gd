@@ -77,6 +77,7 @@ func _ready() -> void:
 	log_label = _label("", Vector2(32, 879), Vector2(1300, 20), 11, MUTED)
 	search_bar = ProgressBar.new()
 	search_bar.show_percentage = false
+	search_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	search_bar.position = Vector2(760, 831)
 	var background := _box(Color("2b3838"), Color("2b3838"))
 	var fill := _box(GOLD, GOLD)
@@ -208,7 +209,7 @@ func refresh() -> void:
 		drop_buttons[resource].text = "%s   %d                           −1" % [ShelterInventory.NAMES[resource], state.bag[resource]]
 		drop_buttons[resource].disabled = state.bag[resource] <= 0
 	search_bar.value = state.search_progress / state.search_duration * 100 if state.search_duration > 0 else 0
-	retreat_button.disabled = game.paused
+	retreat_button.disabled = false if quiet else game.paused
 	search_button.disabled = game.paused
 	attack_button.disabled = game.paused or state.attack_cooldown > 0 or state.climb_target != -1
 	attack_button.text = (actor.weapon().get("name", "徒手推搡") + " J") if actor.metabolism < 1 else ("工具挥击 J" if state.bag["tools"] > 0 else "徒手推搡 J")
@@ -278,21 +279,19 @@ func _draw() -> void:
 	if not quiet: _text(Vector2(145 - camera, 660), "← 入口 · E/T 撤退", 14, GOLD)
 	_rect_world(Rect2(90, 535, 55, 85), Color("344b41"))
 	_rect_world(Rect2(96, 540, 43, 72), Color("142b29"))
+	_draw_landmarks(state,camera,accent)
 	for index in range(state.site_definitions().size()):
-		var definition: Dictionary = state.site_definitions()[index]
-		var point := Vector2(float(definition["x"]) - camera, ExpeditionState.FLOOR_Y[int(definition["floor"])])
-		if point.x < 0 or point.x > 1065: continue
-		var contents: Dictionary = state.sites[index]["contents"]
-		var empty := contents.values().all(func(amount: int): return amount == 0)
-		draw_rect(Rect2(point + Vector2(-22, -38), Vector2(44, 38)), Color("414c42") if empty else accent.darkened(0.2))
-		draw_rect(Rect2(point + Vector2(-18, -34), Vector2(36, 30)), Color("59614e") if empty else accent, false, 2)
-		if state.sites[index]["locked"]:
-			draw_circle(point + Vector2(0, -23), 6, Color("d8c28c"))
-		if not quiet: _text(point + Vector2(-47, 27), definition["name"] + (" · 空" if empty else ""), 12, MUTED if empty else GOLD)
-		elif state.floor_level == int(definition["floor"]) and absf(state.player_x-float(definition["x"])) < 100:
-			draw_arc(point+Vector2(0,-64),7,0,TAU,20,GOLD,1.5,true)
-			_text(point+Vector2(-18,-84),"E",12,GOLD)
-	_draw_landmarks(state, camera, accent)
+		if quiet: _draw_site(index,state,camera)
+		else:
+			var definition: Dictionary = state.site_definitions()[index]
+			var point := Vector2(float(definition["x"])-camera,ExpeditionState.FLOOR_Y[int(definition["floor"])])
+			if point.x < 0 or point.x > 1065: continue
+			var empty := not state.site_has_supplies(index)
+			draw_rect(Rect2(point+Vector2(-22,-38),Vector2(44,38)),Color("454545") if empty else accent.darkened(0.2))
+			draw_rect(Rect2(point+Vector2(-18,-34),Vector2(36,30)),Color("646464") if empty else accent,false,2)
+			if state.sites[index]["locked"]: draw_circle(point+Vector2(0,-23),6,Color("d8c28c"))
+			_text(point+Vector2(-47,27),definition["name"]+(" · 空" if empty else ""),12,MUTED if empty else GOLD)
+	if quiet: _draw_intent(state,camera)
 	for enemy in state.enemies:
 		_draw_enemy(enemy, camera, state)
 	var actor: Survivor = game.survivors[state.actor_id]
@@ -520,7 +519,7 @@ func _draw_impact(camera: float) -> void:
 
 
 func _action_icon(button: Button, kind: String) -> void:
-	HudIcons.draw(button,kind,Vector2(25,19),19,Color("a5ac98") if button.disabled else GOLD)
+	HudIcons.draw(button,kind,Vector2(button.size.x/2,19),19,Color("a5ac98") if button.disabled else GOLD)
 
 
 func _refresh_quiet(state: ExpeditionState, actor: Survivor) -> void:
@@ -532,8 +531,8 @@ func _refresh_quiet(state: ExpeditionState, actor: Survivor) -> void:
 			drop_buttons[resource].text = "%s  %d  −1" % [ShelterInventory.NAMES[resource],state.bag[resource]]
 			drop_buttons[resource].disabled = state.bag[resource] <= 0
 	search_bar.value = state.search_progress/state.search_duration*100 if state.search_duration > 0 else 0
-	retreat_button.disabled = game.paused
-	search_button.disabled = game.paused
+	retreat_button.disabled = false if quiet else game.paused
+	search_button.disabled = game.paused or state.nearby_site() < 0 or game.cycle.return_requested or game.cycle.phase == "returning"
 	attack_button.disabled = game.paused or state.attack_cooldown > 0 or state.climb_target != -1 or state.reload_remaining > 0
 	drink_button.disabled = game.paused or state.bag["water"] <= 0 or actor.person.thirst <= 0
 	medicine_button.disabled = game.paused or state.bag["medicine"] <= 0 or state.medicine_cooldown > 0
@@ -546,8 +545,16 @@ func _refresh_quiet(state: ExpeditionState, actor: Survivor) -> void:
 		button.size = Vector2(50,62)
 		button.text = "\n"+keys[action_index]
 		button.tooltip_text = hints[action_index]
-	search_bar.position = Vector2(1063,884)
-	search_bar.size = Vector2(338,3)
+	retreat_button.size = Vector2(82,62)
+	retreat_button.text = "\n返程 T"
+	retreat_button.tooltip_text = "沿实际路线返回入口；再次按T或移动取消。暂停时可安排，继续时间后出发。"
+	search_bar.visible = state.search_index >= 0 and state.site_in_range(state.search_index) and not game._loot_open
+	if search_bar.visible:
+		var definition: Dictionary = state.site_definitions()[state.search_index]
+		var point := Vector2(float(definition["x"])-_camera(),ExpeditionState.FLOOR_Y[int(definition["floor"])])-Vector2(55,61)
+		search_bar.position = game.world_offset()+point*game.world_scale()-Vector2(48,0)
+		search_bar.size = Vector2(96,7)
+	retreat_button.modulate = InteractionFeedback.READY if game.cycle.return_requested or game.cycle.phase == "returning" else Color.WHITE
 	bag_button.text = "\n%d/%d" % [state.used_capacity(),state.capacity]
 	bag_button.tooltip_text += " · %d/%d格" % [state.used_capacity(),state.capacity]
 	attack_button.tooltip_text += "\n耐久%d" % actor.weapon_item.get("durability",0)
@@ -555,3 +562,58 @@ func _refresh_quiet(state: ExpeditionState, actor: Survivor) -> void:
 		attack_button.text = "\n%d/%d" % [state.magazine,state.reserve_ammo]
 		attack_button.tooltip_text += "\n弹匣%d / 备用%d" % [state.magazine,state.reserve_ammo]
 	if state.reload_remaining > 0: attack_button.text = "\n换弹"
+
+
+func _draw_site(index: int, state: ExpeditionState, camera: float) -> void:
+	var definition: Dictionary = state.site_definitions()[index]
+	var world := Vector2(float(definition["x"]),ExpeditionState.FLOOR_Y[int(definition["floor"])])
+	var point := world-Vector2(camera,0)
+	if point.x < 0 or point.x > 1065: return
+	var mouse: Vector2 = (get_viewport().get_mouse_position()-game.world_offset())/game.world_scale()+Vector2(camera,0)
+	var hovered: bool = state.site_hit_rect(index).has_point(mouse) and not game._loot_open
+	var info := InteractionFeedback.site(game,index,hovered)
+	draw_rect(Rect2(point+Vector2(-22,-38),Vector2(44,38)),info["body"])
+	draw_rect(Rect2(point+Vector2(-18,-34),Vector2(36,30)),info["edge"],false,2)
+	if not info["supplied"]:
+		# Open neutral-grey lid; no state labels or lingering coloured resource trim.
+		draw_line(point+Vector2(-22,-39),point+Vector2(10,-49),InteractionFeedback.EMPTY_EDGE,3,true)
+	if state.sites[index]["locked"] and info["supplied"]: draw_circle(point+Vector2(0,-23),5,info["edge"])
+	if hovered or info["target"]:
+		var tint := InteractionFeedback.READY if info["near"] else InteractionFeedback.DISTANT
+		draw_rect(Rect2(point+Vector2(-25,-41),Vector2(50,44)),tint,false,1.5)
+		var low := maxf(90 if int(definition["floor"]) == 0 else state.upper_left(),world.x-ExpeditionState.INTERACTION_RADIUS)
+		var high := minf(state.right_edge(int(definition["floor"])),world.x+ExpeditionState.INTERACTION_RADIUS)
+		draw_line(Vector2(low-camera,world.y+5),Vector2(high-camera,world.y+5),Color(tint,0.45),2,true)
+		for edge in [low,high]: draw_line(Vector2(edge-camera,world.y+1),Vector2(edge-camera,world.y+9),Color(tint,0.6),1,true)
+	var marker := point+Vector2(-55,-83)
+	if info["supplied"] or info["pending"] or hovered or info["target"] or info["progress"] > 0:
+		var color := InteractionFeedback.READY if info["near"] else InteractionFeedback.DISTANT
+		if not info["supplied"] and not info["pending"]: color = InteractionFeedback.EMPTY_EDGE
+		draw_circle(marker,14,Color("13201f"))
+		draw_arc(marker+Vector2(-2,-2),5,0,TAU,20,color,1.8,true)
+		draw_line(marker+Vector2(2,2),marker+Vector2(7,7),color,2.5,true)
+		if info["near"]: draw_arc(marker,14,0,TAU,28,color,1.5,true)
+	if info["progress"] > 0:
+		var searching: bool = not game.paused and info["near"] and (search_held or Input.is_physical_key_pressed(KEY_E))
+		var color := InteractionFeedback.READY if searching else InteractionFeedback.DISTANT
+		draw_arc(marker,19,-PI/2,-PI/2+TAU*float(info["progress"]),36,color,3,true)
+	if info["pending"]:
+		draw_colored_polygon(PackedVector2Array([point+Vector2(23,-40),point+Vector2(28,-35),point+Vector2(23,-30),point+Vector2(18,-35)]),Color("91b8c8"))
+
+
+func _draw_intent(state: ExpeditionState, camera: float) -> void:
+	var goal: Vector2
+	if game.cycle.return_requested or game.cycle.phase == "returning": goal = Vector2(110,620)
+	elif game.interface.has_move_target: goal = Vector2(game.interface.target_x,ExpeditionState.FLOOR_Y[game.interface.target_floor])
+	else: return
+	var route := InteractionFeedback.route(game,goal)
+	for segment in range(1,route.size()):
+		var from := route[segment-1]-Vector2(camera,2)
+		var to := route[segment]-Vector2(camera,2)
+		var distance := from.distance_to(to)
+		for step in range(0,int(distance),22):
+			var at := from.lerp(to,step/maxf(1,distance))
+			if at.x > 20 and at.x < 1050: draw_circle(at,1.5,Color(0.85,0.76,0.56,0.4))
+	var destination := goal-Vector2(camera,0)
+	if destination.x >= 20 and destination.x <= 1050: draw_arc(destination,12,0,TAU,24,InteractionFeedback.READY,1.5,true)
+	elif destination.x < 20: draw_colored_polygon(PackedVector2Array([Vector2(22,590),Vector2(33,583),Vector2(33,597)]),InteractionFeedback.READY)

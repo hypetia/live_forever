@@ -235,13 +235,19 @@ def main():
             key('e', False)
         if searched['expedition'].get('manual_loot'):
             press('f')
-            press('Escape')
         looted = save()
         assert looted['expedition']['bag']['raw_food'] == 2 and looted['expedition']['bag']['water'] == 1, looted['expedition']
         assert looted['stock']['raw_food'] == 4, 'Remote cargo credit'
-        hold('a', 2)
+        # Regression: invoke T inside the loot pane, away from the exit.
+        assert looted['expedition']['player_x'] > 145, 'Return regression must start away from extraction'
         press('t')
-        returned = save()
+        deadline = time.monotonic() + 20
+        while True:
+            returned = save()
+            if not returned['expedition']['active']:
+                break
+            assert returned['campaign']['return_requested'], 'T did not queue return through the loot pane'
+            assert time.monotonic() < deadline, 'Queued physical return never reached extraction'
         assert not returned['expedition']['active'] and returned['paused']
         assert returned['stock']['raw_food'] == 6 and returned['stock']['water'] == 5 and returned['stock']['medicine'] == 1, returned['stock']
         assert returned['upkeep']['returns']['street'] == 1
@@ -249,7 +255,7 @@ def main():
         subprocess.run(['import', '-display', args.display, '-window', str(window), str(output / 'native-return.png')], check=True, timeout=15)
         close(window, process)
         log.close()
-        print('NATIVE PASS: exported game, real OS input, search, physical retreat, one-time cargo and normal close', flush=True)
+        print('NATIVE PASS: exported game, real OS input, search, inventory T return, physical retreat, one-time cargo and normal close', flush=True)
         process, window, log = launch('restart.log')
         resumed = save()
         assert resumed['paused'] and not resumed['expedition']['active']

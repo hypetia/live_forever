@@ -107,20 +107,34 @@ func _draw_interaction() -> void:
 	var quiet: bool = get_parent().get_parent().has_method("_compact_card")
 	if quiet and not hovered and occupant_id < 0: return
 	var point := Vector2(0, -118)
-	var color := Color("eed2a0") if hovered else Color("b9bb9e")
+	var game := get_parent().get_parent()
+	var actor: Survivor = game.survivors[game.selected_id]
+	var ready := interaction_ready(actor)
+	var color := Color("eed2a0") if hovered and (not quiet or ready) else Color("b9bb9e")
 	draw_circle(point, 15, Color("1a2927"))
 	draw_arc(point, 15, 0, TAU, 24, color, 1.5, true)
 	var glyph: String = {"bed": "休", "table": "食", "stove": "炊", "workbench": "工", "water": "水", "exit": "出"}[facility_id]
 	if quiet: HudIcons.draw(self,facility_id,point,15,color)
 	else: draw_string(FONT, point + Vector2(-7, 5), glyph, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, color)
-	if hovered:
+	if hovered and not quiet:
 		var prompt: String = {"bed": "床位 · 休息", "table": "餐桌 · 进食 / 本人用药", "stove": "灶台 · 做饭", "workbench": "工作台 · 修整 / 制作", "water": "饮水 · 选中者喝水 / 消耗水1", "exit": "门口 · 准备外出 V"}[facility_id]
 		var width := FONT.get_string_size(prompt, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
 		draw_rect(Rect2(point + Vector2(-width / 2 - 10, -46), Vector2(width + 20, 24)), Color("182622"))
 		draw_string(FONT, point + Vector2(-width / 2, -29), prompt, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, color)
+	if quiet and hovered and facility_id != "exit":
+		var target := Vector2.ZERO if facility_id == "water" else work_position()-position
+		draw_arc(target+Vector2(0,-2),14,0,TAU,24,color,1.5,true)
+	if quiet and occupant_id >= 0:
+		var worker: Survivor = game.survivors[occupant_id]
+		draw_arc(point,19,-PI/2,-PI/2+TAU*worker.progress(),30,Color("eed2a0"),2.5,true)
 	if occupant_id >= 0:
 		draw_circle(point + Vector2(14, 12), 4, Color("9abca1"))
 
 
 func interaction_rect() -> Rect2:
 	return Rect2(-28, -135, 56, 140) if facility_id in ["water", "exit"] else Rect2(-70, -135, 150, 140)
+
+
+func interaction_ready(actor: Survivor) -> bool:
+	var target := position if facility_id == "water" else work_position()
+	return facility_id != "exit" and actor.position.distance_to(target) <= 1.0

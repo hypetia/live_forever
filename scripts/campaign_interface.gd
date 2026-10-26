@@ -307,6 +307,7 @@ func _create_loot() -> void:
 	survey_button = button(overlay,"勘察新住处",Vector2(230,625),Vector2(986,36),func(): game.residence.survey(game); refresh())
 	label(overlay, "点击拿取或放回 · 空格暂停", Vector2(220, 665), Vector2(1000, 28), 13)
 	button(overlay, "尽量全部拿走 F", Vector2(220, 704), Vector2(300, 36), _take_all)
+	button(overlay, "返程 T", Vector2(540,704), Vector2(280,36), game.expedition_retreat)
 	button(overlay, "关闭，继续行动 Esc", Vector2(850, 704), Vector2(370, 36), game.close_loot)
 
 

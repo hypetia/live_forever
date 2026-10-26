@@ -29,7 +29,9 @@ func world_offset() -> Vector2:
 
 
 func _draw() -> void:
-	if not expedition.active: scene_art.shelter(self)
+	if not expedition.active:
+		scene_art.shelter(self)
+		_draw_day_intent()
 
 
 func _compact_card(index: int) -> Button:
@@ -53,7 +55,7 @@ func _ready() -> void:
 	scheduler.external_busy = _external_busy
 	scheduler.station_reserved = func(id: String): return id == "workbench" and expansion.jobs.any(func(job): return job["kind"] != "music" and survivors[int(job["actor"])].route.is_empty() and survivors[int(job["actor"])].position.distance_to(Vector2(485, 640)) <= 10)
 	expansion.sync(self)
-	get_window().title = "Live Forever · 留一盏灯 v1.3"
+	get_window().title = "Live Forever · 留一盏灯 v1.3.1"
 	for actor in survivors: actor.metabolism = 0.4
 	for field: ExpeditionState in regions.values(): field.manual_loot = true
 	# Replace the legacy instant water command with a physical action.
@@ -204,6 +206,7 @@ func advance_simulation(delta: float) -> void:
 			if expedition.active: expansion.refresh_slots(expedition, actor)
 			if cycle.phase == "scavenge" and simulation_time >= cycle.night_end:
 				cycle.phase = "returning"
+				cycle.return_requested = false
 				_loot_open = false
 				expedition.loot_site = -1
 				expedition_view.search_held = false
@@ -276,6 +279,7 @@ func enter_night_planning() -> void:
 	if cycle.phase != "day": return
 	_cancel_all_day_work()
 	cycle.phase = "planning"
+	cycle.return_requested = false
 	cycle.night_day = maxi(1, ExpeditionState.day_at(simulation_time) - (1 if CampaignCycle.minute(simulation_time) < 360 else 0))
 	cycle.night_start = simulation_time
 	cycle.night_end = CampaignCycle.next_dawn(simulation_time)
@@ -350,6 +354,22 @@ func start_expedition(take_tool: bool = false, take_medicine: bool = false) -> b
 	return true
 
 
+func expedition_retreat() -> void:
+	if not expedition.active or game_over or center.visible or load_dialog.visible or new_dialog.visible or exit_dialog.visible: return
+	if cycle.phase == "returning": return
+	close_loot()
+	expedition_view.search_held = false
+	expedition_view.bag_open = false
+	interface.has_move_target = false
+	interface.target_enemy = -1
+	if not paused and expedition.floor_level == 0 and expedition.player_x <= 145 and expedition.climb_target == -1:
+		expedition.request_retreat()
+	else:
+		cycle.return_requested = not cycle.return_requested
+	expedition_view.refresh()
+	_refresh_hud()
+
+
 func _on_expedition_returned(id: int, cargo: Dictionary, survived: bool) -> void:
 	var net := {}
 	for key in cargo:
@@ -409,6 +429,7 @@ func _settle_night(lines: Array) -> void:
 	cycle.last_resolved_day = cycle.night_day
 	cycle.report = report
 	cycle.phase = "dawn"
+	cycle.return_requested = false
 	_loot_open = false
 	expedition_view.search_held = false
 	if is_instance_valid(interface): interface.has_move_target = false
@@ -488,6 +509,12 @@ func begin_day() -> void:
 func _expedition_controls() -> Dictionary:
 	if _loot_open: return {}
 	if cycle.phase == "returning": return _route_controls(110, 0, true)
+	if cycle.return_requested:
+		var manual := super._expedition_controls()
+		if absf(float(manual.get("axis",0))) > 0 or int(manual.get("climb",0)) != 0:
+			cycle.return_requested = false
+			return manual
+		return _route_controls(110,0,false) if expedition.floor_level != 0 or expedition.player_x > 119 else {"interact":true}
 	if is_instance_valid(interface) and interface.has_move_target and not _loot_open:
 		if interface.target_enemy >= 0:
 			var enemy: Dictionary = expedition.enemies[interface.target_enemy]
@@ -658,6 +685,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			residence_view.toggle()
 			get_viewport().set_input_as_handled()
 			return
+		if event.physical_keycode == KEY_T and expedition.active:
+			expedition_retreat()
+			get_viewport().set_input_as_handled()
+			return
 		if event.physical_keycode == KEY_L and expedition.active and not _loot_open:
 			expedition.reload(survivors[expedition.actor_id])
 			get_viewport().set_input_as_handled()
@@ -705,6 +736,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if cycle.phase in ["planning", "dawn"] or _loot_open: return
 	if event.button_index == MOUSE_BUTTON_RIGHT:
 		if expedition.active:
+			cycle.return_requested = false
 			interface.has_move_target = false
 			expedition_view.search_held = false
 		else:
@@ -716,12 +748,13 @@ func _unhandled_input(event: InputEvent) -> void:
 	var point: Vector2 = (event.position - world_offset()) / world_scale()
 	if expedition.active:
 		if cycle.phase == "returning": return
+		cycle.return_requested = false
 		point.x += expedition_view._camera()
 		var floor_level := 1 if point.y < 470 and point.x >= expedition.upper_left() else 0
 		var site := -1
 		for index in range(expedition.site_definitions().size()):
 			var definition: Dictionary = expedition.site_definitions()[index]
-			if absf(point.x - float(definition["x"])) < 40 and absf(point.y - ExpeditionState.FLOOR_Y[int(definition["floor"])]) < 100:
+			if expedition.site_hit_rect(index).has_point(point):
 				site = index
 				point.x = definition["x"]
 				floor_level = definition["floor"]
@@ -931,3 +964,17 @@ func _log(message: String) -> void:
 	logs.push_front("%02d:%02d   %s" % [minute / 60, minute % 60, message])
 	if logs.size() > 4: logs.pop_back()
 	_refresh_log()
+
+
+func _draw_day_intent() -> void:
+	if cycle.phase != "day" or survivors.is_empty(): return
+	var actor := survivors[selected_id]
+	if actor.route.is_empty(): return
+	draw_set_transform(world_offset(),0,world_scale())
+	var from := actor.position
+	for to in actor.route:
+		var distance := from.distance_to(to)
+		for step in range(0,int(distance),22): draw_circle(from.lerp(to,step/maxf(1,distance))-Vector2(0,2),1.5,Color(0.85,0.76,0.56,0.4))
+		from = to
+	draw_arc(actor.route.back()-Vector2(0,2),12,0,TAU,24,Color("d6b584"),1.5,true)
+	draw_set_transform(Vector2.ZERO)

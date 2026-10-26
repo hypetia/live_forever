@@ -3,7 +3,7 @@ extends RefCounted
 ## Validated snapshots, checksummed JSON, atomic replacement and one backup.
 ## Only data is loaded: no resource paths, scripts or executable expressions.
 
-const VERSION := 9
+const VERSION := 10
 const MAX_BYTES := 2 * 1024 * 1024
 const STATIONS := ["workbench", "stove", "table", "bed"]
 const FLOAT_FIELDS := ["work_elapsed", "work_duration", "hunger", "fatigue", "health", "injury", "infection", "illness", "cold_exposure", "movement_clock", "facing"]
@@ -368,6 +368,8 @@ func _read_file(filename: String) -> Dictionary:
 		data = migrate_v7(data)
 	if int(envelope["version"]) <= 8:
 		data = migrate_v8(data)
+	if int(envelope["version"]) <= 9:
+		data = migrate_v9(data)
 	var error := validate(data)
 	if not error.is_empty():
 		return {"ok": false, "message": error}
@@ -569,4 +571,13 @@ static func migrate_v8(data: Variant) -> Variant:
 	if not data is Dictionary or data.has("residence") or not data.has_all(["campaign", "expansion"]): return null
 	var upgraded: Dictionary = data.duplicate(true)
 	upgraded["residence"] = {} if upgraded["campaign"].is_empty() else ResidenceSystem.new().snapshot()
+	return upgraded
+
+
+static func migrate_v9(data: Variant) -> Variant:
+	if not data is Dictionary or not data.get("campaign") is Dictionary: return null
+	var upgraded: Dictionary = data.duplicate(true)
+	if not upgraded["campaign"].is_empty():
+		if upgraded["campaign"].has("return_requested"): return null
+		upgraded["campaign"]["return_requested"] = false
 	return upgraded

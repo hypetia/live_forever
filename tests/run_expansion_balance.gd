@@ -16,7 +16,7 @@ func _run() -> void:
 	game.set_process(false)
 	if args.has("--resume"):
 		var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(args[args.find("--resume") + 1]))
-		var error := SaveSystem.apply_state(game, data["snapshot"])
+		var error := SaveSystem.apply_state(game, SaveSystem.migrate_v9(data["snapshot"]) if not data["snapshot"]["campaign"].has("return_requested") else data["snapshot"])
 		if not error.is_empty():
 			printerr(error)
 			quit(2)

@@ -15,6 +15,7 @@ const RECIPES := {
 	"barricade": {"name": "加固隔断", "cost": {"materials": 4, "tools": 1}, "seconds": 42.0, "hint": "夜间防守强度+0.9，仍需安排健康且有精神的守夜者。"},
 }
 var phase := "day"
+var return_requested := false
 var night_day := 1
 var night_start := 0.0
 var night_end := 0.0
@@ -77,11 +78,12 @@ func plan_error(game: Node2D) -> String:
 
 
 func snapshot() -> Dictionary:
-	return {"phase": phase, "night_day": night_day, "night_start": night_start, "night_end": night_end, "roles": roles.duplicate(), "loadout": loadout.duplicate(), "report": report.duplicate(), "late_warned": late_warned, "builds": builds.duplicate(true), "actions": actions.duplicate(true), "seed": seed, "last_resolved_day": last_resolved_day}
+	return {"phase": phase, "return_requested": return_requested, "night_day": night_day, "night_start": night_start, "night_end": night_end, "roles": roles.duplicate(), "loadout": loadout.duplicate(), "report": report.duplicate(), "late_warned": late_warned, "builds": builds.duplicate(true), "actions": actions.duplicate(true), "seed": seed, "last_resolved_day": last_resolved_day}
 
 
 func restore(data: Dictionary) -> void:
 	phase = data["phase"]
+	return_requested = data["return_requested"]
 	night_day = int(data["night_day"])
 	night_start = float(data["night_start"])
 	night_end = float(data["night_end"])
@@ -103,7 +105,8 @@ func restore(data: Dictionary) -> void:
 static func validate(data: Variant, world: Dictionary) -> String:
 	# Empty means a legacy/core snapshot; the campaign scene imports it once.
 	if data is Dictionary and data.is_empty(): return ""
-	if not CharacterState.keys(data, ["phase", "night_day", "night_start", "night_end", "roles", "loadout", "report", "late_warned", "builds", "actions", "seed", "last_resolved_day"]): return "昼夜记录字段无效"
+	if not CharacterState.keys(data, ["phase", "return_requested", "night_day", "night_start", "night_end", "roles", "loadout", "report", "late_warned", "builds", "actions", "seed", "last_resolved_day"]): return "昼夜记录字段无效"
+	if not data["return_requested"] is bool or (data["return_requested"] and data["phase"] != "scavenge"): return "返程安排与昼夜阶段不符"
 	if not data["phase"] in PHASES or not data["late_warned"] is bool: return "昼夜阶段无效"
 	var day := ExpeditionState.day_at(float(world["simulation_time"]))
 	if not CharacterState.integer(data["night_day"], 1, day) or not CharacterState.integer(data["last_resolved_day"], 0, day) or not CharacterState.integer(data["seed"], 1, 2147483647): return "夜晚日期或种子无效"

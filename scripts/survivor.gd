@@ -127,6 +127,10 @@ func _draw() -> void:
 	var quiet: bool = get_parent().get_parent().has_method("_compact_card")
 	var stride := sin(movement_clock) * 7.0 if state in [TaskState.MOVING, TaskState.RETURNING] else 0.0
 	draw_ellipse_shadow()
+	if quiet and not selected and Rect2(-22,-76,44,80).has_point(get_local_mouse_position()):
+		var hover_ring := PackedVector2Array()
+		for i in range(33): hover_ring.append(Vector2(cos(i*TAU/32)*22,sin(i*TAU/32)*6-2))
+		draw_polyline(hover_ring,Color("c5cec7"),1.5,true)
 	if selected:
 		if quiet:
 			var ring := PackedVector2Array()

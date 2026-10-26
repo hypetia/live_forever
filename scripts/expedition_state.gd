@@ -147,13 +147,31 @@ func in_cover() -> bool:
 	return false
 
 
+const INTERACTION_RADIUS := 58.0
+
+
+func site_hit_rect(index: int) -> Rect2:
+	var definition: Dictionary = site_definitions()[index]
+	return Rect2(Vector2(float(definition["x"])-76,FLOOR_Y[int(definition["floor"])]-106),Vector2(116,116))
+
+
+func site_in_range(index: int) -> bool:
+	if index < 0 or index >= sites.size() or climb_target != -1: return false
+	var site: Dictionary = site_definitions()[index]
+	return floor_level == int(site["floor"]) and absf(player_x - float(site["x"])) < INTERACTION_RADIUS
+
+
+func site_has_supplies(index: int) -> bool:
+	return sites[index]["contents"].values().any(func(amount): return int(amount) > 0)
+
+
 func nearby_site() -> int:
 	if climb_target != -1:
 		return -1
 	var nearest := -1
-	var distance := 58.0
+	var distance := INTERACTION_RADIUS
 	for index in range(site_definitions().size()):
-		if site_definitions()[index]["floor"] == floor_level and absf(player_x - site_definitions()[index]["x"]) < distance:
+		if site_in_range(index) and absf(player_x - site_definitions()[index]["x"]) < distance:
 			nearest = index
 			distance = absf(player_x - site_definitions()[index]["x"])
 	return nearest

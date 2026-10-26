@@ -62,6 +62,8 @@ def main():
     logical += 30
     run('residence', ['--headless', '--path', str(project), '--script', 'res://tests/test_residence.gd'], '90 checks, 0 failures')
     logical += 90
+    run('interactions', ['--headless', '--path', str(project), '--script', 'res://tests/test_interactions.gd'], '87 checks, 0 failures')
+    logical += 87
     run('startup', ['--headless', '--path', str(project), '--quit-after', '8'])
     for name, phases in [('persistence_process', ['write', 'read']),
                          ('persistence_expedition_process', ['write', 'read', 'verify']),
@@ -71,18 +73,19 @@ def main():
                          ('persistence_goals_process', ['write', 'read', 'verify']),
                          ('persistence_campaign_process', ['write', 'read', 'verify']),
                          ('persistence_expansion_process', ['write', 'read', 'verify']),
-                         ('persistence_residence_process', ['write', 'pack', 'move', 'verify'])]:
+                         ('persistence_residence_process', ['write', 'pack', 'move', 'verify']),
+                         ('persistence_interactions_process', ['write', 'read', 'return', 'verify'])]:
         slot = workspace / f'{name}.json'
         for phase in phases:
             run(f'{name}-{phase}', ['--headless', '--path', str(project), '--script',
                 f'res://tests/{name}.gd', '--', phase, str(slot)], 'PASS:')
     graphical = 0
     if args.graphics:
-        for name, count in [('visual_smoke', 36), ('visual_expedition', 36), ('visual_long_term', 24), ('visual_people', 22), ('visual_story', 17), ('visual_goals', 24), ('visual_presentation', 45), ('visual_campaign', 47), ('visual_expansion', 15), ('visual_quiet', 20), ('visual_residence', 26)]:
+        for name, count in [('visual_smoke', 36), ('visual_expedition', 36), ('visual_long_term', 24), ('visual_people', 22), ('visual_story', 17), ('visual_goals', 24), ('visual_presentation', 45), ('visual_campaign', 47), ('visual_expansion', 15), ('visual_quiet', 20), ('visual_residence', 26), ('visual_interactions', 25)]:
             run(name, ['--path', str(project), '--resolution', '1440x900', '--audio-driver', 'Dummy',
                 '--script', f'res://tests/{name}.gd'], f'{count} checks, 0 failures')
             graphical += count
-    print(f'Validated {logical} logical checks, {graphical} GUI checks, startup and 27 persistence processes.')
+    print(f'Validated {logical} logical checks, {graphical} GUI checks, startup and 31 persistence processes.')
     print(f'Clean project: {project}\nLogs: {output}')
 
 
