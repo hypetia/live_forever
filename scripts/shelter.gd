@@ -877,7 +877,7 @@ func _refresh_hud() -> void:
 	facility_label.text = "空闲 · 可分配工作" if target.occupant_id == -1 else "%s正在使用 · 其他人排队" % survivors[target.occupant_id].display_name
 	var has_materials := inventory.can_take(definition["cost"])
 	match selected_task:
-		"cook", "craft": recipe_label.text = "%s\n→ %s · 开工扣料 / 取消退料" % [ShelterInventory.describe(definition["cost"]), ShelterInventory.describe(definition["output"])]
+		"cook", "craft": recipe_label.text = "%s\n→ %s · 开工扣料 / 取消退料" % [ShelterInventory.describe(definition["cost"]), ShelterInventory.describe(CharacterAbilities.cooking_output(actor) if selected_task == "cook" else definition["output"])]
 		"eat": recipe_label.text = "熟食×1 · 饱腹+55，最高100\n中途取消退料，不恢复饱腹"
 		"sleep": recipe_label.text = "休息20秒，每秒精神+3\n可中断，保留已获得的休息"
 		"heal": recipe_label.text = "%s给自己用药 · 药品×1\n生命+25 / 伤势−50 / 感染−40" % actor.display_name

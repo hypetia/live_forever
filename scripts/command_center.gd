@@ -302,7 +302,7 @@ func _refresh_people() -> void:
 	roster_picker.disabled = game.expedition.active
 	var person := actor.person
 	var definition: Dictionary = PeopleCatalog.DATA[person.persona]
-	person_text.text = "%s\n生命%d 饱腹%d 水分%d 精神%d（满分100）\n工艺 Lv%d（%d/180） · 照护 Lv%d（%d/180）\n探索 Lv%d（%d/180）\n%s" % [definition["bio"],Vitals.value(actor,"health"),Vitals.value(actor,"fullness"),Vitals.value(actor,"hydration"),Vitals.value(actor,"vigor"), person.level("craft"), roundi(person.experience["craft"]), person.level("care"), roundi(person.experience["care"]), person.level("scout"), roundi(person.experience["scout"]), definition["traits"]]
+	person_text.text = "%s\n生命%d 饱腹%d 水分%d 精神%d（满分100）\n工艺 Lv%d（%d/180） · 照护 Lv%d（%d/180）\n探索 Lv%d（%d/180）\n%s" % [definition["bio"],Vitals.value(actor,"health"),Vitals.value(actor,"fullness"),Vitals.value(actor,"hydration"),Vitals.value(actor,"vigor"), person.level("craft"), roundi(person.experience["craft"]), person.level("care"), roundi(person.experience["care"]), person.level("scout"), roundi(person.experience["scout"]), (CharacterAbilities.description(person.persona) if actor.metabolism < 1 else definition["traits"]) + "\n" + definition["traits"]]
 	drink_button.disabled = game.expedition.active or game.game_over or actor.health <= 0 or person.thirst <= 0 or game.inventory.amount("water") < 1
 	routine_toggle.set_pressed_no_signal(person.routine)
 	routine_toggle.disabled = game.expedition.active or game.game_over or actor.health <= 0
@@ -471,6 +471,8 @@ func _refresh_goals() -> void:
 	var day := ExpeditionState.day_at(game.simulation_time)
 	trade_text.text = "至少1级据点、第4天起开放；接应后再等两个日历日。\n当前第%d天，下一次接应不早于第%d天。\n已用于目标与互助：材料%d、药品%d。" % [day, game.goals.next_trade_day, game.goals.spent["materials"], game.goals.spent["medicine"]]
 	for key in trade_buttons:
+		var quote: Dictionary = GoalCatalog.TRADES[key]
+		trade_buttons[key].text = quote["title"] + "\n" + ShelterInventory.describe(quote["cost"]) + " → " + ShelterInventory.describe(game.goals.trade_output(game,key))
 		var reason: String = game.goals.trade_error(game, key)
 		trade_buttons[key].disabled = not reason.is_empty()
 		trade_buttons[key].tooltip_text = reason if not reason.is_empty() else "确认支付完整费用并接回物资；所有互助共用两日间隔。"

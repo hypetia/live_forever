@@ -39,7 +39,7 @@ func _run() -> void:
 	check(SaveSystem.validate(SaveSystem.capture(scene)).is_empty(), "story UI, guidance and final live world remain fully saveable")
 	await keypress(KEY_ESCAPE)
 	check(scene.tutorial_label.text.contains("O"), "completed guide hands the nonblocking HUD to the tracked optional objective")
-	scene.free()
+	await dispose_scene(scene)
 	await create_timer(0.12).timeout
 	print("STORY VISUAL RESULT: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures else 0)

@@ -131,7 +131,7 @@ func _run() -> void:
 	await click_button(scene.interface.overlay, "开始白天")
 	check(scene.cycle.phase == "day" and scene.interface.shown.is_empty() and not scene.paused, "morning acknowledgement returns to real shelter play")
 	check(SaveSystem.validate(SaveSystem.capture(scene)).is_empty(), "complete physical day-night-day loop remains fully valid")
-	scene.free()
+	await dispose_scene(scene)
 	for suffix in ["", ".bak", ".tmp", ".bak.tmp"]:
 		if FileAccess.file_exists(path + suffix): DirAccess.remove_absolute(path + suffix)
 	# Another fresh run verifies unarmed mouse combat without position or damage fixtures.
@@ -149,7 +149,7 @@ func _run() -> void:
 	sim(scene, 5)
 	check(scene.expedition.enemies[0]["brace"] > 0 and scene.expedition_view.impact_kind == "push", "mouse approach reaches the patrol and performs a real unarmed push")
 	await picture("res://docs/v12-cycle-mouse-combat.png")
-	scene.free()
+	await dispose_scene(scene)
 	print("CAMPAIGN VISUAL RESULT: %d checks, %d failures" % [checks, failures])
 	await create_timer(0.12).timeout
 	quit(1 if failures else 0)

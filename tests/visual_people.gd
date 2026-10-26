@@ -81,7 +81,7 @@ func _run() -> void:
 	check(scene.selected_id == 3, "fourth survivor has a working real keyboard shortcut")
 	await picture("res://docs/crew-preview.png")
 	check(SaveSystem.validate(SaveSystem.capture(scene)).is_empty(), "complete real trip/care/recruitment UI run is a valid persistent state")
-	scene.free()
+	await dispose_scene(scene)
 	# Separate injury fixture verifies the medical button after the genuine-run screenshots.
 	var clinical: Node2D = load("res://scenes/shelter.tscn").instantiate()
 	clinical.persistence_enabled = false
@@ -95,7 +95,7 @@ func _run() -> void:
 	check(not clinical.center.aid_button.disabled, "medic's page offers actual paid aid for the injured selected companion")
 	await dialog_click(clinical.center, clinical.center.aid_button)
 	check(clinical.survivors[0].health == 60 and clinical.survivors[0].infection == 10 and clinical.inventory.amount("medicine") == 0 and clinical.survivors[1].person.experience["care"] == 8, "actual aid button consumes medicine, treats the companion and trains the medic")
-	clinical.free()
+	await dispose_scene(clinical)
 	await create_timer(0.12).timeout
 	print("PEOPLE VISUAL RESULT: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures else 0)

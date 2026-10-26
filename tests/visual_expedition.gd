@@ -158,7 +158,7 @@ func _run() -> void:
 	check(scene.inventory.amount("raw_food") == 5 and scene.inventory.amount("fuel") == 2 and scene.inventory.amount("meals") == 1, "whole expedition-base cycle conserves its real costs and output")
 	await keypress(KEY_F6)
 	check(scene.save_store.read_state()["ok"] and not scene.save_store.read_state()["data"]["expedition"]["active"], "completed cycle saves as a valid base state")
-	scene.free()
+	await dispose_scene(scene)
 	for suffix in ["", ".bak", ".tmp", ".bak.tmp"]:
 		if FileAccess.file_exists(save_path + suffix): DirAccess.remove_absolute(save_path + suffix)
 	print("EXPEDITION VISUAL RESULT: %d checks, %d failures" % [checks, failures])

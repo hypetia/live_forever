@@ -45,7 +45,7 @@ func _run() -> void:
 	expect(enemy["hp"] == 40, "windup does not deal immediate hidden damage")
 	field._resolve_attack(actor)
 	field.attack_windup = 0
-	expect(enemy["hp"] == 14 and actor.weapon_item["durability"] == durability - 3, "bat damages progressively and wears only on hit")
+	expect(enemy["hp"] == 4 and actor.weapon_item["durability"] == durability - 3, "bat damages progressively and wears only on hit")
 	field.attack_cooldown = 0
 	field.attack(actor)
 	field._resolve_attack(actor)

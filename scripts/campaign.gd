@@ -7,6 +7,8 @@ var compact: CompactHud
 var scene_art := SceneArt.new()
 var cycle := CampaignCycle.new()
 var expansion := SurvivalExpansion.new()
+var residence := ResidenceSystem.new()
+var residence_view: ResidenceInterface
 var interface: CampaignInterface
 var end_day_dialog: ConfirmationDialog
 var batch_count: SpinBox
@@ -49,9 +51,9 @@ func _ready() -> void:
 	expansion.grant("knife", "chen")
 	super._ready()
 	scheduler.external_busy = _external_busy
-	scheduler.station_reserved = func(id: String): return id == "workbench" and expansion.jobs.any(func(job): return survivors[int(job["actor"])].route.is_empty() and survivors[int(job["actor"])].position.distance_to(Vector2(485, 640)) <= 10)
+	scheduler.station_reserved = func(id: String): return id == "workbench" and expansion.jobs.any(func(job): return job["kind"] != "music" and survivors[int(job["actor"])].route.is_empty() and survivors[int(job["actor"])].position.distance_to(Vector2(485, 640)) <= 10)
 	expansion.sync(self)
-	get_window().title = "Live Forever · 留一盏灯 v1.2"
+	get_window().title = "Live Forever · 留一盏灯 v1.3"
 	for actor in survivors: actor.metabolism = 0.4
 	for field: ExpeditionState in regions.values(): field.manual_loot = true
 	# Replace the legacy instant water command with a physical action.
@@ -91,9 +93,27 @@ func _ready() -> void:
 	compact = CompactHud.new()
 	compact.game = self
 	add_child(compact)
+	residence_view = ResidenceInterface.new()
+	residence_view.game = self
+	add_child(residence_view)
+	scheduler.task_finished.connect(func(_id: int, task: String):
+		if task in ["craft", "repair", "cook"]: residence.noise = minf(100, residence.noise + (4 if task == "craft" else 2))
+	)
 	_configure_manual()
 	_log("左键走动，双击奔跑；点床与餐桌直接休息或进食，B选择建设。20:00安排夜间岗位。")
 	_refresh_hud()
+
+
+func residence_snapshot() -> Dictionary:
+	return residence.snapshot()
+
+
+func restore_residence(data: Dictionary) -> void:
+	residence.restore(data, self)
+	expansion.sync(self)
+	var loaded_pause := paused
+	if is_instance_valid(residence_view): residence_view.close()
+	paused = loaded_pause
 
 
 func expansion_snapshot() -> Dictionary:
@@ -142,6 +162,7 @@ func restore_campaign(data: Dictionary) -> void:
 		actor.move_multiplier = 1
 	for field: ExpeditionState in regions.values(): field.manual_loot = true
 	_props_signature = ""
+	context_open = false
 	placement = ""
 	_loot_open = expedition.loot_site >= 0
 	expedition_view.search_held = false
@@ -176,6 +197,9 @@ func advance_simulation(delta: float) -> void:
 			simulation_time += step
 			var actor := survivors[expedition.actor_id]
 			expansion.climate(actor, step, expansion.outside(self) - (3 if expedition.location_id == "broadcast" else 0))
+			# Night personality pressure is settled here; do not run full People.tick twice.
+			if expedition.elapsed > 120:
+				actor.person.stress = minf(100, actor.person.stress + step * (0.01 if actor.person.persona == "chen" else 0.005))
 			expedition.tick(step, actor, _expedition_controls())
 			if expedition.active: expansion.refresh_slots(expedition, actor)
 			if cycle.phase == "scavenge" and simulation_time >= cycle.night_end:
@@ -212,6 +236,7 @@ func _day_step(step: float) -> void:
 	for id in policies: survivors[int(id)].person.routine = policies[id]
 	_tick_external(step)
 	expansion.tick_day(self, step)
+	residence.noise = maxf(0, residence.noise - step * 0.006)
 	for actor in survivors:
 		if actor.route.is_empty(): actor.move_multiplier = 1
 
@@ -239,6 +264,7 @@ func end_day() -> void:
 		var step := minf(left, 0.5)
 		_advance_world_step(step)
 		expansion.tick_day(self, step)
+		residence.noise = maxf(0, residence.noise - step * 0.006)
 		left -= step
 		if survivors.all(func(actor): return actor.health <= 0): game_over = true
 	for index in range(survivors.size()): survivors[index].person.routine = policies[index] and survivors[index].health > 0
@@ -276,6 +302,10 @@ func enter_night_planning() -> void:
 		elif bed_left > 0:
 			cycle.roles[actor.survivor_id] = "bed"
 			bed_left -= 1
+	if not residence.convoy.is_empty():
+		cycle.roles.clear()
+		for actor in survivors: cycle.roles.append("guard" if actor.health > 0 else "dead")
+		expansion.ammo_loadout = 0
 	paused = true
 	context_open = false
 	placement = ""
@@ -325,6 +355,7 @@ func _on_expedition_returned(id: int, cargo: Dictionary, survived: bool) -> void
 	for key in cargo:
 		var quantity := maxi(0, int(cargo[key]) - int(upkeep.trip_loadout.get(key, 0)))
 		if quantity > 0: net[key] = quantity
+	residence.trip_return(self, survived and survivors[id].health > 0)
 	expansion.trip_return(self, id, survived and survivors[id].health > 0)
 	super._on_expedition_returned(id, cargo, survived)
 	_settle_night(["%s已归来；净带回%s。" % [survivors[id].display_name, ShelterInventory.describe(net)] if survived else "%s未能归来；随身物资、零件和装备全部丢失。" % survivors[id].display_name])
@@ -342,9 +373,10 @@ func _settle_night(lines: Array) -> void:
 		actor.hunger = minf(100, actor.hunger + minutes * 0.04 * (1.1 if actor.person.persona == "he" else 1.0))
 		actor.person.thirst = minf(100, actor.person.thirst + minutes * 0.018)
 		var role := cycle.roles[actor.survivor_id]
+		if not residence.convoy.is_empty(): role = "guard"
 		match role:
-			"bed": actor.fatigue = maxf(0, actor.fatigue - 65); actor.person.stress = maxf(0, actor.person.stress - 12)
-			"floor": actor.fatigue = maxf(0, actor.fatigue - 35); actor.person.stress = maxf(0, actor.person.stress - 4)
+			"bed": actor.fatigue = maxf(0, actor.fatigue - 65 * CharacterAbilities.factor(actor,"sleep")); actor.person.stress = maxf(0, actor.person.stress - 12)
+			"floor": actor.fatigue = maxf(0, actor.fatigue - 35 * CharacterAbilities.factor(actor,"sleep")); actor.person.stress = maxf(0, actor.person.stress - 4)
 			"guard": actor.fatigue = minf(100, actor.fatigue + 28)
 			"scavenge": actor.fatigue = minf(100, actor.fatigue + 35)
 		actor.infection = minf(100, actor.infection + (minutes * 0.006 if actor.infection > 0 else 0))
@@ -352,13 +384,15 @@ func _settle_night(lines: Array) -> void:
 		if actor.person.thirst >= 95: actor.health = maxf(0, actor.health - 6)
 		if actor.infection >= 60: actor.health = maxf(0, actor.health - 6)
 		if role == "bed" and actor.hunger < 60 and actor.infection < 20:
-			actor.health = minf(100, actor.health + 6)
-			actor.injury = maxf(0, actor.injury - 8)
-		report.append("%s · %s：精神%d → %d，饱腹%d，水分%d。" % [actor.display_name, CampaignCycle.ROLE_NAMES[CampaignCycle.ROLES.find(role)], roundi(100-before), Vitals.value(actor,"vigor"), Vitals.value(actor,"fullness"), Vitals.value(actor,"hydration")])
+			actor.health = minf(100, actor.health + 6 * CharacterAbilities.factor(actor,"recovery"))
+			actor.injury = maxf(0, actor.injury - 8 * CharacterAbilities.factor(actor,"recovery"))
+		report.append("%s · %s：精神%d → %d，饱腹%d，水分%d。" % [actor.display_name, "迁居行军" if not residence.convoy.is_empty() else CampaignCycle.ROLE_NAMES[CampaignCycle.ROLES.find(role)], roundi(100-before), Vitals.value(actor,"vigor"), Vitals.value(actor,"fullness"), Vitals.value(actor,"hydration")])
 	_resolve_raid(report)
 	simulation_time = maxf(simulation_time, cycle.night_end)
 	upkeep.tick(minutes, simulation_time)
 	expansion.dawn(self, minutes, report)
+	residence.finish_move(self, report)
+	residence.noise *= 0.4
 	# Morning boundaries are processed once; disable routine orders in the report.
 	var policies: Array[bool] = []
 	for actor in survivors:
@@ -389,14 +423,18 @@ func _settle_night(lines: Array) -> void:
 
 
 func _resolve_raid(report: Array[String]) -> void:
+	if not residence.convoy.is_empty():
+		_resolve_convoy(report)
+		return
 	var roll: int = (cycle.seed + cycle.night_day * 7919) % 100
-	if cycle.night_day < 3 or roll >= (55 if cycle.night_day < 8 else 70):
+	if cycle.night_day < 3 or roll >= residence.attack_chance(55 if cycle.night_day < 8 else 70):
 		report.append("这一夜没有尸群袭击。")
 		return
-	var defense := 0.9 if cycle.has_build("barricade") else 0.0
+	var defense := (0.9 if cycle.has_build("barricade") else 0.0) + residence.defense()
 	for actor in survivors:
-		if actor.health > 0 and cycle.roles[actor.survivor_id] == "guard": defense += actor.health / 100.0 * maxf(0.2, 1 - (actor.fatigue - 28) / 160.0) * 1.2
+		if actor.health > 0 and cycle.roles[actor.survivor_id] == "guard": defense += actor.health / 100.0 * maxf(0.2, 1 - (actor.fatigue - 28) / 160.0) * 1.2 * residence.guard_multiplier() * CharacterAbilities.factor(actor,"melee") * (1.15 if not actor.weapon().is_empty() else 1.0)
 	var threat := minf(2.0, 1.0 + cycle.night_day * 0.035)
+	residence.wear(threat)
 	if defense >= threat:
 		report.append("守夜与隔断挡住了尸群袭击，没有丢失物资。")
 		return
@@ -408,12 +446,28 @@ func _resolve_raid(report: Array[String]) -> void:
 	report.append("尸群袭击突破防守，损失%s。" % ShelterInventory.describe(stolen))
 	for actor in survivors:
 		if actor.health > 0 and cycle.roles[actor.survivor_id] in ["bed", "floor", "guard"]:
-			actor.health = maxf(0, actor.health - (4 if defense >= 0.8 else 9) * (1 - actor.protection()))
+			actor.health = maxf(0, actor.health - (4 if defense >= 0.8 else 9) * (1 - actor.protection()) * (1 - residence.security["mesh"] * 0.1 * residence.condition / 100))
 			actor.injury = minf(100, actor.injury + 8 * (1 - actor.protection()))
 			if not actor.armor_item.is_empty(): actor.armor_item["durability"] = maxi(0, int(actor.armor_item["durability"]) - 4)
 			actor.person.stress = minf(100, actor.person.stress + 8)
 			report.append("%s在袭击中受伤；请在白天处理。" % actor.display_name)
 			break
+
+
+func _resolve_convoy(report: Array[String]) -> void:
+	var escort := 0.0
+	for actor in survivors:
+		if actor.health > 0: escort += actor.health / 100 * (0.7 if actor.weapon().is_empty() else 1.2) * CharacterAbilities.factor(actor,"melee")
+	var danger := 1.5 + minf(1, cycle.night_day * 0.025)
+	if escort >= danger:
+		report.append("搬家队伍沿勘察路线穿过尸群，装备与互相掩护避免了人员受伤。")
+	else:
+		for actor in survivors:
+			if actor.health <= 0: continue
+			actor.health = maxf(0, actor.health - 12 * (1-actor.protection()))
+			actor.injury = minf(100,actor.injury+10)
+			if not actor.armor_item.is_empty(): actor.armor_item["durability"] = maxi(0,int(actor.armor_item["durability"])-4)
+		report.append("迁居途中遭遇尸群，护送力量不足，成员受伤；库存仍随运输队抵达。")
 
 
 func begin_day() -> void:
@@ -485,6 +539,7 @@ func _process(delta: float) -> void:
 			expedition_view.search_held = false
 		interface.refresh()
 	if is_instance_valid(compact): compact.refresh()
+	game_audio.sync_music(not paused and cycle.phase == "day" and survivors.any(func(actor): return actor.activity.get("kind", "") == "music"))
 
 
 func close_loot() -> void:
@@ -594,6 +649,15 @@ func cancel_selected() -> void:
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
+		if is_instance_valid(residence_view) and residence_view.opened:
+			if event.physical_keycode in [KEY_H,KEY_ESCAPE]: residence_view.close()
+			elif event.physical_keycode == KEY_F6: save_game()
+			get_viewport().set_input_as_handled()
+			return
+		if event.physical_keycode == KEY_H and cycle.phase in ["day","planning"]:
+			residence_view.toggle()
+			get_viewport().set_input_as_handled()
+			return
 		if event.physical_keycode == KEY_L and expedition.active and not _loot_open:
 			expedition.reload(survivors[expedition.actor_id])
 			get_viewport().set_input_as_handled()
@@ -637,7 +701,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not event is InputEventMouseButton or not event.pressed or game_over or center.visible: return
+	if not event is InputEventMouseButton or not event.pressed or game_over or center.visible or (is_instance_valid(residence_view) and residence_view.opened): return
 	if cycle.phase in ["planning", "dawn"] or _loot_open: return
 	if event.button_index == MOUSE_BUTTON_RIGHT:
 		if expedition.active:
@@ -781,7 +845,7 @@ func _tick_external(step: float) -> void:
 		var duration := 20.0 if action["kind"] == "sleep" else 2.0
 		action["elapsed"] = minf(duration, float(action["elapsed"]) + step)
 		actor.activity = {"kind": action["kind"], "label": "床上休息" if action["kind"] == "sleep" else "饮水", "progress": action["elapsed"] / duration}
-		if action["kind"] == "sleep": actor.fatigue = maxf(0, actor.fatigue - step * 3)
+		if action["kind"] == "sleep": actor.fatigue = maxf(0, actor.fatigue - step * 3 * CharacterAbilities.factor(actor,"sleep"))
 		if action["elapsed"] >= duration:
 			if action["kind"] == "drink": people.drink(self, actor.survivor_id)
 			else:
@@ -851,9 +915,9 @@ func _draw_house_details() -> void:
 func _configure_manual() -> void:
 	for node in center.tabs.get_child(3).find_children("*", "Label", true, false):
 		if node.text.begins_with("1. 给留守者"):
-			node.text = "1. 点击人物或底部卡片选人；左键地面行走，双击奔跑，右键取消。\n2. 点床休息、点餐桌吃饭、点水桶走过去饮水。R让选中者自行用药。\n3. 点灶台／工作台选择配方与批数后确认。新命令替换旧命令，按住Shift可追加。\n4. B选择建设，再点绿色位置；人物会走过去施工，完成后才有作用。K打开装备与战役，人物需走到工作台制作；取暖炉需点燃。\n5. 20:00进入夜间分工，也可点击结束白天。选择一位搜刮者，其他人守夜或睡眠。\n6. 选择目的地、携带物资再出发；每晚一次，提前归来也结算到清晨。"
+			node.text = "1. 点击人物或底部卡片选人；左键地面行走，双击奔跑，右键取消。\n2. 点床休息、点餐桌吃饭、点水桶走过去饮水。R让选中者自行用药。\n3. 点灶台／工作台选择配方与批数后确认。新命令替换旧命令，按住Shift可追加。\n4. B选择建设，再点绿色位置；人物会走过去施工，完成后才有作用。K打开装备与战役，人物需走到工作台制作；取暖炉需点燃。H打开家园，安排门窗加固、维护、音乐和迁居。\n5. 20:00进入夜间分工，也可点击结束白天。选择一位搜刮者，其他人守夜或睡眠。\n6. 选择目的地、携带物资再出发；每晚一次，提前归来也结算到清晨。"
 		elif node.text.begins_with("基地："):
-			node.text = "白天：左键走动，双击奔跑，右键取消；1–6／Tab选人，B建设，F／G／H／C／R为快捷行动，Shift追加队列。\n夜间：点地面移动、点容器走近搜索；A/D与W/S也可控制。搜索后逐份拿取／放回，F尽量全部拿走，Esc关闭；整理时夜间时间继续，空格可明确暂停。\n点击敌人靠近并挥击，J也可攻击、L为手枪换弹、R背包用药、B背包饮水、I背包、T在入口撤退。20:00出发，06:00天亮；迟归会沿实际路线自动撤回并增加疲劳与压力。\n分工画面Enter确认，清晨Enter开始新的一天。F6保存、F9读档、F11全屏、Esc菜单。"
+			node.text = "白天：左键走动，双击奔跑，右键取消；1–6／Tab选人，B建设，F／G／C／R为快捷行动，H家园与迁居，Shift追加队列。\n夜间：点地面移动、点容器走近搜索；A/D与W/S也可控制。搜索后逐份拿取／放回，F尽量全部拿走，Esc关闭；整理时夜间时间继续，空格可明确暂停。\n点击敌人靠近并挥击，J也可攻击、L为手枪换弹、R背包用药、B背包饮水、I背包、T在入口撤退。20:00出发，06:00天亮；迟归会沿实际路线自动撤回并增加疲劳与压力。\n分工画面Enter确认，清晨Enter开始新的一天。F6保存、F9读档、F11全屏、Esc菜单。"
 
 
 func actor_is_starving() -> bool:

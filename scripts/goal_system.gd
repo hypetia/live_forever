@@ -69,15 +69,25 @@ func trade_error(game: Node2D, id: String) -> String:
 	return ""
 
 
+func trade_output(game: Node2D, id: String) -> Dictionary:
+	var output: Dictionary = GoalCatalog.TRADES[id]["output"].duplicate()
+	var actor: Survivor = game.survivors[game.selected_id]
+	if actor.health > 0 and actor.metabolism < 1 and actor.person.persona == "tang":
+		output["water"] = int(output.get("water", 0)) + 1
+		output["fuel"] = int(output.get("fuel", 0)) + 1
+	return output
+
+
 func trade(game: Node2D, id: String) -> bool:
 	if not trade_error(game, id).is_empty(): return false
 	var definition: Dictionary = GoalCatalog.TRADES[id]
 	if not game.inventory.try_take(definition["cost"], "邻里互助：" + definition["title"]): return false
-	game.inventory.deposit(definition["output"], "邻里互助接应补给")
+	var output := trade_output(game, id)
+	game.inventory.deposit(output, "邻里互助接应补给")
 	_record_cost(definition["cost"])
 	trades[id] = int(trades[id]) + 1
 	next_trade_day = ExpeditionState.day_at(game.simulation_time) + 2
-	event_reported.emit("%s：支付%s，带回%s。所有互助共用两日间隔；仍需留足应急药品和维修材料。" % [definition["title"], ShelterInventory.describe(definition["cost"]), ShelterInventory.describe(definition["output"])])
+	event_reported.emit("%s：支付%s，带回%s。所有互助共用两日间隔；仍需留足应急药品和维修材料。" % [definition["title"], ShelterInventory.describe(definition["cost"]), ShelterInventory.describe(output)])
 	return true
 
 

@@ -47,7 +47,7 @@ func _run() -> void:
 	await picture("res://docs/v12-dawn.png")
 	check(game.interface.overlay.find_children("*","SurvivorCard",true,false).size() == 3,"morning starts with survivor cards rather than a wall of report text")
 	check(SaveSystem.validate(SaveSystem.capture(game)).is_empty(), "visual changes keep actual save state valid")
-	game.free()
+	await dispose_scene(game)
 	print("QUIET VISUAL RESULT: %d checks, %d failures" % [checks,failures])
 	await create_timer(0.12).timeout
 	quit(1 if failures else 0)

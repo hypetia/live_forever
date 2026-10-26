@@ -9,6 +9,7 @@ var volume := 0.5
 var fullscreen := false
 var effects: AudioStreamPlayer
 var wind: AudioStreamPlayer
+var music: AudioStreamPlayer
 var sounds: Dictionary = {}
 var _last_cue := 0
 var settings_path := SETTINGS_PATH
@@ -34,6 +35,8 @@ func _ready() -> void:
 	add_child(effects)
 	wind = AudioStreamPlayer.new()
 	add_child(wind)
+	music = AudioStreamPlayer.new()
+	add_child(music)
 	if sound_bank.is_empty():
 		for kind in ["work", "danger", "return", "notice", "hit", "push", "miss", "blocked", "shot"]: sound_bank[kind] = _tone(kind)
 		sound_bank["wind"] = _wind()
@@ -45,6 +48,8 @@ func _ready() -> void:
 
 func apply_preferences(save: bool = true) -> void:
 	if not enabled and is_instance_valid(effects): effects.stop()
+	if not enabled and is_instance_valid(music): music.stop()
+	if is_instance_valid(music): music.volume_db = linear_to_db(maxf(volume * 0.25, 0.0001))
 	if is_instance_valid(effects): effects.volume_db = linear_to_db(maxf(volume * 0.38, 0.0001))
 	if is_instance_valid(wind):
 		wind.volume_db = linear_to_db(maxf(volume * 0.18, 0.0001))
@@ -113,7 +118,7 @@ func _wind() -> AudioStreamWAV:
 
 
 func stop_audio() -> void:
-	for player in [effects, wind]:
+	for player in [effects, wind, music]:
 		if is_instance_valid(player):
 			player.stop()
 			player.stream = null
@@ -130,3 +135,37 @@ func combat_cue(kind: String) -> void:
 	effects.stream = sounds.get(kind, sounds["notice"])
 	effects.play()
 	_last_cue = Time.get_ticks_msec()
+
+
+func sync_music(performing: bool) -> void:
+	if not is_instance_valid(music): return
+	if not performing or not enabled or DisplayServer.get_name() == "headless":
+		music.stop()
+		return
+	if music.playing: return
+	if not sound_bank.has("guitar"): sound_bank["guitar"] = _plucked_phrase()
+	music.stream = sound_bank["guitar"]
+	music.play()
+
+
+func _plucked_phrase() -> AudioStreamWAV:
+	# Original synthesized arpeggio; no recording from another game.
+	var rate := 22050
+	var pitches := [164.81,246.94,329.63,196.0,146.83,220.0,293.66,196.0]
+	var bytes := PackedByteArray()
+	bytes.resize(int(rate * 6.4) * 2)
+	for sample in range(bytes.size()/2):
+		var time := float(sample)/rate
+		var note := mini(7,int(time/0.8))
+		var age := fmod(time,0.8)
+		var hz: float = pitches[note]
+		var envelope := minf(1,age*180) * exp(-age*6.5)
+		var value := (sin(TAU*hz*age)+0.3*sin(TAU*hz*2*age)+0.13*sin(TAU*hz*3*age))*envelope*0.35
+		bytes.encode_s16(sample*2,int(value*32767))
+	var sound := AudioStreamWAV.new()
+	sound.format = AudioStreamWAV.FORMAT_16_BITS
+	sound.mix_rate = rate
+	sound.data = bytes
+	sound.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	sound.loop_end = bytes.size()/2
+	return sound

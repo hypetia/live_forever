@@ -264,10 +264,13 @@ func aid(game: Node2D, target_id: int) -> bool:
 	if game.simulation_time - medic.person.last_aid < 180 or game.simulation_time - target.person.last_aid < 180: return false
 	if target.health >= 100 and target.injury <= 0 and target.infection <= 0 and target.illness <= 0: return false
 	if not game.inventory.try_take({"medicine": 1}, medic.display_name + "医疗援助" + target.display_name): return false
-	if target.metabolism >= 1 or target.hunger < 80: target.health = minf(100, target.health + 20 + medic.person.level("care") * 2)
+	if target.metabolism >= 1 or target.hunger < 80: target.health = minf(100, target.health + 20 + medic.person.level("care") * 2 + (10 if medic.metabolism < 1 and medic.person.persona == "xu" else 0))
 	target.injury = maxf(0, target.injury - 40)
 	target.infection = maxf(0, target.infection - 35)
 	target.illness = maxf(0, target.illness - 35)
+	if medic.metabolism < 1 and medic.person.persona == "gu":
+		target.injury = maxf(0, target.injury - 15)
+		target.illness = maxf(0, target.illness - 10)
 	target.person.stress = maxf(0, target.person.stress - 10)
 	target.person.trauma = maxf(0, target.person.trauma - 5)
 	medic.person.last_aid = game.simulation_time

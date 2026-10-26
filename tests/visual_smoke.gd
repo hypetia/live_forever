@@ -157,7 +157,7 @@ func _run() -> void:
 	scene.new_dialog.get_cancel_button().pressed.emit()
 	await process_frame
 	check(SaveSystem.capture(scene) == preserved, "cancelling new game retains the current run")
-	scene.free()
+	await dispose_scene(scene)
 	for suffix in ["", ".bak", ".tmp", ".bak.tmp"]:
 		if FileAccess.file_exists(save_path + suffix): DirAccess.remove_absolute(save_path + suffix)
 	# Build the screenshot from a fresh real run, with no extra resources or
@@ -201,6 +201,14 @@ func _run() -> void:
 	check(night_frame.get_pixel(180, 350).get_luminance() < day_pixel.get_luminance(), "night visibly dims the shelter background")
 	check(night_frame.save_png("res://docs/night-preview.png") == OK, "actual night frame is saved")
 	print("VISUAL RESULT: %d checks, %d failures" % [checks, failures])
-	scene.free()
+	await dispose_scene(scene)
 	await create_timer(0.12).timeout
 	quit(1 if failures else 0)
+
+
+func dispose_scene(scene: Node2D) -> void:
+	scene.set_process(false)
+	scene.game_audio.stop_audio()
+	# The real game's quit path also gives the mixer time before freeing audio owners.
+	await create_timer(0.16).timeout
+	scene.free()

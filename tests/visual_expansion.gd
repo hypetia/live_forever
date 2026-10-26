@@ -27,7 +27,7 @@ func _run() -> void:
 	var enemy: Dictionary = game.expedition.enemies[0]
 	await click_at(game.world_offset() + Vector2(enemy["x"], 580) * game.world_scale())
 	sim(game, 5)
-	check(enemy["hp"] == 22 and game.expedition_view.impact_kind == "hit", "mouse movement and windup resolve visible knife damage")
+	check(enemy["hp"] == 15 and game.expedition_view.impact_kind == "hit", "mouse movement and windup resolve visible knife damage")
 	await picture("res://docs/v12-combat.png")
 	check(game.expedition_view.attack_button.tooltip_text.contains("猎刀") or game.expedition.attack_cooldown > 0, "HUD names actual equipped weapon")
 	check(game.cards[game.expedition.actor_id].tooltip_text.contains("精神") and not game.expedition_view.stats_label.visible, "night HUD separates illness and infection")
@@ -39,7 +39,7 @@ func _run() -> void:
 	await picture("res://docs/v12-loot.png")
 	await keypress(KEY_ESCAPE)
 	check(not game._loot_open, "Esc closes extended loot without leaving a modal blocker")
-	game.free()
+	await dispose_scene(game)
 	print("EXPANSION VISUAL RESULT: %d checks, %d failures" % [checks, failures])
 	await create_timer(0.12).timeout
 	quit(1 if failures else 0)

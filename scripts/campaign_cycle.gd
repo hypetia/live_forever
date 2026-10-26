@@ -59,6 +59,9 @@ func capacity(game: Node2D) -> int:
 
 func plan_error(game: Node2D) -> String:
 	if phase != "planning": return "现在不是夜间分工阶段。"
+	if game.has_method("residence_snapshot"):
+		var error: String = game.residence.plan_error(game)
+		if not error.is_empty(): return error
 	if roles.size() != game.survivors.size(): return "请为所有成员选择夜间岗位。"
 	if roles.count("scavenge") > 1: return "每晚只能有一名搜刮者。"
 	if roles.count("bed") > bed_count(): return "床位不足：改为地铺或白天建造简易床。"
@@ -138,14 +141,14 @@ static func validate(data: Variant, world: Dictionary) -> String:
 			if build["actor"] != -1 or not is_equal_approx(build["elapsed"], RECIPES[build["type"]]["seconds"]): return "已建成设施状态无效"
 		else:
 			var actor := int(build["actor"])
-			if data["phase"] != "day" or actor < 0 or occupied.has(actor) or not world["actors"][actor]["orders"].is_empty() or not world["actors"][actor]["state"] in [Survivor.TaskState.IDLE, Survivor.TaskState.RETURNING]: return "建设者与岗位不符"
+			if data["phase"] != "day" or actor < 0 or occupied.has(actor) or not world["actors"][actor]["orders"].is_empty() or not int(world["actors"][actor]["state"]) in [Survivor.TaskState.IDLE, Survivor.TaskState.RETURNING]: return "建设者与岗位不符"
 			occupied.append(actor)
 	var beds_used: Array = []
 	for action in data["actions"]:
 		if not CharacterState.keys(action, ["actor", "kind", "slot", "elapsed"]): return "场景行动字段无效"
 		if not CharacterState.integer(action["actor"], 0, world["actors"].size() - 1) or occupied.has(int(action["actor"])) or not action["kind"] in ["drink", "sleep"] or not CharacterState.integer(action["slot"], -1, SLOTS.size() - 1): return "场景行动人员或类型无效"
 		var actor := int(action["actor"])
-		if data["phase"] != "day" or not world["actors"][actor]["orders"].is_empty() or not world["actors"][actor]["state"] in [Survivor.TaskState.IDLE, Survivor.TaskState.RETURNING]: return "行动者正在承担其他岗位"
+		if data["phase"] != "day" or not world["actors"][actor]["orders"].is_empty() or not int(world["actors"][actor]["state"]) in [Survivor.TaskState.IDLE, Survivor.TaskState.RETURNING]: return "行动者正在承担其他岗位"
 		if not CharacterState.number(action["elapsed"], 0, 20.0 if action["kind"] == "sleep" else 2.0): return "场景行动进度无效"
 		if action["kind"] == "sleep":
 			if beds_used.has(action["slot"]) or not data["builds"].any(func(build): return build["slot"] == action["slot"] and build["type"] == "bed" and build["state"] == "complete"): return "休息床位无效或重复占用"

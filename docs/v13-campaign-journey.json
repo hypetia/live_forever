@@ -1,0 +1,1948 @@
+{
+  "alive": 3,
+  "campaign": {
+    "actions": [],
+    "builds": [
+      {
+        "actor": -1,
+        "elapsed": 40.0,
+        "slot": 4,
+        "state": "complete",
+        "type": "heater"
+      }
+    ],
+    "last_resolved_day": 28,
+    "late_warned": false,
+    "loadout": {
+      "medicine": 1
+    },
+    "night_day": 28,
+    "night_end": 20100.0,
+    "night_start": 19800.0,
+    "phase": "dawn",
+    "report": [
+      "陈野已归来；净带回生食×1、水×3、燃料×3、材料×3。",
+      "林舟 · 留守警戒：精神72 → 44，饱腹76，水分78。",
+      "许遥 · 床上睡眠：精神90 → 100，饱腹63，水分78。",
+      "陈野 · 外出搜刮：精神73 → 38，饱腹31，水分78。",
+      "尸群袭击突破防守，损失生食×1、水×1、材料×1。",
+      "林舟在袭击中受伤；请在白天处理。",
+      "林舟 · 疾病0，寒冷0，衣物保暖+16℃。",
+      "许遥 · 疾病0，寒冷0，衣物保暖+16℃。",
+      "陈野 · 疾病0，寒冷0，衣物保暖+16℃。",
+      "撤离成功！3位幸存者带着补给抵达接应点。可继续无尽生存或新开战役。",
+      "战役第29/35天 · 已撤离：撤离成功！可以继续无尽生存。"
+    ],
+    "roles": [
+      "guard",
+      "bed",
+      "scavenge"
+    ],
+    "seed": 71413
+  },
+  "day": 29,
+  "expansion": {
+    "ammo": 0,
+    "ammo_loadout": 0,
+    "carried": [],
+    "collected": [
+      "relay",
+      "filter_core",
+      "power_cell",
+      "beacon_core",
+      "route"
+    ],
+    "endless": false,
+    "epoch": 1,
+    "gear": [
+      {
+        "durability": 60,
+        "id": 1,
+        "kind": "knife",
+        "owner": ""
+      },
+      {
+        "durability": 25,
+        "id": 2,
+        "kind": "spear",
+        "owner": "chen"
+      },
+      {
+        "durability": 80,
+        "id": 3,
+        "kind": "coat",
+        "owner": "chen"
+      },
+      {
+        "durability": 80,
+        "id": 4,
+        "kind": "coat",
+        "owner": "lin"
+      },
+      {
+        "durability": 81,
+        "id": 5,
+        "kind": "coat",
+        "owner": "xu"
+      }
+    ],
+    "heater_remaining": 180.0,
+    "jobs": [],
+    "next_id": 6,
+    "night_heat": 0.0,
+    "outcome": "victory",
+    "parts": [
+      "route"
+    ],
+    "pump_on": false,
+    "stage": 5,
+    "use_night_heat": true,
+    "warm_nights": 2
+  },
+  "records": [
+    {
+      "alive": 3,
+      "day": 1,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": "chen"
+          }
+        ],
+        "heater_remaining": 0.0,
+        "jobs": [],
+        "next_id": 2,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [],
+        "pump_on": false,
+        "stage": 0,
+        "use_night_heat": false,
+        "warm_nights": 0
+      },
+      "stock": {
+        "fuel": 3,
+        "materials": 8,
+        "meals": 0,
+        "medicine": 1,
+        "raw_food": 4,
+        "tools": 0,
+        "water": 4
+      },
+      "trips": 0
+    },
+    {
+      "alive": 3,
+      "day": 2,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 91,
+            "id": 2,
+            "kind": "spear",
+            "owner": "chen"
+          }
+        ],
+        "heater_remaining": 0.0,
+        "jobs": [],
+        "next_id": 3,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [
+          "relay"
+        ],
+        "pump_on": false,
+        "stage": 0,
+        "use_night_heat": false,
+        "warm_nights": 0
+      },
+      "stock": {
+        "fuel": 7,
+        "materials": 6,
+        "meals": 1,
+        "medicine": 1,
+        "raw_food": 4,
+        "tools": 1,
+        "water": 3
+      },
+      "trips": 1
+    },
+    {
+      "alive": 3,
+      "day": 3,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 88,
+            "id": 2,
+            "kind": "spear",
+            "owner": "chen"
+          }
+        ],
+        "heater_remaining": 0.0,
+        "jobs": [],
+        "next_id": 3,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [],
+        "pump_on": false,
+        "stage": 1,
+        "use_night_heat": false,
+        "warm_nights": 0
+      },
+      "stock": {
+        "fuel": 6,
+        "materials": 3,
+        "meals": 1,
+        "medicine": 1,
+        "raw_food": 12,
+        "tools": 0,
+        "water": 4
+      },
+      "trips": 2
+    },
+    {
+      "alive": 3,
+      "day": 4,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 73,
+            "id": 2,
+            "kind": "spear",
+            "owner": "chen"
+          }
+        ],
+        "heater_remaining": 0.0,
+        "jobs": [],
+        "next_id": 3,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [],
+        "pump_on": false,
+        "stage": 1,
+        "use_night_heat": false,
+        "warm_nights": 0
+      },
+      "stock": {
+        "fuel": 8,
+        "materials": 12,
+        "meals": 0,
+        "medicine": 1,
+        "raw_food": 12,
+        "tools": 1,
+        "water": 4
+      },
+      "trips": 3
+    },
+    {
+      "alive": 3,
+      "day": 5,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 67,
+            "id": 2,
+            "kind": "spear",
+            "owner": "chen"
+          }
+        ],
+        "heater_remaining": 0.0,
+        "jobs": [],
+        "next_id": 3,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [],
+        "pump_on": false,
+        "stage": 1,
+        "use_night_heat": false,
+        "warm_nights": 0
+      },
+      "stock": {
+        "fuel": 11,
+        "materials": 9,
+        "meals": 2,
+        "medicine": 1,
+        "raw_food": 12,
+        "tools": 0,
+        "water": 1
+      },
+      "trips": 4
+    },
+    {
+      "alive": 3,
+      "day": 6,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 55,
+            "id": 2,
+            "kind": "spear",
+            "owner": "chen"
+          }
+        ],
+        "heater_remaining": 0.0,
+        "jobs": [],
+        "next_id": 3,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [],
+        "pump_on": false,
+        "stage": 1,
+        "use_night_heat": false,
+        "warm_nights": 0
+      },
+      "stock": {
+        "fuel": 12,
+        "materials": 14,
+        "meals": 0,
+        "medicine": 2,
+        "raw_food": 11,
+        "tools": 3,
+        "water": 5
+      },
+      "trips": 5
+    },
+    {
+      "alive": 3,
+      "day": 7,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 49,
+            "id": 2,
+            "kind": "spear",
+            "owner": "chen"
+          }
+        ],
+        "heater_remaining": 0.0,
+        "jobs": [],
+        "next_id": 3,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [],
+        "pump_on": false,
+        "stage": 1,
+        "use_night_heat": false,
+        "warm_nights": 1
+      },
+      "stock": {
+        "fuel": 11,
+        "materials": 17,
+        "meals": 1,
+        "medicine": 2,
+        "raw_food": 11,
+        "tools": 3,
+        "water": 13
+      },
+      "trips": 6
+    },
+    {
+      "alive": 3,
+      "day": 8,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 40,
+            "id": 2,
+            "kind": "spear",
+            "owner": "chen"
+          }
+        ],
+        "heater_remaining": 0.0,
+        "jobs": [],
+        "next_id": 3,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [],
+        "pump_on": false,
+        "stage": 2,
+        "use_night_heat": false,
+        "warm_nights": 2
+      },
+      "stock": {
+        "fuel": 12,
+        "materials": 15,
+        "meals": 1,
+        "medicine": 6,
+        "raw_food": 12,
+        "tools": 3,
+        "water": 14
+      },
+      "trips": 7
+    },
+    {
+      "alive": 3,
+      "day": 9,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay",
+          "filter_core"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 37,
+            "id": 2,
+            "kind": "spear",
+            "owner": "chen"
+          }
+        ],
+        "heater_remaining": 0.0,
+        "jobs": [],
+        "next_id": 3,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [
+          "filter_core"
+        ],
+        "pump_on": false,
+        "stage": 2,
+        "use_night_heat": false,
+        "warm_nights": 2
+      },
+      "stock": {
+        "fuel": 12,
+        "materials": 16,
+        "meals": 0,
+        "medicine": 6,
+        "raw_food": 11,
+        "tools": 4,
+        "water": 15
+      },
+      "trips": 8
+    },
+    {
+      "alive": 3,
+      "day": 10,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay",
+          "filter_core",
+          "power_cell"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 1,
+            "id": 2,
+            "kind": "spear",
+            "owner": "xu"
+          },
+          {
+            "durability": 99,
+            "id": 3,
+            "kind": "coat",
+            "owner": "xu"
+          },
+          {
+            "durability": 99,
+            "id": 4,
+            "kind": "coat",
+            "owner": "chen"
+          }
+        ],
+        "heater_remaining": 0.0,
+        "jobs": [],
+        "next_id": 5,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [
+          "power_cell"
+        ],
+        "pump_on": false,
+        "stage": 3,
+        "use_night_heat": false,
+        "warm_nights": 2
+      },
+      "stock": {
+        "fuel": 9,
+        "materials": 8,
+        "meals": 0,
+        "medicine": 6,
+        "raw_food": 11,
+        "tools": 5,
+        "water": 14
+      },
+      "trips": 9
+    },
+    {
+      "alive": 3,
+      "day": 11,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay",
+          "filter_core",
+          "power_cell"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 40,
+            "id": 2,
+            "kind": "spear",
+            "owner": "chen"
+          },
+          {
+            "durability": 98,
+            "id": 3,
+            "kind": "coat",
+            "owner": "chen"
+          },
+          {
+            "durability": 98,
+            "id": 4,
+            "kind": "coat",
+            "owner": "lin"
+          },
+          {
+            "durability": 99,
+            "id": 5,
+            "kind": "coat",
+            "owner": "xu"
+          }
+        ],
+        "heater_remaining": 0.0,
+        "jobs": [],
+        "next_id": 6,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [
+          "power_cell"
+        ],
+        "pump_on": false,
+        "stage": 3,
+        "use_night_heat": false,
+        "warm_nights": 2
+      },
+      "stock": {
+        "fuel": 10,
+        "materials": 9,
+        "meals": 1,
+        "medicine": 6,
+        "raw_food": 10,
+        "tools": 5,
+        "water": 12
+      },
+      "trips": 10
+    },
+    {
+      "alive": 3,
+      "day": 12,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay",
+          "filter_core",
+          "power_cell"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 34,
+            "id": 2,
+            "kind": "spear",
+            "owner": "chen"
+          },
+          {
+            "durability": 97,
+            "id": 3,
+            "kind": "coat",
+            "owner": "chen"
+          },
+          {
+            "durability": 97,
+            "id": 4,
+            "kind": "coat",
+            "owner": "lin"
+          },
+          {
+            "durability": 98,
+            "id": 5,
+            "kind": "coat",
+            "owner": "xu"
+          }
+        ],
+        "heater_remaining": 0.0,
+        "jobs": [],
+        "next_id": 6,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [
+          "power_cell"
+        ],
+        "pump_on": false,
+        "stage": 3,
+        "use_night_heat": false,
+        "warm_nights": 2
+      },
+      "stock": {
+        "fuel": 11,
+        "materials": 10,
+        "meals": 1,
+        "medicine": 6,
+        "raw_food": 11,
+        "tools": 5,
+        "water": 14
+      },
+      "trips": 11
+    },
+    {
+      "alive": 3,
+      "day": 13,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay",
+          "filter_core",
+          "power_cell",
+          "beacon_core"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 19,
+            "id": 2,
+            "kind": "spear",
+            "owner": "chen"
+          },
+          {
+            "durability": 96,
+            "id": 3,
+            "kind": "coat",
+            "owner": "chen"
+          },
+          {
+            "durability": 96,
+            "id": 4,
+            "kind": "coat",
+            "owner": "lin"
+          },
+          {
+            "durability": 97,
+            "id": 5,
+            "kind": "coat",
+            "owner": "xu"
+          }
+        ],
+        "heater_remaining": 0.0,
+        "jobs": [],
+        "next_id": 6,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [
+          "power_cell",
+          "beacon_core"
+        ],
+        "pump_on": false,
+        "stage": 3,
+        "use_night_heat": false,
+        "warm_nights": 2
+      },
+      "stock": {
+        "fuel": 11,
+        "materials": 17,
+        "meals": 0,
+        "medicine": 5,
+        "raw_food": 11,
+        "tools": 5,
+        "water": 13
+      },
+      "trips": 12
+    },
+    {
+      "alive": 3,
+      "day": 14,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay",
+          "filter_core",
+          "power_cell",
+          "beacon_core"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 70,
+            "id": 2,
+            "kind": "spear",
+            "owner": "chen"
+          },
+          {
+            "durability": 95,
+            "id": 3,
+            "kind": "coat",
+            "owner": "chen"
+          },
+          {
+            "durability": 95,
+            "id": 4,
+            "kind": "coat",
+            "owner": "lin"
+          },
+          {
+            "durability": 96,
+            "id": 5,
+            "kind": "coat",
+            "owner": "xu"
+          }
+        ],
+        "heater_remaining": 180.0,
+        "jobs": [],
+        "next_id": 6,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [],
+        "pump_on": false,
+        "stage": 4,
+        "use_night_heat": true,
+        "warm_nights": 2
+      },
+      "stock": {
+        "fuel": 12,
+        "materials": 13,
+        "meals": 1,
+        "medicine": 4,
+        "raw_food": 10,
+        "tools": 5,
+        "water": 13
+      },
+      "trips": 13
+    },
+    {
+      "alive": 3,
+      "day": 15,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay",
+          "filter_core",
+          "power_cell",
+          "beacon_core"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 67,
+            "id": 2,
+            "kind": "spear",
+            "owner": "chen"
+          },
+          {
+            "durability": 94,
+            "id": 3,
+            "kind": "coat",
+            "owner": "chen"
+          },
+          {
+            "durability": 94,
+            "id": 4,
+            "kind": "coat",
+            "owner": "lin"
+          },
+          {
+            "durability": 95,
+            "id": 5,
+            "kind": "coat",
+            "owner": "xu"
+          }
+        ],
+        "heater_remaining": 180.0,
+        "jobs": [],
+        "next_id": 6,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [],
+        "pump_on": false,
+        "stage": 4,
+        "use_night_heat": true,
+        "warm_nights": 2
+      },
+      "stock": {
+        "fuel": 11,
+        "materials": 18,
+        "meals": 1,
+        "medicine": 6,
+        "raw_food": 12,
+        "tools": 5,
+        "water": 16
+      },
+      "trips": 14
+    },
+    {
+      "alive": 3,
+      "day": 16,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay",
+          "filter_core",
+          "power_cell",
+          "beacon_core"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 43,
+            "id": 2,
+            "kind": "spear",
+            "owner": "chen"
+          },
+          {
+            "durability": 93,
+            "id": 3,
+            "kind": "coat",
+            "owner": "chen"
+          },
+          {
+            "durability": 93,
+            "id": 4,
+            "kind": "coat",
+            "owner": "lin"
+          },
+          {
+            "durability": 94,
+            "id": 5,
+            "kind": "coat",
+            "owner": "xu"
+          }
+        ],
+        "heater_remaining": 180.0,
+        "jobs": [],
+        "next_id": 6,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [],
+        "pump_on": false,
+        "stage": 4,
+        "use_night_heat": true,
+        "warm_nights": 2
+      },
+      "stock": {
+        "fuel": 12,
+        "materials": 18,
+        "meals": 0,
+        "medicine": 6,
+        "raw_food": 14,
+        "tools": 5,
+        "water": 16
+      },
+      "trips": 15
+    },
+    {
+      "alive": 3,
+      "day": 17,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay",
+          "filter_core",
+          "power_cell",
+          "beacon_core"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 37,
+            "id": 2,
+            "kind": "spear",
+            "owner": "chen"
+          },
+          {
+            "durability": 92,
+            "id": 3,
+            "kind": "coat",
+            "owner": "chen"
+          },
+          {
+            "durability": 92,
+            "id": 4,
+            "kind": "coat",
+            "owner": "lin"
+          },
+          {
+            "durability": 93,
+            "id": 5,
+            "kind": "coat",
+            "owner": "xu"
+          }
+        ],
+        "heater_remaining": 180.0,
+        "jobs": [],
+        "next_id": 6,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [],
+        "pump_on": false,
+        "stage": 4,
+        "use_night_heat": true,
+        "warm_nights": 2
+      },
+      "stock": {
+        "fuel": 12,
+        "materials": 17,
+        "meals": 0,
+        "medicine": 6,
+        "raw_food": 12,
+        "tools": 5,
+        "water": 15
+      },
+      "trips": 16
+    },
+    {
+      "alive": 3,
+      "day": 18,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay",
+          "filter_core",
+          "power_cell",
+          "beacon_core"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 13,
+            "id": 2,
+            "kind": "spear",
+            "owner": "chen"
+          },
+          {
+            "durability": 91,
+            "id": 3,
+            "kind": "coat",
+            "owner": "chen"
+          },
+          {
+            "durability": 91,
+            "id": 4,
+            "kind": "coat",
+            "owner": "lin"
+          },
+          {
+            "durability": 92,
+            "id": 5,
+            "kind": "coat",
+            "owner": "xu"
+          }
+        ],
+        "heater_remaining": 180.0,
+        "jobs": [],
+        "next_id": 6,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [],
+        "pump_on": false,
+        "stage": 4,
+        "use_night_heat": true,
+        "warm_nights": 2
+      },
+      "stock": {
+        "fuel": 12,
+        "materials": 17,
+        "meals": 1,
+        "medicine": 6,
+        "raw_food": 11,
+        "tools": 7,
+        "water": 15
+      },
+      "trips": 17
+    },
+    {
+      "alive": 3,
+      "day": 19,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay",
+          "filter_core",
+          "power_cell",
+          "beacon_core"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 61,
+            "id": 2,
+            "kind": "spear",
+            "owner": "chen"
+          },
+          {
+            "durability": 90,
+            "id": 3,
+            "kind": "coat",
+            "owner": "chen"
+          },
+          {
+            "durability": 90,
+            "id": 4,
+            "kind": "coat",
+            "owner": "lin"
+          },
+          {
+            "durability": 91,
+            "id": 5,
+            "kind": "coat",
+            "owner": "xu"
+          }
+        ],
+        "heater_remaining": 180.0,
+        "jobs": [],
+        "next_id": 6,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [],
+        "pump_on": false,
+        "stage": 4,
+        "use_night_heat": true,
+        "warm_nights": 2
+      },
+      "stock": {
+        "fuel": 12,
+        "materials": 17,
+        "meals": 0,
+        "medicine": 6,
+        "raw_food": 11,
+        "tools": 7,
+        "water": 17
+      },
+      "trips": 18
+    },
+    {
+      "alive": 3,
+      "day": 20,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay",
+          "filter_core",
+          "power_cell",
+          "beacon_core"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 55,
+            "id": 2,
+            "kind": "spear",
+            "owner": "xu"
+          },
+          {
+            "durability": 89,
+            "id": 3,
+            "kind": "coat",
+            "owner": "xu"
+          },
+          {
+            "durability": 89,
+            "id": 4,
+            "kind": "coat",
+            "owner": "chen"
+          },
+          {
+            "durability": 90,
+            "id": 5,
+            "kind": "coat",
+            "owner": "lin"
+          }
+        ],
+        "heater_remaining": 180.0,
+        "jobs": [],
+        "next_id": 6,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [],
+        "pump_on": false,
+        "stage": 4,
+        "use_night_heat": true,
+        "warm_nights": 2
+      },
+      "stock": {
+        "fuel": 12,
+        "materials": 18,
+        "meals": 2,
+        "medicine": 6,
+        "raw_food": 12,
+        "tools": 7,
+        "water": 16
+      },
+      "trips": 19
+    },
+    {
+      "alive": 3,
+      "day": 21,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay",
+          "filter_core",
+          "power_cell",
+          "beacon_core"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 49,
+            "id": 2,
+            "kind": "spear",
+            "owner": "chen"
+          },
+          {
+            "durability": 88,
+            "id": 3,
+            "kind": "coat",
+            "owner": "chen"
+          },
+          {
+            "durability": 88,
+            "id": 4,
+            "kind": "coat",
+            "owner": "lin"
+          },
+          {
+            "durability": 89,
+            "id": 5,
+            "kind": "coat",
+            "owner": "xu"
+          }
+        ],
+        "heater_remaining": 180.0,
+        "jobs": [],
+        "next_id": 6,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [],
+        "pump_on": false,
+        "stage": 4,
+        "use_night_heat": true,
+        "warm_nights": 2
+      },
+      "stock": {
+        "fuel": 12,
+        "materials": 18,
+        "meals": 1,
+        "medicine": 6,
+        "raw_food": 12,
+        "tools": 7,
+        "water": 16
+      },
+      "trips": 20
+    },
+    {
+      "alive": 3,
+      "day": 22,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay",
+          "filter_core",
+          "power_cell",
+          "beacon_core"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 40,
+            "id": 2,
+            "kind": "spear",
+            "owner": "chen"
+          },
+          {
+            "durability": 87,
+            "id": 3,
+            "kind": "coat",
+            "owner": "chen"
+          },
+          {
+            "durability": 87,
+            "id": 4,
+            "kind": "coat",
+            "owner": "lin"
+          },
+          {
+            "durability": 88,
+            "id": 5,
+            "kind": "coat",
+            "owner": "xu"
+          }
+        ],
+        "heater_remaining": 180.0,
+        "jobs": [],
+        "next_id": 6,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [],
+        "pump_on": false,
+        "stage": 4,
+        "use_night_heat": true,
+        "warm_nights": 2
+      },
+      "stock": {
+        "fuel": 12,
+        "materials": 17,
+        "meals": 1,
+        "medicine": 6,
+        "raw_food": 11,
+        "tools": 9,
+        "water": 17
+      },
+      "trips": 21
+    },
+    {
+      "alive": 3,
+      "day": 23,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay",
+          "filter_core",
+          "power_cell",
+          "beacon_core"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 34,
+            "id": 2,
+            "kind": "spear",
+            "owner": "chen"
+          },
+          {
+            "durability": 86,
+            "id": 3,
+            "kind": "coat",
+            "owner": "chen"
+          },
+          {
+            "durability": 86,
+            "id": 4,
+            "kind": "coat",
+            "owner": "lin"
+          },
+          {
+            "durability": 87,
+            "id": 5,
+            "kind": "coat",
+            "owner": "xu"
+          }
+        ],
+        "heater_remaining": 180.0,
+        "jobs": [],
+        "next_id": 6,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [],
+        "pump_on": false,
+        "stage": 4,
+        "use_night_heat": true,
+        "warm_nights": 2
+      },
+      "stock": {
+        "fuel": 12,
+        "materials": 17,
+        "meals": 0,
+        "medicine": 6,
+        "raw_food": 11,
+        "tools": 9,
+        "water": 22
+      },
+      "trips": 22
+    },
+    {
+      "alive": 3,
+      "day": 24,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay",
+          "filter_core",
+          "power_cell",
+          "beacon_core"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 34,
+            "id": 2,
+            "kind": "spear",
+            "owner": "chen"
+          },
+          {
+            "durability": 85,
+            "id": 3,
+            "kind": "coat",
+            "owner": "chen"
+          },
+          {
+            "durability": 85,
+            "id": 4,
+            "kind": "coat",
+            "owner": "lin"
+          },
+          {
+            "durability": 86,
+            "id": 5,
+            "kind": "coat",
+            "owner": "xu"
+          }
+        ],
+        "heater_remaining": 180.0,
+        "jobs": [],
+        "next_id": 6,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [],
+        "pump_on": false,
+        "stage": 4,
+        "use_night_heat": true,
+        "warm_nights": 2
+      },
+      "stock": {
+        "fuel": 12,
+        "materials": 16,
+        "meals": 2,
+        "medicine": 6,
+        "raw_food": 11,
+        "tools": 9,
+        "water": 15
+      },
+      "trips": 23
+    },
+    {
+      "alive": 3,
+      "day": 25,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay",
+          "filter_core",
+          "power_cell",
+          "beacon_core"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 22,
+            "id": 2,
+            "kind": "spear",
+            "owner": "chen"
+          },
+          {
+            "durability": 84,
+            "id": 3,
+            "kind": "coat",
+            "owner": "chen"
+          },
+          {
+            "durability": 84,
+            "id": 4,
+            "kind": "coat",
+            "owner": "lin"
+          },
+          {
+            "durability": 85,
+            "id": 5,
+            "kind": "coat",
+            "owner": "xu"
+          }
+        ],
+        "heater_remaining": 180.0,
+        "jobs": [],
+        "next_id": 6,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [],
+        "pump_on": false,
+        "stage": 4,
+        "use_night_heat": true,
+        "warm_nights": 2
+      },
+      "stock": {
+        "fuel": 12,
+        "materials": 17,
+        "meals": 1,
+        "medicine": 6,
+        "raw_food": 11,
+        "tools": 9,
+        "water": 15
+      },
+      "trips": 24
+    },
+    {
+      "alive": 3,
+      "day": 26,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay",
+          "filter_core",
+          "power_cell",
+          "beacon_core"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 64,
+            "id": 2,
+            "kind": "spear",
+            "owner": "xu"
+          },
+          {
+            "durability": 83,
+            "id": 3,
+            "kind": "coat",
+            "owner": "xu"
+          },
+          {
+            "durability": 83,
+            "id": 4,
+            "kind": "coat",
+            "owner": "chen"
+          },
+          {
+            "durability": 84,
+            "id": 5,
+            "kind": "coat",
+            "owner": "lin"
+          }
+        ],
+        "heater_remaining": 180.0,
+        "jobs": [],
+        "next_id": 6,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [],
+        "pump_on": false,
+        "stage": 4,
+        "use_night_heat": true,
+        "warm_nights": 2
+      },
+      "stock": {
+        "fuel": 12,
+        "materials": 18,
+        "meals": 1,
+        "medicine": 5,
+        "raw_food": 10,
+        "tools": 11,
+        "water": 17
+      },
+      "trips": 25
+    },
+    {
+      "alive": 3,
+      "day": 27,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay",
+          "filter_core",
+          "power_cell",
+          "beacon_core"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 61,
+            "id": 2,
+            "kind": "spear",
+            "owner": "chen"
+          },
+          {
+            "durability": 82,
+            "id": 3,
+            "kind": "coat",
+            "owner": "chen"
+          },
+          {
+            "durability": 82,
+            "id": 4,
+            "kind": "coat",
+            "owner": "lin"
+          },
+          {
+            "durability": 83,
+            "id": 5,
+            "kind": "coat",
+            "owner": "xu"
+          }
+        ],
+        "heater_remaining": 180.0,
+        "jobs": [],
+        "next_id": 6,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [],
+        "pump_on": false,
+        "stage": 4,
+        "use_night_heat": true,
+        "warm_nights": 2
+      },
+      "stock": {
+        "fuel": 12,
+        "materials": 17,
+        "meals": 6,
+        "medicine": 5,
+        "raw_food": 11,
+        "tools": 11,
+        "water": 19
+      },
+      "trips": 26
+    },
+    {
+      "alive": 3,
+      "day": 28,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay",
+          "filter_core",
+          "power_cell",
+          "beacon_core"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 46,
+            "id": 2,
+            "kind": "spear",
+            "owner": "chen"
+          },
+          {
+            "durability": 81,
+            "id": 3,
+            "kind": "coat",
+            "owner": "chen"
+          },
+          {
+            "durability": 81,
+            "id": 4,
+            "kind": "coat",
+            "owner": "lin"
+          },
+          {
+            "durability": 82,
+            "id": 5,
+            "kind": "coat",
+            "owner": "xu"
+          }
+        ],
+        "heater_remaining": 180.0,
+        "jobs": [],
+        "next_id": 6,
+        "night_heat": 0.0,
+        "outcome": "",
+        "parts": [],
+        "pump_on": false,
+        "stage": 4,
+        "use_night_heat": true,
+        "warm_nights": 2
+      },
+      "stock": {
+        "fuel": 12,
+        "materials": 17,
+        "meals": 6,
+        "medicine": 6,
+        "raw_food": 12,
+        "tools": 11,
+        "water": 17
+      },
+      "trips": 27
+    },
+    {
+      "alive": 3,
+      "day": 29,
+      "error": "",
+      "expansion": {
+        "ammo": 0,
+        "ammo_loadout": 0,
+        "carried": [],
+        "collected": [
+          "relay",
+          "filter_core",
+          "power_cell",
+          "beacon_core",
+          "route"
+        ],
+        "endless": false,
+        "epoch": 1,
+        "gear": [
+          {
+            "durability": 60,
+            "id": 1,
+            "kind": "knife",
+            "owner": ""
+          },
+          {
+            "durability": 25,
+            "id": 2,
+            "kind": "spear",
+            "owner": "chen"
+          },
+          {
+            "durability": 80,
+            "id": 3,
+            "kind": "coat",
+            "owner": "chen"
+          },
+          {
+            "durability": 80,
+            "id": 4,
+            "kind": "coat",
+            "owner": "lin"
+          },
+          {
+            "durability": 81,
+            "id": 5,
+            "kind": "coat",
+            "owner": "xu"
+          }
+        ],
+        "heater_remaining": 180.0,
+        "jobs": [],
+        "next_id": 6,
+        "night_heat": 0.0,
+        "outcome": "victory",
+        "parts": [
+          "route"
+        ],
+        "pump_on": false,
+        "stage": 5,
+        "use_night_heat": true,
+        "warm_nights": 2
+      },
+      "stock": {
+        "fuel": 10,
+        "materials": 17,
+        "meals": 3,
+        "medicine": 6,
+        "raw_food": 11,
+        "tools": 11,
+        "water": 9
+      },
+      "trips": 28
+    }
+  ],
+  "steps": 194208,
+  "trips": 28,
+  "injected_supplies_health_positions_progress": false
+}

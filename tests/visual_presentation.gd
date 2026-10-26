@@ -95,7 +95,7 @@ func _run() -> void:
 	await picture("res://docs/m09-shelter-preview.png")
 	scene.open_station("heal")
 	await picture("res://docs/m09-treatment-preview.png")
-	scene.free()
+	await dispose_scene(scene)
 	await process_frame
 	# A fresh scene exercises combat outcomes against one controlled enemy fixture.
 	scene = fresh()
@@ -127,7 +127,7 @@ func _run() -> void:
 	check(field.enemies[0]["hp"] == 0 and field.bag["tools"] == 0 and view.impact_kind == "hit" and view.impact_damage == 40, "tool impact couples actual enemy health loss, damage number and equipment cost")
 	check(field.feedback.contains("命中") and field.feedback.contains("−40"), "successful damage has an explicit result instead of only an arc")
 	await picture("res://docs/m09-hit-fixture.png")
-	scene.free()
+	await dispose_scene(scene)
 	await process_frame
 	scene = fresh()
 	await process_frame
@@ -164,7 +164,7 @@ func _run() -> void:
 	simulate(scene, 1)
 	check(field.attack_cooldown == cooldown, "paused combat cannot spend a swing or advance cooldown")
 	# Discard the fixture. Capture only normal actual play below.
-	scene.free()
+	await dispose_scene(scene)
 	await process_frame
 	scene = fresh()
 	await process_frame
@@ -186,7 +186,7 @@ func _run() -> void:
 	check(scene.expedition_view.impact_kind == "push", "fresh actual walking reaches a patrol and a real push without position or damage fixtures")
 	await picture("res://docs/m09-combat-preview.png")
 	check(SaveSystem.validate(SaveSystem.capture(scene)).is_empty(), "actual v0.9 playable scene remains compatible with schema six saves")
-	scene.free()
+	await dispose_scene(scene)
 	await create_timer(0.12).timeout
 	print("PRESENTATION VISUAL RESULT: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures else 0)

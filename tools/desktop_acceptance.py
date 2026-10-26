@@ -205,6 +205,7 @@ def main():
             assert after['goals'] == before['goals'] and after['story'] == before['story']
             assert after['campaign'] == before['campaign']
             assert after['expansion'] == before['expansion']
+            assert after['residence'] == before['residence']
             assert abs(after['simulation_time'] - before['simulation_time']) < .000001
             close_process()
         for name in ['continuous.log', 'restart.log']:

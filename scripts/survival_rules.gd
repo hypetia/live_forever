@@ -17,7 +17,7 @@ static func tick(actor: Survivor, delta: float) -> void:
 	var sleeping := actor.state == Survivor.TaskState.WORKING and not actor.orders.is_empty() and actor.orders[0] == "sleep"
 	actor.hunger = clampf(actor.hunger + HUNGER_RATE * delta * actor.metabolism * (1.1 if actor.person.persona == "he" else 1.0), 0.0, 100.0)
 	if sleeping:
-		actor.fatigue = maxf(0, actor.fatigue - SLEEP_RECOVERY_RATE * delta)
+		actor.fatigue = maxf(0, actor.fatigue - SLEEP_RECOVERY_RATE * delta * CharacterAbilities.factor(actor, "sleep"))
 	else:
 		var rate := WORK_FATIGUE_RATE if actor.state == Survivor.TaskState.WORKING else IDLE_FATIGUE_RATE
 		actor.fatigue = minf(100, actor.fatigue + rate * delta * actor.metabolism * (1.1 if actor.person.persona == "gu" else 1.0))
@@ -33,7 +33,9 @@ static func tick(actor: Survivor, delta: float) -> void:
 	if damage > 0:
 		actor.health = maxf(0, actor.health - damage * delta)
 	elif actor.hunger < 40 and actor.fatigue < 45 and actor.injury < 20 and actor.infection < 20:
-		actor.health = minf(100, actor.health + 0.03 * delta)
+		actor.health = minf(100, actor.health + 0.03 * delta * CharacterAbilities.factor(actor, "recovery"))
+		if sleeping and actor.metabolism < 1:
+			actor.injury = maxf(0, actor.injury - 0.03 * delta * CharacterAbilities.factor(actor, "recovery"))
 
 
 static func clock_text(seconds: float) -> String:

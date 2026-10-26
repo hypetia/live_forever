@@ -304,7 +304,7 @@ func attack(actor: Survivor) -> bool:
 	actor.fatigue = minf(100, actor.fatigue + (0.6 if not weapon.is_empty() or bag["tools"] > 0 else 1.2))
 	attack_cooldown = float(weapon.get("cooldown", 1.1))
 	attack_windup = float(weapon.get("windup", 0.2))
-	noise_burst = 100 if weapon.has("magazine") or weapon.is_empty() else 65
+	noise_burst = 100 if weapon.has("magazine") or weapon.is_empty() else 8 if sneaking else 65
 	feedback = "准备%s · 距离%d" % [weapon.get("name", "徒手推搡"), weapon.get("reach", 75)]
 	return true
 
@@ -312,6 +312,7 @@ func attack(actor: Survivor) -> bool:
 func _resolve_attack(actor: Survivor) -> void:
 	var target: Dictionary = {}
 	var weapon := actor.weapon()
+	if not weapon.is_empty() and not weapon.has("magazine"): noise_burst = maxf(noise_burst,65)
 	var closest := float(weapon.get("reach", 75.0))
 	for enemy in enemies:
 		var distance := absf(float(enemy["x"]) - player_x)
@@ -325,14 +326,16 @@ func _resolve_attack(actor: Survivor) -> void:
 		event_reported.emit(feedback)
 		return
 	if not weapon.is_empty():
-		var damage := mini(int(target["hp"]), int(weapon["damage"]))
+		var ambush: bool = not weapon.has("magazine") and sneaking and target["suspicion"] < 40 and not target["mode"] in ["windup", "chase", "stunned"] and (player_x - float(target["x"])) * float(target["direction"]) < -10
+		var strength := int(weapon["damage"]) if weapon.has("magazine") else CharacterAbilities.melee_damage(actor, int(weapon["damage"]), ambush)
+		var damage := mini(int(target["hp"]), strength)
 		target["hp"] -= damage
 		actor.weapon_item["durability"] = maxi(0, int(actor.weapon_item["durability"]) - int(weapon["wear"]))
 		target["mode"] = "dead" if target["hp"] <= 0 else "stunned"
 		target["timer"] = 0.0 if target["hp"] <= 0 else 0.35
 		target["cooldown"] = 0.0
 		combat_resolved.emit("shot" if weapon.has("magazine") else "hit", Vector2(target["x"], FLOOR_Y[int(target["floor"])] - 50), damage)
-		feedback = "%s命中 −%d！敌人剩余生命%d，武器耐久%d。" % [weapon["name"], damage, target["hp"], actor.weapon_item["durability"]]
+		feedback = "%s%s −%d！敌人剩余生命%d，武器耐久%d。" % [weapon["name"], "背后突袭" if ambush else "命中", damage, target["hp"], actor.weapon_item["durability"]]
 	elif actor.metabolism >= 1 and bag["tools"] > 0:
 		bag["tools"] -= 1
 		var damage: int = target["hp"]

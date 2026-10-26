@@ -152,6 +152,11 @@ func _draw() -> void:
 	if working and not orders.is_empty() and orders[0] == "heal":
 		draw_line(hand + Vector2(-5, -3), hand + Vector2(5, -3), Color("ecdbba"), 3)
 		draw_line(hand + Vector2(0, -8), hand + Vector2(0, 2), Color("ecdbba"), 3)
+	if activity.get("kind", "") == "music":
+		draw_circle(Vector2(6,-32),10,Color("a58a5b"))
+		draw_circle(Vector2(17,-37),7,Color("a58a5b"))
+		draw_line(Vector2(18,-38),Vector2(41,-49),Color("bca177"),4,true)
+		draw_circle(Vector2(9,-34),3,Color("343832"))
 	draw_line(Vector2(7 * facing, -50), hand, tint.lightened(0.1), 6, true)
 	draw_circle(hand, 3, Color("bdab91"))
 	draw_rect(Rect2(-3, -61, 7, 9), Color("ad987e"))

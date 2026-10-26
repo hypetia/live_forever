@@ -3,7 +3,7 @@ extends RefCounted
 ## Validated snapshots, checksummed JSON, atomic replacement and one backup.
 ## Only data is loaded: no resource paths, scripts or executable expressions.
 
-const VERSION := 8
+const VERSION := 9
 const MAX_BYTES := 2 * 1024 * 1024
 const STATIONS := ["workbench", "stove", "table", "bed"]
 const FLOAT_FIELDS := ["work_elapsed", "work_duration", "hunger", "fatigue", "health", "injury", "infection", "illness", "cold_exposure", "movement_clock", "facing"]
@@ -32,6 +32,7 @@ static func capture(game: Node2D) -> Dictionary:
 	for id in game.regions:
 		if id != game.expedition.location_id: other_regions[id] = game.regions[id].snapshot()
 	return {
+		"residence": game.residence_snapshot() if game.has_method("residence_snapshot") else {},
 		"expansion": game.expansion_snapshot() if game.has_method("expansion_snapshot") else {},
 		"campaign": game.campaign_snapshot() if game.has_method("campaign_snapshot") else {},
 		"destination": game.expedition.location_id, "other_regions": other_regions, "upkeep": game.upkeep.snapshot(), "people": game.people.snapshot(), "story": game.story.snapshot(), "goals": game.goals.snapshot(),
@@ -98,7 +99,7 @@ static func _segment(a: Array, b: Array) -> bool:
 static func validate(data: Variant) -> String:
 	if not data is Dictionary:
 		return "存档内容不是对象"
-	var required := ["simulation_time", "paused", "speed", "selected_id", "selected_task", "stock", "history", "stairs_open", "actors", "stations", "logs", "expedition", "destination", "other_regions", "upkeep", "people", "story", "goals", "campaign", "expansion"]
+	var required := ["simulation_time", "paused", "speed", "selected_id", "selected_task", "stock", "history", "stairs_open", "actors", "stations", "logs", "expedition", "destination", "other_regions", "upkeep", "people", "story", "goals", "campaign", "expansion", "residence"]
 	if not _exact_keys(data, required):
 		return "存档缺少字段或包含未知字段"
 	var region_ids: Array = LocationCatalog.IDS if data["expansion"] is Dictionary and data["expansion"].is_empty() else LocationCatalog.ALL_IDS
@@ -243,6 +244,9 @@ static func validate(data: Variant) -> String:
 	if not campaign_error.is_empty(): return campaign_error
 	var expansion_error := SurvivalExpansion.validate(data["expansion"], data)
 	if not expansion_error.is_empty(): return expansion_error
+	if data["residence"] is Dictionary and data["residence"].is_empty() and not data["campaign"].is_empty(): return "昼夜战役缺少家园记录"
+	var residence_error := ResidenceSystem.validate(data["residence"], data)
+	if not residence_error.is_empty(): return residence_error
 	return ShelterProgress.validate(data["upkeep"], float(data["simulation_time"]), bool(data["expedition"]["active"]))
 
 
@@ -316,6 +320,7 @@ static func apply_state(game: Node2D, data: Dictionary) -> String:
 	game.selected_task = data["selected_task"]
 	if game.has_method("restore_campaign"): game.restore_campaign(data["campaign"])
 	if game.has_method("restore_expansion"): game.restore_expansion(data["expansion"])
+	if game.has_method("restore_residence"): game.restore_residence(data["residence"])
 	game.expedition_view.reset_feedback()
 	game.select_survivor(int(data["selected_id"]))
 	game._refresh_log()
@@ -361,6 +366,8 @@ func _read_file(filename: String) -> Dictionary:
 		data = migrate_v6(data)
 	if int(envelope["version"]) <= 7:
 		data = migrate_v7(data)
+	if int(envelope["version"]) <= 8:
+		data = migrate_v8(data)
 	var error := validate(data)
 	if not error.is_empty():
 		return {"ok": false, "message": error}
@@ -555,4 +562,11 @@ static func migrate_v7(data: Variant) -> Variant:
 			if not LocationCatalog.IDS.has(id):
 				upgraded["other_regions"][id] = ExpeditionState.new(id).snapshot()
 				if upgraded.get("upkeep") is Dictionary and upgraded["upkeep"].get("returns") is Dictionary: upgraded["upkeep"]["returns"][id] = 0
+	return upgraded
+
+
+static func migrate_v8(data: Variant) -> Variant:
+	if not data is Dictionary or data.has("residence") or not data.has_all(["campaign", "expansion"]): return null
+	var upgraded: Dictionary = data.duplicate(true)
+	upgraded["residence"] = {} if upgraded["campaign"].is_empty() else ResidenceSystem.new().snapshot()
 	return upgraded

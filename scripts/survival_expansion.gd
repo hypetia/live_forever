@@ -39,6 +39,7 @@ func sync(game: Node2D) -> void:
 		field.special_sites.clear()
 		for key in GearCatalog.PARTS:
 			if GearCatalog.PARTS[key]["map"] == field.location_id and not collected.has(key): field.special_sites.append(int(GearCatalog.PARTS[key]["site"]))
+	if game.has_method("residence_snapshot"): game.residence.sync(game)
 	for actor in game.survivors:
 		actor.weapon_item = {}
 		actor.armor_item = {}
@@ -149,7 +150,7 @@ func climate(actor: Survivor, seconds: float, temperature: float, resting: bool 
 func tick_day(game: Node2D, delta: float) -> void:
 	var heat := minf(delta, heater_remaining)
 	heater_remaining = maxf(0, heater_remaining - delta)
-	var temperature: float = outside(game) + 8 + (18 * heat / delta if delta > 0 else 0)
+	var temperature: float = outside(game) + game.residence.indoor_bonus() + (18 * heat / delta if delta > 0 else 0)
 	for actor in game.survivors:
 		climate(actor, delta, temperature, actor.orders.has("sleep") or game.cycle.actions.any(func(action): return action["actor"] == actor.survivor_id and action["kind"] == "sleep"))
 		if actor.health <= 0 and actor.state != Survivor.TaskState.DEAD:
@@ -160,22 +161,30 @@ func tick_day(game: Node2D, delta: float) -> void:
 		if actor.health <= 0:
 			cancel(game, actor.survivor_id, false)
 			continue
-		if not actor.route.is_empty() or actor.position.distance_to(Vector2(485, 640)) > 10: continue
-		if job != jobs[0] or game.facility.occupant_id >= 0:
+		if not actor.route.is_empty() or actor.position.distance_to(job_position(job["kind"])) > 10: continue
+		if job["kind"] != "music" and (job != jobs.filter(func(work): return work["kind"] != "music")[0] or game.facility.occupant_id >= 0):
 			actor.feedback = "等待工作台空闲"
 			continue
 		job["elapsed"] = minf(job["duration"], job["elapsed"] + delta * actor.effort_factor() * actor.person.bonus("craft"))
-		actor.activity = {"kind": "build", "label": job["label"], "progress": job["elapsed"] / job["duration"]}
+		actor.activity = {"kind": "music" if job["kind"] == "music" else "build", "label": job["label"], "progress": job["elapsed"] / job["duration"]}
 		if job["elapsed"] >= job["duration"]:
 			finish(game, job)
 			jobs.erase(job)
 			actor.activity.clear()
+
+static func job_position(kind: String) -> Vector2:
+	return Vector2(584,430) if kind == "music" else Vector2(485,640)
 
 func start_job(game: Node2D, kind: String, item_id: int = -1) -> bool:
 	if game.cycle.phase != "day" or game.survivors[game.selected_id].health <= 0: return false
 	var recipe := GearCatalog.recipe(kind)
 	if kind == "repair": recipe = {"name": "修理装备", "cost": {"materials": 2}, "seconds": 18.0}
 	if recipe.is_empty(): return false
+	if ResidenceSystem.PROJECTS.has(kind):
+		var error: String = game.residence.job_error(game, kind)
+		if not error.is_empty():
+			game._log(error)
+			return false
 	if GearCatalog.ITEMS.has(kind) and gear.size() >= 300:
 		game._log("装备仓库已满，请优先修理现有装备。")
 		return false
@@ -189,7 +198,7 @@ func start_job(game: Node2D, kind: String, item_id: int = -1) -> bool:
 		game._log("物资不足：" + ShelterInventory.describe(recipe["cost"]))
 		return false
 	var actor: Survivor = game.survivors[game.selected_id]
-	var route: Array[Vector2] = game.scheduler.navigation.route_between(actor.position, Vector2(485, 640))
+	var route: Array[Vector2] = game.scheduler.navigation.route_between(actor.position, job_position(kind))
 	if route.is_empty(): return false
 	game._cancel_external(actor.survivor_id)
 	game.scheduler.cancel(actor)
@@ -208,8 +217,10 @@ func cancel(game: Node2D, id: int, refund: bool = true) -> void:
 
 func finish(game: Node2D, job: Dictionary) -> void:
 	var kind: String = job["kind"]
+	if not ResidenceSystem.PROJECTS.has(kind): game.residence.noise = minf(100, game.residence.noise + 6)
 	if GearCatalog.ITEMS.has(kind): grant(kind)
 	elif kind == "ammo": ammo += 8
+	elif ResidenceSystem.PROJECTS.has(kind): game.residence.finish(game, kind, game.survivors[int(job["actor"])])
 	elif kind == "repair":
 		for item in gear:
 			if item["id"] == job["item"]: item["durability"] = mini(GearCatalog.ITEMS[item["kind"]]["durability"], int(item["durability"]) + 60)
@@ -228,6 +239,7 @@ func ignite(game: Node2D) -> bool:
 	return true
 
 func reserve_heat(game: Node2D) -> void:
+	if not game.residence.convoy.is_empty(): return
 	night_heat = minf(heater_remaining, maxf(0, game.cycle.night_end - game.cycle.night_start))
 	heater_remaining = 0
 	if not use_night_heat or not game.cycle.has_build("heater"): return
@@ -246,8 +258,8 @@ func dawn(game: Node2D, duration: float, report: Array[String]) -> void:
 		if actor.health <= 0: continue
 		var role: String = game.cycle.roles[actor.survivor_id]
 		var absence := minf(duration, game.expedition.elapsed) if role == "scavenge" else 0.0
-		if role != "scavenge": home += 1
-		var temperature := night_temperature + 8
+		if role != "scavenge" and game.residence.convoy.is_empty(): home += 1
+		var temperature: float = night_temperature + (game.residence.indoor_bonus() if game.residence.convoy.is_empty() else 0)
 		var actor_heat := maxf(0, heat_time - absence)
 		climate(actor, actor_heat, temperature + 18, role == "bed")
 		climate(actor, maxf(0, duration - absence - actor_heat), temperature, role == "bed")
@@ -261,7 +273,7 @@ func dawn(game: Node2D, duration: float, report: Array[String]) -> void:
 		if warm_nights >= 2:
 			stage = 2
 			report.append("寒潮准备完成：水厂路线已开放。")
-	if pump_on and stage >= 3 and game.inventory.try_take({"fuel": 1}, "净水泵每日运行"):
+	if pump_on and stage >= 3 and game.residence.convoy.is_empty() and game.inventory.try_take({"fuel": 1}, "净水泵每日运行"):
 		game.inventory.deposit({"water": 3}, "净水泵产水")
 		report.append("净水泵消耗燃料1，获得水3。")
 	if outcome.is_empty() and stage >= 4 and parts.has("route") and day(game) >= 28:
@@ -353,12 +365,12 @@ static func validate(data: Variant, world: Dictionary) -> String:
 		if not job["kind"] is String: return "制作种类无效"
 		var recipe := GearCatalog.recipe(job["kind"])
 		if job["kind"] == "repair": recipe = {"name": "修理装备", "cost": {"materials": 2}, "seconds": 18.0}
-		if recipe.is_empty() or not job["cost"] is Dictionary or job["cost"] != recipe["cost"] or job["duration"] != recipe["seconds"] or job["label"] != recipe["name"] or not CharacterState.number(job["elapsed"], 0, recipe["seconds"]): return "制作配方或工时无效"
+		if recipe.is_empty() or not job["cost"] is Dictionary or not SaveSystem._same_items(job["cost"], recipe["cost"]) or job["duration"] != recipe["seconds"] or job["label"] != recipe["name"] or not CharacterState.number(job["elapsed"], 0, recipe["seconds"]): return "制作配方或工时无效"
 		if not CharacterState.integer(job["item"], -1, 1000000) or (job["kind"] == "repair" and not ids.has(int(job["item"]))) or (job["kind"] != "repair" and job["item"] != -1): return "维修目标无效"
 		if job["kind"] in ["radio", "pump", "beacon"]:
 			var required_stage: int = {"radio": 0, "pump": 2, "beacon": 3}[job["kind"]]
 			if data["stage"] != required_stage or not data["parts"].has(GearCatalog.PROJECTS[job["kind"]]["part"]) or (job["kind"] == "beacon" and not data["parts"].has("power_cell")): return "制作战役项目缺少零件或阶段不符"
 		var actor: Dictionary = world["actors"][int(job["actor"])]
-		if world["campaign"].is_empty() or world["campaign"]["phase"] != "day" or not actor["orders"].is_empty() or not actor["state"] in [Survivor.TaskState.IDLE, Survivor.TaskState.RETURNING] or actor["health"] <= 0: return "制作行动与昼夜或角色不符"
+		if world["campaign"].is_empty() or world["campaign"]["phase"] != "day" or not actor["orders"].is_empty() or not int(actor["state"]) in [Survivor.TaskState.IDLE, Survivor.TaskState.RETURNING] or actor["health"] <= 0: return "制作行动与昼夜或角色不符"
 		if world["campaign"]["actions"].any(func(action): return action["actor"] == job["actor"]) or world["campaign"]["builds"].any(func(build): return build["state"] == "blueprint" and build["actor"] == job["actor"]): return "制作人员重复占用"
 	return ""

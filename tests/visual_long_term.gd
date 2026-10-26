@@ -105,7 +105,7 @@ func _run() -> void:
 	check(scene.center.visible and scene.center.tabs.current_tab == 3, "F1 opens the in-game control guide")
 	scene.center.close()
 	check(SaveSystem.validate(SaveSystem.capture(scene)).is_empty(), "real multi-location/upgrade/event run remains a valid save")
-	scene.free()
+	await dispose_scene(scene)
 	await process_frame
 	print("LONG TERM VISUAL RESULT: %d checks, %d failures" % [checks, failures])
 	await create_timer(0.12).timeout

@@ -7,6 +7,7 @@ var menu_button: Button
 var end_button: Button
 var save_button: Button
 var goal_button: Button
+var home_button: Button
 var temperature: Label
 var toast: Label
 var old_buttons: Array[Button] = []
@@ -42,7 +43,8 @@ func _ready() -> void:
 	save_button = game.interface.button(root,"存",Vector2(1306,16),Vector2(36,32),func(): game.save_game())
 	save_button.tooltip_text = "保存 F6 · 读取 F9"
 	goal_button = game.interface.button(root,"目标",Vector2(1120,798),Vector2(82,36),game.interface.toggle_workshop)
-	temperature = game.interface.label(root,"",Vector2(357,20),Vector2(175,28),17)
+	home_button = game.interface.button(root,"家",Vector2(309,16),Vector2(36,32),func(): game.residence_view.toggle())
+	temperature = game.interface.label(root,"",Vector2(376,20),Vector2(175,28),17)
 	temperature.mouse_filter = Control.MOUSE_FILTER_PASS
 	toast = game.interface.label(root,"",Vector2(410,731),Vector2(620,30),15,Color("d2c6a5"))
 	toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -96,6 +98,8 @@ func refresh() -> void:
 	if not is_instance_valid(root):return
 	var day: bool = game.cycle.phase == "day"
 	var field: bool = game.expedition.active
+	home_button.visible = day
+	home_button.tooltip_text = game.residence.title() + " · 家园 H\n安防耐久%d / 噪声%d" % [roundi(game.residence.condition),roundi(game.residence.noise)]
 	for node in [game.main_title,game.subtitle,game.upkeep_label,game.phase_label,game.stock_label,game.save_label,game.tutorial_label,game.log_label]: node.hide()
 	for label in old_labels:
 		if is_instance_valid(label): label.hide()
@@ -128,7 +132,7 @@ func refresh() -> void:
 	game.speed_button.size = Vector2(40,32)
 	menu_button.size = Vector2(58,32)
 	save_button.size = Vector2(36,32)
-	var inside: float = game.expansion.outside(game)+8+(18 if game.expansion.heater_remaining>0 else 0)
+	var inside: float = game.expansion.outside(game)+game.residence.indoor_bonus()+(18 if game.expansion.heater_remaining>0 else 0)
 	temperature.text = "%d℃" % (game.expansion.outside(game) if field else inside)
 	temperature.tooltip_text = "室外%d℃ / 室内%d℃\n%s" % [game.expansion.outside(game),inside,"炉火剩余%d分钟" % int(game.expansion.heater_remaining*2) if game.expansion.heater_remaining>0 else "炉火熄灭"]
 	temperature.add_theme_color_override("font_color",Color("a1bcc2") if inside<6 else Color("d0c5a9"))

@@ -77,7 +77,7 @@ func can_plan_materials(actor: Survivor, task_id: String) -> bool:
 			for resource in recipe["cost"]:
 				forecast[resource] -= recipe["cost"][resource]
 		for resource in recipe["output"]:
-			forecast[resource] += recipe["output"][resource]
+			forecast[resource] += (CharacterAbilities.cooking_output(actor) if actor.orders[index] == "cook" else recipe["output"])[resource]
 	for resource in cost:
 		if forecast[resource] < cost[resource]:
 			return false
@@ -183,7 +183,8 @@ func _finish(actor: Survivor) -> void:
 	var station: Workstation = facilities[definition["facility"]]
 	actor.held_cost.clear()
 	actor.legacy_repair = false
-	inventory.deposit(definition["output"], "%s完成%s" % [actor.display_name, definition["label"]])
+	var output: Dictionary = CharacterAbilities.cooking_output(actor) if task_id == "cook" else definition["output"]
+	inventory.deposit(output, "%s完成%s" % [actor.display_name, definition["label"]])
 	if task_id == "repair" and upkeep != null and not legacy:
 		upkeep.repair()
 	elif task_id == "eat":
@@ -194,6 +195,9 @@ func _finish(actor: Survivor) -> void:
 		actor.injury = maxf(0, actor.injury - 50)
 		actor.infection = maxf(0, actor.infection - 40)
 		actor.illness = maxf(0, actor.illness - 35)
+		if actor.metabolism < 1 and actor.person.persona == "gu":
+			actor.injury = maxf(0, actor.injury - 15)
+			actor.illness = maxf(0, actor.illness - 10)
 	actor.completed_jobs += 1
 	actor.completed_by_task[task_id] += 1
 	station.completed_jobs += 1
@@ -202,7 +206,7 @@ func _finish(actor: Survivor) -> void:
 	actor.state = Survivor.TaskState.IDLE
 	actor.feedback = "%s完成 · 等待安排" % definition["label"]
 	actor.work_elapsed = 0.0
-	event_reported.emit("%s完成%s。%s" % [actor.display_name, definition["label"], "获得%s。" % ShelterInventory.describe(definition["output"]) if not definition["output"].is_empty() else "可以安排下一项工作了。"])
+	event_reported.emit("%s完成%s。%s" % [actor.display_name, definition["label"], "获得%s。" % ShelterInventory.describe(output) if not output.is_empty() else "可以安排下一项工作了。"])
 	if not actor.orders.is_empty():
 		_activate(actor)
 	else:

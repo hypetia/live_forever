@@ -26,6 +26,7 @@ var workshop_pause := false
 var workshop_open := false
 var map_page := 0
 var part_button: Button
+var survey_button: Button
 var ammo_label: Label
 var shown := ""
 var has_move_target := false
@@ -99,7 +100,7 @@ func refresh(force: bool = false) -> void:
 	workshop_button.visible = game.cycle.phase == "day"
 	climate_label.visible = game.cycle.phase == "day"
 	if climate_label.visible:
-		climate_label.text = "战役第%d/35天 · 室外 %d℃ / 室内 %d℃  %s\n%s" % [game.expansion.day(game), game.expansion.outside(game), game.expansion.outside(game) + 8 + (18 if game.expansion.heater_remaining > 0 else 0), "炉火剩余%d分" % int(game.expansion.heater_remaining * 2) if game.expansion.heater_remaining > 0 else "炉火未点燃", game.expansion.objective(game)]
+		climate_label.text = "战役第%d/35天 · 室外 %d℃ / 室内 %d℃  %s\n%s" % [game.expansion.day(game), game.expansion.outside(game), game.expansion.outside(game) + game.residence.indoor_bonus() + (18 if game.expansion.heater_remaining > 0 else 0), "炉火剩余%d分" % int(game.expansion.heater_remaining * 2) if game.expansion.heater_remaining > 0 else "炉火未点燃", game.expansion.objective(game)]
 	build_button.visible = game.cycle.phase == "day" and not game.expedition.active
 	placement_hint.visible = not game.placement.is_empty() and game.cycle.phase == "day"
 	if placement_hint.visible: placement_hint.text = "放置%s：点击绿色建设位置；右键或Esc取消。" % CampaignCycle.RECIPES[game.placement]["name"]
@@ -198,7 +199,7 @@ func _refresh_plan() -> void:
 	for index in range(role_options.size()):
 		var actor: Survivor = game.survivors[index]
 		role_options[index].select(CampaignCycle.ROLES.find(game.cycle.roles[index]))
-		role_options[index].disabled = actor.health <= 0
+		role_options[index].disabled = actor.health <= 0 or not game.residence.convoy.is_empty()
 		role_options[index].set_item_disabled(4, actor.health > 0)
 		role_stats[index].text = "生命%d 精神%d 饱腹%d · %s%d · %d格" % [Vitals.value(actor,"health"), Vitals.value(actor,"vigor"), Vitals.value(actor,"fullness"), actor.weapon().get("name", "徒手"), actor.weapon_item.get("durability", 0), CampaignCycle.BAGS[actor.person.persona]]
 	var total := 0
@@ -215,9 +216,9 @@ func _refresh_plan() -> void:
 		map_buttons[id].text = "✓ 当前目的地" if id == game.expedition.location_id else "选择地点"
 		map_buttons[id].disabled = not game.expansion.unlocked(game, id)
 	var error: String = game.cycle.plan_error(game)
-	plan_error.text = error if not error.is_empty() else "岗位和装备已就绪。留守者不会在夜里继续白天的生产任务。"
+	plan_error.text = "车队迁往" + ResidenceSystem.HOMES[game.residence.convoy]["name"] + "：全员整夜行军，不能搜刮或睡眠。" if not game.residence.convoy.is_empty() and error.is_empty() else error if not error.is_empty() else "岗位和装备已就绪。留守者不会在夜里继续白天的生产任务。"
 	depart_button.disabled = not error.is_empty()
-	depart_button.text = "开始搜刮 →" if game.cycle.scavenger() >= 0 else "留守并度过这一夜 →"
+	depart_button.text = "出发迁居 →" if not game.residence.convoy.is_empty() else "开始搜刮 →" if game.cycle.scavenger() >= 0 else "留守并度过这一夜 →"
 
 
 func _change_loadout(key: String, change: int) -> void:
@@ -231,7 +232,7 @@ func _stay_home() -> void:
 	var beds: int = game.cycle.bed_count()
 	for index in range(game.cycle.roles.size()):
 		if game.survivors[index].health <= 0: game.cycle.roles[index] = "dead"
-		elif index == 0: game.cycle.roles[index] = "guard"
+		elif index == 0 or not game.residence.convoy.is_empty(): game.cycle.roles[index] = "guard"
 		elif beds > 0:
 			game.cycle.roles[index] = "bed"
 			beds -= 1
@@ -303,6 +304,7 @@ func _create_loot() -> void:
 		loot_returns[key] = put
 		row += 1
 	part_button = button(overlay, "", Vector2(230, 572), Vector2(986, 46), func(): game.expansion.take_part(game); refresh())
+	survey_button = button(overlay,"勘察新住处",Vector2(230,625),Vector2(986,36),func(): game.residence.survey(game); refresh())
 	label(overlay, "点击拿取或放回 · 空格暂停", Vector2(220, 665), Vector2(1000, 28), 13)
 	button(overlay, "尽量全部拿走 F", Vector2(220, 704), Vector2(300, 36), _take_all)
 	button(overlay, "关闭，继续行动 Esc", Vector2(850, 704), Vector2(370, 36), game.close_loot)
@@ -311,6 +313,10 @@ func _create_loot() -> void:
 func _refresh_loot() -> void:
 	var field: ExpeditionState = game.expedition
 	if field.loot_site < 0: return
+	var survey: String = game.residence.survey_target(field)
+	survey_button.visible = not survey.is_empty()
+	survey_button.disabled = not game.residence.carried.is_empty() or game.paused or (game.residence.surveyed.has(survey) and not game.residence.prepared.has(survey))
+	if not survey.is_empty(): survey_button.text = ("已记录，须活着返回：" if game.residence.carried == survey else "确认清理（附近须无感染者）：" if game.residence.prepared.has(survey) else "勘察新住处：") + ResidenceSystem.HOMES[survey]["name"]
 	var part_name := ""
 	for key in GearCatalog.PARTS:
 		var part: Dictionary = GearCatalog.PARTS[key]

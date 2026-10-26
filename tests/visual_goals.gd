@@ -53,7 +53,7 @@ func _run() -> void:
 	await keypress(KEY_F11)
 	for frame in range(4): await process_frame
 	check(not scene.game_audio.fullscreen and DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_WINDOWED, "second F11 returns to native windowed mode")
-	scene.free()
+	await dispose_scene(scene)
 	await process_frame
 	# A fresh actual run keeps the first patrol alive; no damage/position fixture.
 	scene = load("res://scenes/shelter.tscn").instantiate()
@@ -76,7 +76,7 @@ func _run() -> void:
 	await keypress(KEY_T)
 	check(scene.expedition.active and scene.expedition.feedback.contains("步"), "failed remote retreat explains actual distance rather than teleporting")
 	check(SaveSystem.validate(SaveSystem.capture(scene)).is_empty(), "actual new-game injury and field state remain fully saveable")
-	scene.free()
+	await dispose_scene(scene)
 	await create_timer(0.12).timeout
 	print("GOALS VISUAL RESULT: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures else 0)
