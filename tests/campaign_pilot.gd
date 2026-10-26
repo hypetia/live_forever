@@ -23,6 +23,10 @@ func setup(scene: Node2D) -> void:
 
 
 func tick(delta: float) -> void:
+	if game.departure_dialog.visible:
+		game.confirm_departure()
+		trips += 1
+		return
 	if game.game_over: return
 	if game.cycle.phase == "dawn":
 		game.begin_day()
@@ -71,6 +75,7 @@ func tick(delta: float) -> void:
 		if field.used_capacity() >= field.capacity or field.elapsed > 235 or game.survivors[field.actor_id].health < 35: returning = true
 		if returning and field.floor_level == 0 and field.player_x <= 145:
 			game.expedition_retreat()
+			game.confirm_departure()
 			trips += 1
 			return
 		var x: float = 110 if returning else field.site_definitions()[target]["x"]

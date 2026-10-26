@@ -41,6 +41,11 @@ var impact_time := 0.0
 var impact_kind := ""
 var impact_point := Vector2.ZERO
 var impact_damage := 0
+var equipment_buttons: Array[Button] = []
+var equipment_name: Label
+var equipment_dialog: AcceptDialog
+var _equipment_pause_before := false
+var _equipment_opened := false
 
 
 func _ready() -> void:
@@ -108,6 +113,22 @@ func _ready() -> void:
 		node.hide()
 		bag_nodes.append(node)
 	if quiet:
+		equipment_name = _label("",Vector2(350,788),Vector2(340,23),15,GOLD)
+		for index in range(3):
+			var button := _button("",Vector2(350+index*76,817),Vector2(66,60),show_equipment)
+			button.draw.connect(_equipment_icon.bind(button,index))
+			equipment_buttons.append(button)
+		equipment_dialog = AcceptDialog.new()
+		equipment_dialog.title = "随身装备"
+		equipment_dialog.min_size = Vector2i(620,240)
+		var theme := Theme.new()
+		theme.default_font = FONT
+		theme.default_font_size = 17
+		equipment_dialog.theme = theme
+		equipment_dialog.ok_button_text = "继续探索"
+		equipment_dialog.confirmed.connect(close_equipment)
+		equipment_dialog.canceled.connect(close_equipment)
+		add_child(equipment_dialog)
 		for entry in [[search_button,"search"],[attack_button,"attack"],[medicine_button,"medicine"],[drink_button,"water"],[bag_button,"bag"],[retreat_button,"exit"]]:
 			entry[0].draw.connect(_action_icon.bind(entry[0],entry[1]))
 	layer.visible = false
@@ -277,8 +298,8 @@ func _draw() -> void:
 		_rect_world(cover, Color("646c59"))
 		_rect_world(Rect2(cover.position + Vector2(4, 5), cover.size - Vector2(8, 10)), Color("424c41"))
 	if not quiet: _text(Vector2(145 - camera, 660), "← 入口 · E/T 撤退", 14, GOLD)
-	_rect_world(Rect2(90, 535, 55, 85), Color("344b41"))
-	_rect_world(Rect2(96, 540, 43, 72), Color("142b29"))
+	_draw_exit(-1,state,camera)
+	if quiet: _draw_exit(1,state,camera)
 	_draw_landmarks(state,camera,accent)
 	for index in range(state.site_definitions().size()):
 		if quiet: _draw_site(index,state,camera)
@@ -298,16 +319,11 @@ func _draw() -> void:
 	_draw_player(Vector2(state.player_x - camera, state.player_y), actor, state)
 	if state.attack_windup > 0 or (state.attack_cooldown > maxf(0, float(actor.weapon().get("cooldown", 1.1)) - 0.34)):
 		var swing := Vector2(state.player_x - camera, state.player_y - 38)
-		if swing.x >= 55 and swing.x <= 1010:
+		if swing.x >= 0 and swing.x <= 1065 and not actor.weapon().has("magazine"):
 			var angle := 0.0 if state.facing > 0 else PI
 			var windup := state.attack_windup > 0
-			var sweep := (float(actor.weapon().get("cooldown", 1.1)) - state.attack_cooldown) / 0.34
 			var color := Color("cba96b") if windup else Color("f1dfb3")
 			draw_arc(swing, minf(125, float(actor.weapon().get("reach", 72))), angle - 0.85, angle + 0.85, 24, Color(color, 0.25) if windup else color, 1.5 if windup else 4, true)
-			var hand := swing + Vector2.from_angle(angle - 1.0 + sweep * 2.0) * 44
-			draw_line(swing, hand, actor.tint.lightened(0.2), 6, true)
-			if state.bag["tools"] > 0 or impact_kind in ["hit", "shot"] and impact_time > 0.6:
-				draw_line(hand, hand + Vector2(0, -19), Color("d5d7bf"), 4, true)
 	_draw_weather(state)
 	if SurvivalRules.is_night(game.simulation_time):
 		draw_rect(Rect2(0, 264, 1070, 420), Color(0, 0.02, 0.04, 0.10))
@@ -397,14 +413,86 @@ func _draw_player(point: Vector2, actor: Survivor, state: ExpeditionState) -> vo
 	draw_line(point + Vector2(-5, -24 + crouch * 0.5), point + Vector2(-8 + stride, -3), Color("31403b"), 7, true)
 	draw_line(point + Vector2(5, -24 + crouch * 0.5), point + Vector2(10 - stride, -3), Color("31403b"), 7, true)
 	draw_colored_polygon(PackedVector2Array([point + Vector2(-10, -55 + crouch), point + Vector2(10, -55 + crouch), point + Vector2(13, -22 + crouch * 0.5), point + Vector2(-12, -22 + crouch * 0.5)]), tint)
+	if quiet and not actor.coat_item.is_empty():
+		var coat_color := Color("827362") if actor.coat_item["durability"] > 0 else Color("59544e")
+		draw_rect(Rect2(point+Vector2(-13,-52+crouch),Vector2(26,36-crouch*0.5)),coat_color)
+		draw_line(point+Vector2(0,-52+crouch),point+Vector2(0,-16+crouch*0.5),Color("bca78b"),2,true)
+		draw_line(point+Vector2(-11,-55+crouch),point+Vector2(11,-55+crouch),Color("c5bba6"),5,true)
+	if quiet and not actor.armor_item.is_empty():
+		var armor_color := Color("687e79") if actor.armor_item["kind"] == "vest" else Color("9a896c")
+		if actor.armor_item["durability"] <= 0: armor_color = Color("62544f")
+		draw_rect(Rect2(point+Vector2(-11,-50+crouch),Vector2(22,23-crouch*0.3)),armor_color)
+		for y in [-44,-35]: draw_line(point+Vector2(-9,y+crouch),point+Vector2(9,y+crouch),armor_color.darkened(0.4),2,true)
 	draw_circle(point + Vector2(0, -65 + crouch), 9, Color("c7b294"))
-	if state.attack_cooldown <= 0.76:
+	if quiet:
+		var slots := EquipmentArt.slots(actor)
+		var held: Dictionary = slots[0]
+		var kind: String = held["kind"]
+		var angle := -0.25
+		var cooldown := float(actor.weapon().get("cooldown",1.1))
+		if held["broken"] or state.climb_target != -1: angle = 1.15
+		elif state.attack_windup > 0: angle = -0.1 if kind == "pistol" else -1.4
+		elif state.attack_cooldown > maxf(0,cooldown-0.25): angle = 0.0 if kind == "pistol" else lerpf(-1.2,0.6,clampf((cooldown-state.attack_cooldown)/0.25,0,1))
+		var hand := point+Vector2(22*state.facing,-38+crouch)
+		draw_line(point+Vector2(8*state.facing,-48+crouch),hand,tint.lightened(0.1),6,true)
+		EquipmentArt.weapon(self,kind,hand,state.facing,angle,1,held["broken"])
+	elif state.attack_cooldown <= 0.76:
 		draw_line(point + Vector2(8 * state.facing, -48 + crouch), point + Vector2(23 * state.facing, -30 + crouch), tint.lightened(0.1), 6, true)
-	if state.bag["tools"] > 0 and state.attack_cooldown <= 0.76:
+	if not quiet and state.bag["tools"] > 0 and state.attack_cooldown <= 0.76:
 		draw_line(point + Vector2(23 * state.facing, -32 + crouch), point + Vector2(25 * state.facing, -52 + crouch), Color("c4c9b4"), 3, true)
 	draw_rect(Rect2(point + Vector2(-26, -111 + crouch), Vector2(52, 5)), Color("21332e"))
 	draw_rect(Rect2(point + Vector2(-26, -111 + crouch), Vector2(52 * actor.health / 100, 5)), Color("9ab997"))
 	draw_colored_polygon(PackedVector2Array([point + Vector2(-5, -89 + crouch), point + Vector2(5, -89 + crouch), point + Vector2(0, -83 + crouch)]), GOLD)
+
+
+func _draw_exit(side: int, state: ExpeditionState, camera: float) -> void:
+	var x := 90.0 if side < 0 else state.right_edge(0)
+	var ready := state.exit_side() == side
+	var color := Color("bed7be") if ready else Color("778d80")
+	_rect_world(Rect2(x-23,535,46,85),Color("344b41"))
+	_rect_world(Rect2(x-18,540,36,76),Color("142b29"))
+	var at := Vector2(x-camera,570)
+	draw_rect(Rect2(at+Vector2(-18,-30),Vector2(36,76)),color,false,2 if ready else 1)
+	draw_line(at+Vector2(-side*12,0),at+Vector2(side*18,0),color,3,true)
+	draw_line(at+Vector2(side*8,-9),at+Vector2(side*18,0),color,3,true)
+	draw_line(at+Vector2(side*8,9),at+Vector2(side*18,0),color,3,true)
+
+
+func _equipment_icon(button: Button, index: int) -> void:
+	if not game.expedition.active: return
+	var slot := EquipmentArt.slots(game.survivors[game.expedition.actor_id])[index]
+	EquipmentArt.icon(button,slot,Vector2(33,24))
+	button.draw_rect(Rect2(8,49,50,4),Color("34433c"))
+	if not slot["kind"].is_empty():
+		button.draw_rect(Rect2(8,49,50*slot["ratio"],4),Color("df9c7c") if slot["ratio"] <= 0.25 else Color("aac2a2"))
+
+
+func _equipment_description(slot: Dictionary) -> String:
+	if slot["kind"].is_empty(): return slot["name"]+(" · 只能推开敌人" if slot["slot"] == "weapon" else "")
+	return "%s · 耐久%d/%d%s\n%s" % [slot["name"],slot["durability"],slot["maximum"]," · 已损坏，效果失效" if slot["broken"] else "",GearCatalog.describe(slot["kind"])]
+
+
+func show_equipment() -> void:
+	if not quiet or not game.expedition.active or equipment_dialog.visible or game.departure_dialog.visible: return
+	var lines := PackedStringArray()
+	for slot in EquipmentArt.slots(game.survivors[game.expedition.actor_id]): lines.append(_equipment_description(slot))
+	lines.append("装备在白天或出发前的K页调整。")
+	equipment_dialog.dialog_text = "\n\n".join(lines)
+	_equipment_pause_before = game.paused
+	_equipment_opened = true
+	game.paused = true
+	search_held = false
+	equipment_dialog.popup_centered()
+	game._refresh_hud()
+
+
+func close_equipment() -> void:
+	if not _equipment_opened: return
+	get_viewport().set_input_as_handled()
+	_equipment_opened = false
+	equipment_dialog.hide()
+	game.paused = _equipment_pause_before or game.game_over
+	game._refresh_hud()
 
 
 func _draw_landmarks(state: ExpeditionState, camera: float, accent: Color) -> void:
@@ -519,10 +607,18 @@ func _draw_impact(camera: float) -> void:
 
 
 func _action_icon(button: Button, kind: String) -> void:
+	if kind == "attack" and quiet and game.expedition.active:
+		EquipmentArt.icon(button,EquipmentArt.slots(game.survivors[game.expedition.actor_id])[0],Vector2(button.size.x/2,19))
+		return
 	HudIcons.draw(button,kind,Vector2(button.size.x/2,19),19,Color("a5ac98") if button.disabled else GOLD)
 
 
 func _refresh_quiet(state: ExpeditionState, actor: Survivor) -> void:
+	var slots := EquipmentArt.slots(actor)
+	equipment_name.text = slots[0]["name"]+(" · 损坏" if slots[0]["broken"] else "")
+	for index in range(3):
+		equipment_buttons[index].tooltip_text = _equipment_description(slots[index])+"\n点击查看随身装备"
+		equipment_buttons[index].queue_redraw()
 	for label in [title_label,area_hint,alert_label,gear_label,actor_label,role_label,stats_label,log_label,context_label,feedback_label]: label.hide()
 	for node in bag_nodes: node.visible = bag_open
 	if bag_open:
@@ -547,7 +643,7 @@ func _refresh_quiet(state: ExpeditionState, actor: Survivor) -> void:
 		button.tooltip_text = hints[action_index]
 	retreat_button.size = Vector2(82,62)
 	retreat_button.text = "\n返程 T"
-	retreat_button.tooltip_text = "沿实际路线返回入口；再次按T或移动取消。暂停时可安排，继续时间后出发。"
+	retreat_button.tooltip_text = "沿实际路线回到左侧出口，确认后离开；再次按T或移动取消。也可自行走到右侧出口离开。"
 	search_bar.visible = state.search_index >= 0 and state.site_in_range(state.search_index) and not game._loot_open
 	if search_bar.visible:
 		var definition: Dictionary = state.site_definitions()[state.search_index]

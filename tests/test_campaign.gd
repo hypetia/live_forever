@@ -67,6 +67,7 @@ func _run() -> void:
 	field.player_x = 110
 	var before_fatigue: float = scene.survivors[1].fatigue
 	scene.expedition_retreat()
+	scene.confirm_departure()
 	expect(scene.cycle.phase == "dawn" and scene.paused and not field.active, "early physical return enters the morning ledger")
 	expect(is_equal_approx(scene.simulation_time, 660) and CampaignCycle.minute(scene.simulation_time) == 360, "early return advances to next 06:00 rather than permitting repeated nights")
 	expect(scene.inventory.amount("raw_food") == 6 and scene.inventory.amount("water") == 5 and scene.inventory.amount("medicine") == 1, "actual loot and unused equipment return exactly once")

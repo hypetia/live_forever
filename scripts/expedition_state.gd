@@ -7,6 +7,7 @@ signal event_reported(message: String)
 signal returned(survivor_id: int, cargo: Dictionary, survived: bool)
 signal site_searched(index: int)
 signal combat_resolved(kind: String, point: Vector2, damage: int)
+signal exit_requested(side: int)
 
 const CAPACITY := 10
 const WIDTH := 2600.0
@@ -22,6 +23,8 @@ var reserve_ammo := 0
 var magazine := 0
 var reload_remaining := 0.0
 var manual_loot := false
+var confirm_exits := false # Campaign UI policy, derived again after loading.
+var _exit_interact_held := false
 var loot_site := -1
 var discovered: Array[int] = []
 var special_sites: Array[int] = [] # Derived from campaign parts after loading; never trusted from disk.
@@ -99,6 +102,7 @@ func _spawn_enemies(day: int) -> void:
 
 
 func begin(id: int, loadout: Dictionary, previous_speed: float) -> void:
+	_exit_interact_held = false
 	active = true
 	loot_site = -1
 	actor_id = id
@@ -205,6 +209,8 @@ func tick(delta: float, actor: Survivor, controls: Dictionary) -> void:
 	sneaking = bool(controls.get("sneak", false))
 	sprinting = bool(controls.get("sprint", false)) and not sneaking
 	var axis := clampf(float(controls.get("axis", 0)), -1, 1)
+	var exit_interact := bool(controls.get("interact",false)) and (not _exit_interact_held or bool(controls.get("force_exit",false)))
+	_exit_interact_held = bool(controls.get("interact",false))
 	moving = absf(axis) > 0.01
 	if climb_target != -1:
 		climb_progress = minf(1, climb_progress + delta / 2.0)
@@ -232,8 +238,8 @@ func tick(delta: float, actor: Survivor, controls: Dictionary) -> void:
 		movement_noise *= (0.8 if actor.speciality == "搜寻者" else 1.0) * (1.0 - actor.person.level("scout") * 0.05)
 		noise = maxf(noise_burst, movement_noise)
 		if bool(controls.get("interact", false)) and not moving and climb_target == -1:
-			if player_x <= 145 and floor_level == 0:
-				_finish(true)
+			if exit_side() != 0:
+				if exit_interact: request_retreat()
 				return
 			_search(delta * (1.2 if actor.speciality == "搜寻者" else 1.0) * actor.person.bonus("scout"), actor)
 	if attack_windup > 0:
@@ -414,9 +420,29 @@ func drop(resource: String) -> bool:
 func request_retreat() -> bool:
 	if not active:
 		return false
-	if floor_level != 0 or player_x > 145 or climb_target != -1:
-		feedback = "撤退入口在左侧，距入口约%d步。%s" % [ceili(maxf(0, player_x - 145) / 10), "先回梯子下楼，再向左返回。" if floor_level != 0 or climb_target != -1 else "继续向左走，抵达入口后按T。"]
+	var side := exit_side()
+	if side == 0:
+		var distance := minf(maxf(0,player_x-145),maxf(0,right_edge(0)-55-player_x))
+		if floor_level != 0 or climb_target != -1:
+			distance = absf(player_x-ladder_x())+minf(ladder_x()-145,right_edge(0)-55-ladder_x())
+		feedback = "回到地面左侧或右侧出口再离开，距出口约%d步。%s" % [ceili(distance/10),"先回梯子下楼。" if floor_level != 0 or climb_target != -1 else ""]
 		return false
+	if confirm_exits:
+		exit_requested.emit(side)
+		return true
+	return confirm_retreat(side)
+
+
+func exit_side() -> int:
+	if not active or floor_level != 0 or climb_target != -1: return 0
+	if player_x <= 145: return -1
+	if player_x >= right_edge(0) - 55: return 1
+	return 0
+
+
+func confirm_retreat(side: int) -> bool:
+	# Revalidate on confirmation: stale dialogs cannot credit cargo remotely.
+	if side == 0 or exit_side() != side: return false
 	_finish(true)
 	return true
 
@@ -524,6 +550,7 @@ func snapshot() -> Dictionary:
 
 
 func restore_validated(data: Dictionary) -> void:
+	_exit_interact_held = false
 	for property in ["extra_slots", "reserve_ammo", "magazine", "reload_remaining", "capacity", "manual_loot", "loot_site", "active", "facing", "sneaking", "sprinting", "moving", "return_speed", "player_x", "player_y", "noise", "noise_burst", "elapsed", "invulnerable", "attack_cooldown", "attack_windup", "medicine_cooldown", "climb_progress", "search_progress", "search_duration", "search_tool", "feedback"]:
 		set(property, data[property])
 	discovered.clear()

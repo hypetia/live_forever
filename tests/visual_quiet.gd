@@ -43,6 +43,7 @@ func _run() -> void:
 	await keypress(KEY_ESCAPE)
 	game.expedition.player_x = 110
 	game.expedition_retreat()
+	game.confirm_departure()
 	await process_frame
 	await picture("res://docs/v12-dawn.png")
 	check(game.interface.overlay.find_children("*","SurvivorCard",true,false).size() == 3,"morning starts with survivor cards rather than a wall of report text")

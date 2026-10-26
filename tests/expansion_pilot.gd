@@ -9,6 +9,10 @@ func setup(scene: Node2D) -> void:
 	weights = {"raw_food": 2.5, "water": 2.0, "fuel": 2.2, "materials": 2.5, "medicine": 2.0, "tools": 2.0, "meals": 2.5}
 
 func tick(delta: float) -> void:
+	if game.departure_dialog.visible:
+		game.confirm_departure()
+		trips += 1
+		return
 	if game.game_over: return
 	if game.cycle.phase == "dawn":
 		if not game.expansion.outcome.is_empty(): return
@@ -60,6 +64,7 @@ func tick(delta: float) -> void:
 		if game.cycle.phase == "returning": returning = true
 		if returning and field.floor_level == 0 and field.player_x <= 145:
 			game.expedition_retreat()
+			game.confirm_departure()
 			trips += 1
 			return
 		var x: float = 110 if returning else field.site_definitions()[target]["x"]

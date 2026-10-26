@@ -12,6 +12,10 @@ var residence := ResidenceSystem.new()
 var residence_view: ResidenceInterface
 var interface: CampaignInterface
 var end_day_dialog: ConfirmationDialog
+var departure_dialog: ConfirmationDialog
+var _departure_side := 0
+var _departure_pause_before := false
+var _edge_latched := 0
 var batch_count: SpinBox
 var placement := ""
 var _settling := false
@@ -56,14 +60,23 @@ func _ready() -> void:
 	scheduler.external_busy = _external_busy
 	scheduler.station_reserved = func(id: String): return id == "workbench" and expansion.jobs.any(func(job): return job["kind"] != "music" and survivors[int(job["actor"])].route.is_empty() and survivors[int(job["actor"])].position.distance_to(Vector2(485, 640)) <= 10)
 	expansion.sync(self)
-	get_window().title = "Live Forever · 留一盏灯 v1.3.2"
+	get_window().title = "Live Forever · 留一盏灯 v1.3.3"
 	for actor in survivors: actor.metabolism = 0.4
-	for field: ExpeditionState in regions.values(): field.manual_loot = true
+	for field: ExpeditionState in regions.values():
+		field.manual_loot = true
+		field.confirm_exits = true
+		field.exit_requested.connect(_offer_departure)
 	# Replace the legacy instant water command with a physical action.
 	for connection in water_store.clicked.get_connections(): water_store.clicked.disconnect(connection["callable"])
 	water_store.clicked.connect(begin_drink)
 	end_day_dialog = _confirmation("结束白天", "结束白天并安排夜间岗位？\n未完成工作与建设取消并退料；剩余白天只结算需求，不会免费完成生产。")
 	end_day_dialog.confirmed.connect(end_day)
+	departure_dialog = _confirmation("离开此地？", "")
+	departure_dialog.canceled.disconnect(_cancel_dialog)
+	departure_dialog.canceled.connect(cancel_departure)
+	departure_dialog.confirmed.connect(confirm_departure)
+	departure_dialog.ok_button_text = "带上物资离开"
+	departure_dialog.cancel_button_text = "继续探索"
 	interface = CampaignInterface.new()
 	interface.game = self
 	add_child(interface)
@@ -143,6 +156,12 @@ func campaign_snapshot() -> Dictionary:
 
 func restore_campaign(data: Dictionary) -> void:
 	shelter_keyboard.reset(self)
+	_departure_side = 0
+	_edge_latched = 0
+	if is_instance_valid(departure_dialog): departure_dialog.hide()
+	if is_instance_valid(expedition_view.equipment_dialog):
+		expedition_view.equipment_dialog.hide()
+		expedition_view._equipment_opened = false
 	if data.is_empty():
 		cycle = CampaignCycle.new()
 		if expedition.active:
@@ -164,7 +183,9 @@ func restore_campaign(data: Dictionary) -> void:
 		actor.metabolism = 0.4
 		actor.activity.clear()
 		actor.move_multiplier = 1
-	for field: ExpeditionState in regions.values(): field.manual_loot = true
+	for field: ExpeditionState in regions.values():
+		field.manual_loot = true
+		field.confirm_exits = true
 	_props_signature = ""
 	context_open = false
 	placement = ""
@@ -206,6 +227,7 @@ func advance_simulation(delta: float) -> void:
 				actor.person.stress = minf(100, actor.person.stress + step * (0.01 if actor.person.persona == "chen" else 0.005))
 			expedition.tick(step, actor, _expedition_controls())
 			if expedition.active: expansion.refresh_slots(expedition, actor)
+			_check_departure_edge()
 			if cycle.phase == "scavenge" and simulation_time >= cycle.night_end:
 				cycle.phase = "returning"
 				cycle.return_requested = false
@@ -323,6 +345,7 @@ func enter_night_planning() -> void:
 
 
 func start_expedition(take_tool: bool = false, take_medicine: bool = false) -> bool:
+	_edge_latched = 0
 	# Called by the night screen; boolean parameters remain for core API compatibility.
 	if cycle.phase != "planning" or not cycle.plan_error(self).is_empty() or game_over: return false
 	var id := cycle.scavenger()
@@ -360,6 +383,7 @@ func start_expedition(take_tool: bool = false, take_medicine: bool = false) -> b
 
 
 func expedition_retreat() -> void:
+	if is_instance_valid(departure_dialog) and departure_dialog.visible: return
 	if not expedition.active or game_over or center.visible or load_dialog.visible or new_dialog.visible or exit_dialog.visible: return
 	if cycle.phase == "returning": return
 	close_loot()
@@ -367,7 +391,7 @@ func expedition_retreat() -> void:
 	expedition_view.bag_open = false
 	interface.has_move_target = false
 	interface.target_enemy = -1
-	if not paused and expedition.floor_level == 0 and expedition.player_x <= 145 and expedition.climb_target == -1:
+	if expedition.exit_side() != 0:
 		expedition.request_retreat()
 	else:
 		cycle.return_requested = not cycle.return_requested
@@ -375,7 +399,62 @@ func expedition_retreat() -> void:
 	_refresh_hud()
 
 
+func _check_departure_edge() -> void:
+	if not expedition.active or cycle.phase != "scavenge": return
+	var side := 0
+	if expedition.floor_level == 0 and expedition.climb_target == -1:
+		if expedition.player_x <= 90.5: side = -1
+		elif expedition.player_x >= expedition.right_edge(0) - 0.5: side = 1
+	if side == 0:
+		if expedition.player_x > 105 and expedition.player_x < expedition.right_edge(0) - 15: _edge_latched = 0
+		return
+	if side != _edge_latched and expedition.moving and expedition.facing == side:
+		_edge_latched = side
+		_offer_departure(side)
+
+
+func _offer_departure(side: int) -> void:
+	if cycle.phase == "scavenge" and simulation_time >= cycle.night_end: return
+	if cycle.phase == "returning":
+		expedition.confirm_retreat(side) # Mandatory dawn evacuation keeps moving.
+		return
+	if not is_instance_valid(departure_dialog) or departure_dialog.visible or expedition.exit_side() != side: return
+	_departure_side = side
+	_departure_pause_before = paused
+	cycle.return_requested = false
+	close_loot()
+	expedition_view.search_held = false
+	interface.has_move_target = false
+	interface.target_enemy = -1
+	paused = true
+	departure_dialog.dialog_text = "从%s出口返回避难所？\n随身物资会带回，今晚无法再次外出。" % ("左侧" if side < 0 else "右侧")
+	departure_dialog.popup_centered()
+	_refresh_hud()
+
+
+func cancel_departure() -> void:
+	if _departure_side == 0: return
+	get_viewport().set_input_as_handled()
+	_departure_side = 0
+	departure_dialog.hide()
+	paused = _departure_pause_before or game_over
+	_refresh_hud()
+
+
+func confirm_departure() -> void:
+	if _departure_side == 0: return
+	get_viewport().set_input_as_handled()
+	var side := _departure_side
+	_departure_side = 0
+	departure_dialog.hide()
+	paused = _departure_pause_before or game_over
+	if not expedition.confirm_retreat(side): _refresh_hud()
+
+
 func _on_expedition_returned(id: int, cargo: Dictionary, survived: bool) -> void:
+	_departure_side = 0
+	_edge_latched = 0
+	if is_instance_valid(departure_dialog): departure_dialog.hide()
 	var net := {}
 	for key in cargo:
 		var quantity := maxi(0, int(cargo[key]) - int(upkeep.trip_loadout.get(key, 0)))
@@ -513,7 +592,10 @@ func begin_day() -> void:
 
 func _expedition_controls() -> Dictionary:
 	if _loot_open: return {}
-	if cycle.phase == "returning": return _route_controls(110,0,true)
+	if cycle.phase == "returning":
+		var forced := _route_controls(110,0,true)
+		forced["force_exit"] = true
+		return forced
 	var manual := super._expedition_controls()
 	# Direct movement takes priority before any pending mouse attack or search.
 	if absf(float(manual.get("axis",0))) > 0 or int(manual.get("climb",0)) != 0:
@@ -545,7 +627,8 @@ func _expedition_controls() -> Dictionary:
 		var controls := _route_controls(interface.target_x,interface.target_floor,false)
 		controls["sneak"] = Input.is_physical_key_pressed(KEY_CTRL)
 		controls["sprint"] = interface.target_run and not controls["sneak"]
-		if absf(expedition.player_x-interface.target_x) < 10 and expedition.floor_level == interface.target_floor and expedition.climb_target == -1:
+		var arrival := 0.5 if interface.target_floor == 0 and (interface.target_x <= 90 or interface.target_x >= expedition.right_edge(0)) else 10.0
+		if absf(expedition.player_x-interface.target_x) < arrival and expedition.floor_level == interface.target_floor and expedition.climb_target == -1:
 			interface.has_move_target = false
 			if interface.target_site >= 0: expedition_view.search_held = true
 		return controls
@@ -564,7 +647,8 @@ func _route_controls(x: float, floor_level: int, retreat: bool) -> Dictionary:
 	if expedition.floor_level != floor_level:
 		if absf(expedition.player_x - expedition.ladder_x()) > 8: return {"axis": signf(expedition.ladder_x() - expedition.player_x), "sprint": retreat}
 		return {"climb": 1 if floor_level == 1 else -1}
-	if absf(expedition.player_x - x) > 9: return {"axis": signf(x - expedition.player_x), "sprint": retreat}
+	var tolerance := 0.25 if floor_level == 0 and (x <= 90 or x >= expedition.right_edge(0)) else 9.0
+	if absf(expedition.player_x - x) > tolerance: return {"axis": signf(x - expedition.player_x), "sprint": retreat}
 	return {"interact": true} if retreat else {}
 
 
@@ -688,6 +772,10 @@ func cancel_selected() -> void:
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
+	if (is_instance_valid(departure_dialog) and departure_dialog.visible) or (is_instance_valid(expedition_view) and is_instance_valid(expedition_view.equipment_dialog) and expedition_view.equipment_dialog.visible):
+		if event is InputEventKey and event.pressed and event.physical_keycode == KEY_F6: save_game()
+		get_viewport().set_input_as_handled()
+		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if is_instance_valid(residence_view) and residence_view.opened:
 			if event.physical_keycode in [KEY_H,KEY_ESCAPE]: residence_view.close()
@@ -745,6 +833,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if (is_instance_valid(departure_dialog) and departure_dialog.visible) or (is_instance_valid(expedition_view.equipment_dialog) and expedition_view.equipment_dialog.visible): return
 	if not event is InputEventMouseButton or not event.pressed or game_over or center.visible or (is_instance_valid(residence_view) and residence_view.opened): return
 	if cycle.phase in ["planning", "dawn"] or _loot_open: return
 	if event.button_index == MOUSE_BUTTON_RIGHT:

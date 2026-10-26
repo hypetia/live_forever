@@ -53,6 +53,8 @@ func _run() -> void:
 	expect(SaveSystem.apply_state(game,store.read_state()["data"]).is_empty() and game.cycle.return_requested,"return intent survives reload")
 	game.paused = false
 	advance(game,3)
+	expect(game.departure_dialog.visible and field.active,"queued return reaches a paused exit confirmation")
+	game.confirm_departure()
 	expect(game.cycle.phase == "dawn" and not field.active and not game.cycle.return_requested,"queued return walks to entrance and extracts once")
 	valid(game,"finished return")
 	game.free()
@@ -86,6 +88,8 @@ func _run() -> void:
 	expect(field.player_x == before,"cancelled optional return no longer moves the character")
 	game.expedition_retreat()
 	advance(game,12)
+	expect(game.departure_dialog.visible and field.floor_level == 0,"upstairs return asks only after reaching ground exit")
+	game.confirm_departure()
 	expect(game.cycle.phase == "dawn" and not field.active,"return handles the real ladder then entrance")
 	valid(game,"upstairs return")
 	game.free()

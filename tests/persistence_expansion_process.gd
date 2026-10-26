@@ -39,6 +39,7 @@ func _run() -> void:
 			game.expedition.tick(1.01, game.survivors[2], {})
 			ok = game.expedition.magazine == 6 and game.expedition.reserve_ammo == 9
 			game.expedition_retreat()
+			game.confirm_departure()
 			ok = ok and game.expansion.ammo == 15 and game.cycle.phase == "dawn" and game.save_game()
 	elif args[0] == "verify":
 		game.persistence_enabled = true

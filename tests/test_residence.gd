@@ -224,6 +224,7 @@ func _run() -> void:
 	field.player_x = 110
 	game.close_loot()
 	game.expedition_retreat()
+	game.confirm_departure()
 	expect(game.residence.surveyed.has("row") and game.residence.carried.is_empty(),"only genuine return registers a surveyed home")
 	game.begin_day()
 	provision(game)

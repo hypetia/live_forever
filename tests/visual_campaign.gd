@@ -115,6 +115,7 @@ func _run() -> void:
 	sim(scene, 2)
 	check(scene.expedition.player_x <= 145 and scene.cycle.phase == "scavenge", "mouse movement returns physically to extraction without banking early")
 	await keypress(KEY_T)
+	await keypress(KEY_ENTER) # Accept the explicit departure confirmation.
 	check(scene.cycle.phase == "dawn" and scene.interface.shown == "dawn", "actual extraction leads to a dawn report rather than another free trip")
 	check(CampaignCycle.minute(scene.simulation_time) == 360 and scene.inventory.amount("raw_food") == 4, "return advances to 06:00 and credits the selected supplies once")
 	check(scene.cycle.report.size() >= 5 and scene.cycle.report.any(func(line): return "精神" in line), "dawn report explains night roles, fatigue and the home defense result")

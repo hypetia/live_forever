@@ -36,6 +36,7 @@ func _run() -> void:
 			game.expedition.player_x = 110
 			game.paused = false
 			game.expedition_retreat()
+			game.confirm_departure()
 			ok = game.cycle.phase == "dawn" and game.inventory.amount("raw_food") == 5 and game.cycle.last_resolved_day == 1 and game.save_game()
 	elif phase == "verify":
 		game.persistence_enabled = true

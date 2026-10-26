@@ -1,27 +1,27 @@
-# Live Forever · 留一盏灯 v1.3.2
+# Live Forever · 留一盏灯 v1.3.3
 
-单人末日生存游戏：白天直接控制幸存者生活、制作和建设；夜间安排一人搜刮、其他人警戒或睡眠。亲自带回补给和战役零件，在35日窗口内完成撤离，也可以继续无尽生存。敌人为僵尸，暂不新增复杂剧情NPC。人物与房屋采用原创的简化画面。v1.3.2补齐白天键盘移动；v1.3.1修复搜索进度、空箱外观和返程操作；v1.3补充影响实际操作的角色专长、有准备成本的迁居，以及门窗加固、预警、拒马和安防维护。主画面仍以场景、图标和人物卡为主。
+单人末日生存游戏：白天直接控制幸存者生活、制作和建设；夜间安排一人搜刮、其他人警戒或睡眠。亲自带回补给和战役零件，在35日窗口内完成撤离，也可以继续无尽生存。敌人为僵尸，暂不新增复杂剧情NPC。人物与房屋采用原创的简化画面。v1.3.3补齐双侧边缘离场确认、夜间持械外观和随身装备查看；v1.3.2补齐白天键盘移动；v1.3.1修复搜索进度、空箱外观和返程操作；v1.3补充影响实际操作的角色专长、有准备成本的迁居，以及门窗加固、预警、拒马和安防维护。主画面仍以场景、图标和人物卡为主。
 
 ## 下载后直接玩
 
 | 用途 | GitHub直接下载 | 使用方法 |
 | --- | --- | --- |
-| Windows 64位游戏 | [live_forever_v13_2_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.3.2/live_forever_v13_2_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
-| Linux x86_64游戏 | [live_forever_v13_2_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.3.2/live_forever_v13_2_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
-| Windows一键验收工具 | [live_forever_v13_2_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.3.2/live_forever_v13_2_windows_acceptance.zip) | 主动运行 `windows_acceptance.cmd`，默认约30分钟 |
-| v1.3.2完整源码 | [live_forever_shelter_m13_2.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.3.2/live_forever_shelter_m13_2.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
+| Windows 64位游戏 | [live_forever_v13_3_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.3.3/live_forever_v13_3_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
+| Linux x86_64游戏 | [live_forever_v13_3_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.3.3/live_forever_v13_3_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
+| Windows一键验收工具 | [live_forever_v13_3_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.3.3/live_forever_v13_3_windows_acceptance.zip) | 主动运行 `windows_acceptance.cmd`，默认约30分钟 |
+| v1.3.3完整源码 | [live_forever_shelter_m13_3.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.3.3/live_forever_shelter_m13_3.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
 
 普通游戏不需要Godot、Python、登录、服务器或持续联网。验收工具是单独的程序，不会在正常游戏中替你操作。Windows包按官方模板导出；**尚未在Windows真实设备完成验收**。
 
-[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.3.2) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
+[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.3.3) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
 
-运行包、验收包、版本源码ZIP托管在`downloads-v1.3.2`分支，开发源码在`main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
+运行包、验收包、版本源码ZIP托管在`downloads-v1.3.3`分支，开发源码在`main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
 
 ## 四项状态都以100为最佳
 
 **生命、饱腹、水分、精神：越满越好，满分100。**吃饭补饱腹，喝水补水分，睡眠补精神。人物小卡以四个图标和状态条显示；悬停看准确数值，双击打开人物详情。伤病用状态提示区分，不和四项核心状态混在一起。
 
-搜索在对象旁显示进度环和进度条；交互以轮廓、小图标及行走目标反馈，空箱实时变灰，不添加“可交互／已搜空”文字。主画面保留时钟、温度、资源图标和人物卡；设施提示在悬停时出现，制作与规则按需打开。拾取改为图标格子，清晨先显示人物与简短结果，详细纪要可展开。
+夜间手持实际武器，身上显示护甲与冬衣；人物卡右侧三个装备图标带耐久条，点击暂停查看详情。搜索在对象旁显示进度环和进度条；交互以轮廓、小图标及行走目标反馈，空箱实时变灰，不添加“可交互／已搜空”文字。主画面保留时钟、温度、资源图标和人物卡；设施提示在悬停时出现，制作与规则按需打开。拾取改为图标格子，清晨先显示人物与简短结果，详细纪要可展开。
 
 ![迁居后的内巷排屋，测试从新局正常搜集和建成](docs/v13-relocated.png)
 
@@ -35,10 +35,10 @@
 - **K装备／战役**：制作武器、防具、冬衣、弹药，分配或卸下装备，修理耐久，制作战役项目，点燃炉火或预留夜间燃料。制作需要实际工时；该界面明确暂停时间。
 - 20:00自动进入夜间分工，也可点击“结束白天”。每晚最多一人搜刮、只能往返一次；床位来自建好的床。地图有三页，未开放地点显示条件。
 - 夜间左键走动，点容器走近搜索；也可A/D移动、W/S爬梯、Ctrl潜行、Shift奔跑。打开容器后逐份拿取／放回，F尽量全拿，Esc关闭；整理时仍走时间，空格可暂停。专属零件需要单独拿取。
-- **J攻击，L手枪换弹，I背包，T返程**。T或返程按钮从当前位置安排实际回程，拾取窗口中也可用；到入口才入库，点击其他目标或再次按T可取消可选回程。点击僵尸会靠近并攻击一次；后续攻击由玩家继续下令。红条为生命、金条为警觉。徒手只推开，工具用于破锁和制作。
+- **J攻击，L手枪换弹，I背包，T返程**。T或返程按钮从当前位置安排实际回程，拾取窗口中也可用；到左侧出口后确认才入库，也可走到地图右侧边缘确认离开；点击其他目标或再次按T可取消可选回程。点击僵尸会靠近并攻击一次；后续攻击由玩家继续下令。红条为生命、金条为警觉。徒手只推开，工具用于破锁和制作。
 - F6保存，F9确认读取，F11全屏。切换到其他应用自动暂停；重新打开存档保持暂停，无离线消耗。
 
-![夜间场景与精简操作栏](docs/v12-night.png)
+![夜间持械、护甲与冬衣、三个装备图标](docs/v133-spear.png)
 
 ## 新系统怎样影响游玩
 
@@ -64,7 +64,7 @@
 
 旧档无需重开。schema10保留家园、迁居、安防、勘察与演奏记录，增加可恢复的返程安排，继续保存装备归属／耐久、弹匣与换弹进度、疾病／寒冷、炉火、工作台在制项目、地图和战役进度，兼容schema1–9。旧版在途物资继续保留，新增战役从导入当天计日；不会因读取旧档反复发装备。系统用户目录和旧版本一致，首次写入保留备份。建议解压到新文件夹，不覆盖正在运行的旧程序。
 
-[v1.3.2白天键盘修复](docs/KEYBOARD_V132.md) · [v1.3.1交互修复与验证](docs/INTERACTIONS_V131.md) · [v1.3角色、家园与验证](docs/HOMES_V13.md) · [v1.2界面说明](docs/PRESENTATION_V12.md) · [装备、气候、九地图和战役规则](docs/EXPANSION_V11.md) · [Windows检查方法](docs/WINDOWS_ACCEPTANCE.md) · [下载索引](downloads/README.md) · [许可](licenses/README.md)
+[v1.3.3离场与装备](docs/DEPARTURE_EQUIPMENT_V133.md) · [v1.3.2白天键盘修复](docs/KEYBOARD_V132.md) · [v1.3.1交互修复与验证](docs/INTERACTIONS_V131.md) · [v1.3角色、家园与验证](docs/HOMES_V13.md) · [v1.2界面说明](docs/PRESENTATION_V12.md) · [装备、气候、九地图和战役规则](docs/EXPANSION_V11.md) · [Windows检查方法](docs/WINDOWS_ACCEPTANCE.md) · [下载索引](downloads/README.md) · [许可](licenses/README.md)
 
 ```sh
 git clone --single-branch --branch main https://github.com/hypetia/live_forever.git

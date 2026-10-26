@@ -54,6 +54,7 @@ func _run() -> void:
 	valid(game, "partial durability and zombie death")
 	field.player_x = 110
 	game.expedition_retreat()
+	game.confirm_departure()
 	expect(actor.weapon_item["durability"] == durability - 6, "return never repairs gear for free")
 	game.begin_day()
 	game.inventory.deposit({"materials": 20, "tools": 4, "fuel": 5}, "test fixture for crafting")
@@ -96,6 +97,7 @@ func _run() -> void:
 	field.extra_slots = boundary
 	actor.weapon_item["durability"] = 99
 	game.expedition_retreat()
+	game.confirm_departure()
 	expect(game.expansion.ammo == 7 and field.extra_slots == 0, "unused rounds return once and carried weight clears")
 	valid(game, "gun return")
 	game.begin_day()
@@ -181,6 +183,7 @@ func _run() -> void:
 	field.floor_level = 0
 	field.player_y = 620
 	game.expedition_retreat()
+	game.confirm_departure()
 	expect(game.expansion.parts == ["relay"] and game.expansion.collected == ["relay"], "physical exit commits unique part")
 	game.begin_day()
 	game.inventory.deposit({"materials": 10, "tools": 2}, "campaign project fixture")

@@ -85,7 +85,7 @@ def main():
         finally:
             if data: x.XFree(C.cast(data, D))
 
-    def find_ready_window(expected_pid=None):
+    def find_ready_window(expected_pid=None, contains="Live Forever"):
         # Snapshot the tree under a short X server grab. Utility windows may
         # disappear during startup; querying stale children causes BadWindow.
         x.XGrabServer(display)
@@ -93,7 +93,7 @@ def main():
             pending = children(root)
             while pending:
                 window = pending.pop()
-                if 'Live Forever' in title(window):
+                if contains in title(window):
                     if expected_pid is None or owner_pid(window) == expected_pid:
                         return window
                 pending.extend(children(window))
@@ -261,13 +261,25 @@ def main():
         # Regression: invoke T inside the loot pane, away from the exit.
         assert looted['expedition']['player_x'] > 145, 'Return regression must start away from extraction'
         press('t')
-        deadline = time.monotonic() + 20
+        deadline = time.monotonic() + 25
+        # The embedded modal consumes F6. Its opening can therefore leave a
+        # pre-arrival snapshot on disk. Send genuine Enter events while the
+        # requested route completes, then require a fresh dawn save. Enter has
+        # no action in the field before the modal opens.
+        exit_confirmation_sent = False
         while True:
+            press('Return')
+            exit_confirmation_sent = True
             returned = save()
             if not returned['expedition']['active']:
                 break
+            assert returned['stock'] == looted['stock'], 'Cargo credited before exit confirmation'
             assert returned['campaign']['return_requested'], 'T did not queue return through the loot pane'
-            assert time.monotonic() < deadline, 'Queued physical return never reached extraction'
+            if time.monotonic() >= deadline:
+                subprocess.run(['import', '-display', args.display, '-window', str(root), str(output / 'return-timeout.png')], check=True, timeout=15)
+                (output / 'return-timeout.json').write_text(json.dumps({'saved':returned,'windows':[(int(w),title(w),owner_pid(w)) for w in children(root)]},ensure_ascii=False,indent=2))
+                raise AssertionError('Queued physical return never reached extraction')
+        assert exit_confirmation_sent, 'Physical return skipped explicit exit confirmation'
         assert not returned['expedition']['active'] and returned['paused']
         assert returned['stock']['raw_food'] == 6 and returned['stock']['water'] == 5 and returned['stock']['medicine'] == 1, returned['stock']
         assert returned['upkeep']['returns']['street'] == 1
@@ -275,7 +287,7 @@ def main():
         subprocess.run(['import', '-display', args.display, '-window', str(window), str(output / 'native-return.png')], check=True, timeout=15)
         close(window, process)
         log.close()
-        print('NATIVE PASS: exported game, real OS input, search, inventory T return, physical retreat, one-time cargo and normal close', flush=True)
+        print('NATIVE PASS: exported game, real OS input, search, inventory T return, physical retreat, explicit exit confirmation, one-time cargo and normal close', flush=True)
         process, window, log = launch('restart.log')
         resumed = save()
         assert resumed['paused'] and not resumed['expedition']['active']

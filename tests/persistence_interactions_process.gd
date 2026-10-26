@@ -33,6 +33,8 @@ func _run() -> void:
 		okay = game.load_game() and game.cycle.return_requested and not game.expedition.site_has_supplies(0)
 		game.paused = false
 		for tick in range(180): game.advance_simulation(1.0/60)
+		okay = okay and game.departure_dialog.visible and game.expedition.active
+		game.confirm_departure()
 		okay = okay and game.cycle.phase == "dawn" and not game.expedition.active and not game.cycle.return_requested
 	elif args[0] == "verify":
 		okay = game.load_game() and game.cycle.phase == "dawn" and not game.cycle.return_requested

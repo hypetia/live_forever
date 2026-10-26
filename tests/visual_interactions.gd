@@ -60,6 +60,8 @@ func _run() -> void:
 	check(game.cycle.return_requested and game.paused,"mouse return works while paused and preserves deliberate pause")
 	await keypress(KEY_SPACE)
 	sim(game,3)
+	check(game.departure_dialog.visible and game.paused,"physical return pauses at departure confirmation")
+	await keypress(KEY_ENTER)
 	check(game.cycle.phase == "dawn" and not field.active,"real mouse/keyboard return reaches extraction and settles once")
 	check(SaveSystem.validate(SaveSystem.capture(game)).is_empty(),"interactive return retains a valid persistent campaign")
 	await dispose_scene(game)
