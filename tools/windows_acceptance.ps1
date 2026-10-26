@@ -109,7 +109,7 @@ try {
     if ((Get-Item $slot).LastWriteTimeUtc.Ticks -le $previousWrite) { throw "Actual F6 did not write a new save; input/focus verification failed." }
     $after = Read-ValidatedSave $slot
     if (!$after.paused -or [Math]::Abs($after.simulation_time - $before.simulation_time) -gt 0.000001) { throw "Restart did not preserve paused simulation time." }
-    foreach ($field in @("stock", "goals", "story", "campaign", "expansion", "residence", "facilities", "actors", "stations")) {
+    foreach ($field in @("stock", "goals", "story", "campaign", "expansion", "residence", "facilities", "director", "actors", "stations")) {
         if (!(Test-GameStateEqual ($before.$field) ($after.$field))) { throw "Restart changed $field or repeated a reward." }
     }
     Close-OwnedGame $process

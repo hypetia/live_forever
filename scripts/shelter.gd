@@ -513,9 +513,9 @@ func _confirmation(title_text: String, message: String) -> ConfirmationDialog:
 	dialog.title = title_text
 	dialog.dialog_text = message
 	dialog.min_size = Vector2i(580, 180)
-	var dialog_theme := Theme.new()
+	var dialog_theme := GameUi.theme() if has_method("facilities_snapshot") else Theme.new()
 	dialog_theme.default_font = FONT
-	dialog_theme.default_font_size = 16
+	dialog_theme.default_font_size = 18 if has_method("facilities_snapshot") else 16
 	dialog.theme = dialog_theme
 	dialog.ok_button_text = "确认"
 	dialog.cancel_button_text = "取消"

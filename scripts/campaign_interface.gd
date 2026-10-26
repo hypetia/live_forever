@@ -30,6 +30,8 @@ var workshop_upgrade: Button
 var workshop_summary: Label
 var kitchen_batches: SpinBox
 var workshop_scroll: ScrollContainer
+var briefing_button: Button
+var plan_forecast: Label
 var map_page := 0
 var part_button: Button
 var survey_button: Button
@@ -54,17 +56,20 @@ func _ready() -> void:
 	placement_hint = label(root, "", Vector2(32, 246), Vector2(1000, 38), 17, game.GOLD)
 	workshop_button = button(root, "装备 / 战役 K", Vector2(1212, 150), Vector2(200, 42), toggle_workshop)
 	climate_label = label(root, "", Vector2(32, 151), Vector2(990, 62), 15)
+	briefing_button = button(root,"街区动态 U",Vector2(1218,748),Vector2(190,36),func(): game.briefing.toggle())
 	refresh(true)
 
 
-func label(parent: Node, text: String, point: Vector2, size: Vector2, font_size: int = 16, color: Color = Color("d8ded7")) -> Label:
+func label(parent: Node, text: String, point: Vector2, size: Vector2, font_size: int = 18, color: Color = GameUi.TEXT) -> Label:
 	var node := Label.new()
 	node.text = text
 	node.position = point
 	node.size = size
 	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	node.clip_text = true
+	node.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	node.add_theme_font_override("font", game.FONT)
-	node.add_theme_font_size_override("font_size", font_size)
+	node.add_theme_font_size_override("font_size", maxi(17,font_size))
 	node.add_theme_color_override("font_color", color)
 	parent.add_child(node)
 	node.size = size
@@ -77,25 +82,19 @@ func button(parent: Node, text: String, point: Vector2, size: Vector2, action: C
 	node.position = point
 	node.size = size
 	node.focus_mode = Control.FOCUS_NONE
-	node.add_theme_font_override("font", game.FONT)
-	node.add_theme_font_size_override("font_size", 15)
-	for state in ["normal", "hover", "pressed", "disabled"]:
-		var box: StyleBoxFlat = game._style(Color("27382f") if state in ["hover", "pressed"] else Color("172522"), game.GOLD if state in ["hover", "pressed"] else Color("516052"))
-		if size.y <= 36:
-			box.content_margin_top = 3
-			box.content_margin_bottom = 3
-		node.add_theme_stylebox_override(state, box)
+	GameUi.button(node)
 	node.pressed.connect(action)
 	parent.add_child(node)
 	node.size = size
 	return node
 
 
-func panel(parent: Node, point: Vector2, size: Vector2, color: Color = Color("14201f")) -> Panel:
+func panel(parent: Node, point: Vector2, size: Vector2, color: Color = GameUi.PANEL) -> Panel:
 	var node := Panel.new()
+	node.theme = GameUi.theme()
 	node.position = point
 	node.size = size
-	node.add_theme_stylebox_override("panel", game._style(color, Color("586450")))
+	node.add_theme_stylebox_override("panel",GameUi.box(color))
 	parent.add_child(node)
 	node.size = size
 	return node
@@ -103,6 +102,8 @@ func panel(parent: Node, point: Vector2, size: Vector2, color: Color = Color("14
 
 func refresh(force: bool = false) -> void:
 	if not is_instance_valid(root): return
+	briefing_button.visible = game.cycle.phase == "day" and game.placement.is_empty() and not game.context_open
+	briefing_button.text = "补给待领取 U" if game.director.status == "ready" else "街区动态 U"
 	workshop_button.visible = game.cycle.phase == "day"
 	climate_label.visible = game.cycle.phase == "day"
 	if climate_label.visible:
@@ -140,7 +141,7 @@ func refresh(force: bool = false) -> void:
 
 func _create_plan() -> void:
 	label(overlay, "第%d夜 · 谁去，谁留下" % game.cycle.night_day, Vector2(36, 24), Vector2(900, 48), 30, game.GOLD)
-	label(overlay, "先选搜刮地点，再安排每个人的夜晚。随身物资出发时才扣；每晚只能搜刮一次。", Vector2(38, 80), Vector2(1300, 28), 16)
+	plan_forecast = label(overlay,"",Vector2(38,80),Vector2(1300,30),18,GameUi.SECONDARY)
 	button(overlay, "保存 F6", Vector2(1260, 30), Vector2(140, 42), func(): game.save_game())
 	label(overlay, "目的地", Vector2(38, 129), Vector2(600, 30), 19, game.GOLD)
 	button(overlay, "‹ 上一组", Vector2(770, 122), Vector2(150, 34), _page_maps.bind(-1))
@@ -167,7 +168,7 @@ func _create_plan() -> void:
 		option.position = Vector2(510, y + 9)
 		option.size = Vector2(178, 40)
 		option.add_theme_font_override("font", game.FONT)
-		option.add_theme_font_size_override("font_size", 15)
+		option.add_theme_font_size_override("font_size", 18)
 		for name in CampaignCycle.ROLE_NAMES: option.add_item(name)
 		option.item_selected.connect(func(item: int): _set_role(index, CampaignCycle.ROLES[item]))
 		overlay.add_child(option)
@@ -202,6 +203,7 @@ func _set_role(index: int, role: String) -> void:
 
 func _refresh_plan() -> void:
 	if role_options.size() != game.survivors.size(): return
+	plan_forecast.text = game.night_forecast()
 	for index in range(role_options.size()):
 		var actor: Survivor = game.survivors[index]
 		role_options[index].select(CampaignCycle.ROLES.find(game.cycle.roles[index]))

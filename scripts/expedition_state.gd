@@ -8,6 +8,8 @@ signal returned(survivor_id: int, cargo: Dictionary, survived: bool)
 signal site_searched(index: int)
 signal combat_resolved(kind: String, point: Vector2, damage: int)
 signal exit_requested(side: int)
+signal enemy_damaged(index: int, point: Vector2, direction: float, damage: int, lethal: bool)
+signal player_hurt(point: Vector2, direction: float, damage: int)
 
 const CAPACITY := 10
 const WIDTH := 2600.0
@@ -98,7 +100,7 @@ func _spawn_enemies(day: int) -> void:
 		definitions.append(area()["extra"].duplicate())
 	for index in range(definitions.size()):
 		var data: Array = definitions[index]
-		enemies.append({"x": data[0], "floor": data[1], "min": data[2], "max": data[3], "direction": -1.0 if (day + index) % 2 else 1.0, "mode": "patrol", "suspicion": 0.0, "target": data[0], "timer": 0.0, "cooldown": 0.0, "brace": 0.0, "hp": (90 if data.size() > 4 and data[4] == "brute" else 30 if data.size() > 4 and data[4] == "runner" else 40), "kind": data[4] if data.size() > 4 else "walker"})
+		enemies.append({"x": data[0], "floor": data[1], "min": data[2], "max": data[3], "direction": -1.0 if (day + index) % 2 else 1.0, "mode": "patrol", "suspicion": 0.0, "target": data[0], "timer": 0.0, "cooldown": 0.0, "brace": 0.0, "hp": EnemyCatalog.stats(str(data[4]) if data.size() > 4 else "walker")["health"], "kind": data[4] if data.size() > 4 else "walker"})
 
 
 func begin(id: int, loadout: Dictionary, previous_speed: float) -> void:
@@ -335,13 +337,16 @@ func attack(actor: Survivor) -> bool:
 
 func _resolve_attack(actor: Survivor) -> void:
 	var target: Dictionary = {}
+	var target_index := -1
 	var weapon := actor.weapon()
 	if not weapon.is_empty() and not weapon.has("magazine"): noise_burst = maxf(noise_burst,65)
 	var closest := float(weapon.get("reach", 75.0))
-	for enemy in enemies:
+	for index in range(enemies.size()):
+		var enemy: Dictionary = enemies[index]
 		var distance := absf(float(enemy["x"]) - player_x)
 		if enemy["hp"] > 0 and enemy["floor"] == floor_level and absf(player_y - FLOOR_Y[floor_level]) < 30 and distance < closest and (float(enemy["x"]) - player_x) * facing >= -10:
 			target = enemy
+			target_index = index
 			closest = distance
 	if target.is_empty():
 		if weapon.has("magazine"): actor.weapon_item["durability"] = maxi(0, int(actor.weapon_item["durability"]) - 1)
@@ -358,6 +363,7 @@ func _resolve_attack(actor: Survivor) -> void:
 		target["mode"] = "dead" if target["hp"] <= 0 else "stunned"
 		target["timer"] = 0.0 if target["hp"] <= 0 else 0.35
 		target["cooldown"] = 0.0
+		enemy_damaged.emit(target_index,Vector2(target["x"],FLOOR_Y[int(target["floor"])]),facing,damage,target["hp"] <= 0)
 		combat_resolved.emit("shot" if weapon.has("magazine") else "hit", Vector2(target["x"], FLOOR_Y[int(target["floor"])] - 50), damage)
 		feedback = "%s%s −%d！敌人剩余生命%d，武器耐久%d。" % [weapon["name"], "背后突袭" if ambush else "命中", damage, target["hp"], actor.weapon_item["durability"]]
 	elif actor.metabolism >= 1 and bag["tools"] > 0:
@@ -370,6 +376,7 @@ func _resolve_attack(actor: Survivor) -> void:
 		target["timer"] = 0.0
 		target["cooldown"] = 0.0
 		target["brace"] = 0.0
+		enemy_damaged.emit(target_index,Vector2(target["x"],FLOOR_Y[int(target["floor"])]),facing,damage,true)
 		feedback = "命中 −40！消耗工具1，感染者已击倒。动静可能引来其他敌人。"
 	else:
 		if target["brace"] > 0:
@@ -481,7 +488,7 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 		if enemy["timer"] == 0:
 			if same_floor and distance < 62 and invulnerable <= 0:
 				var reduction := 1 - actor.protection()
-				var damage := roundi((24 if kind == "brute" else 10 if kind == "runner" else 14) * reduction)
+				var damage := roundi(float(EnemyCatalog.stats(kind)["damage"])*reduction)
 				actor.health = maxf(0, actor.health - damage)
 				actor.injury = minf(100, actor.injury + 12 * reduction)
 				actor.infection = minf(100, actor.infection + 8 * reduction)
@@ -490,6 +497,7 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 				actor.person.trauma = minf(100, actor.person.trauma + 2)
 				actor.person.morale = maxf(0, actor.person.morale - 2)
 				invulnerable = 1.6
+				player_hurt.emit(Vector2(player_x,player_y),1.0 if player_x >= enemy["x"] else -1.0,damage)
 				player_x = clampf(player_x + (1 if player_x >= enemy["x"] else -1) * 42, 90 if floor_level == 0 else upper_left(), right_edge(floor_level))
 				feedback = "被扑咬！生命-%d（护甲已计入），伤势与感染上升；R用药。" % damage
 				event_reported.emit(feedback)
@@ -517,7 +525,7 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 	if enemy["mode"] == "chase":
 		if same_floor and distance < 48 and enemy["cooldown"] <= 0:
 			enemy["mode"] = "windup"
-			enemy["timer"] = 1.1 if kind == "brute" else 0.5 if kind == "runner" else 0.8
+			enemy["timer"] = EnemyCatalog.stats(kind)["windup"]
 			feedback = "感染者正在蓄力扑咬！后退或 J 推开。"
 			return
 		if same_floor: enemy["target"] = player_x
@@ -526,7 +534,7 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 		var difference := float(enemy["target"]) - float(enemy["x"])
 		if absf(difference) > 8:
 			enemy["direction"] = signf(difference)
-			enemy["x"] = clampf(float(enemy["x"]) + signf(difference) * ((155 if kind == "runner" else 75 if kind == "brute" else 105) if enemy["mode"] == "chase" else 48) * delta, 90 if int(enemy["floor"]) == 0 else upper_left(), right_edge(int(enemy["floor"])))
+			enemy["x"] = clampf(float(enemy["x"]) + signf(difference) * (float(EnemyCatalog.stats(kind)["chase_speed"]) if enemy["mode"] == "chase" else 48) * delta, 90 if int(enemy["floor"]) == 0 else upper_left(), right_edge(int(enemy["floor"])))
 		elif enemy["mode"] == "investigate": enemy["mode"] = "patrol"
 	else:
 		if enemy["x"] <= enemy["min"]: enemy["direction"] = 1.0
@@ -656,7 +664,7 @@ static func validate_snapshot(data: Variant, actors: Array, id: String = "street
 	if not data["enemies"] is Array or data["enemies"].size() != (definition["guards"].size() + (1 if int(data["last_refresh_day"]) % 3 == 0 else 0)): return "感染者数量与迁入日期不符"
 	for enemy in data["enemies"]:
 		if not _keys(enemy, ["x", "floor", "min", "max", "direction", "mode", "suspicion", "target", "timer", "cooldown", "brace", "hp", "kind"]): return "感染者字段无效"
-		if not _i(enemy["floor"], 0, 1) or not enemy["mode"] in MODES or not enemy["kind"] in ["walker", "runner", "brute"] or not _i(enemy["hp"], 0, 90 if enemy["kind"] == "brute" else 30 if enemy["kind"] == "runner" else 40) or not enemy["direction"] in [-1.0, 1.0]: return "感染者状态无效"
+		if not _i(enemy["floor"], 0, 1) or not enemy["mode"] in MODES or not enemy["kind"] in ["walker", "runner", "brute"] or not _i(enemy["hp"], 0, EnemyCatalog.stats(enemy["kind"])["health"]) or not enemy["direction"] in [-1.0, 1.0]: return "感染者状态无效"
 		var low := 90.0 if enemy["floor"] == 0 else upper
 		var high := width - 100 if enemy["floor"] == 0 else width - 150
 		if not _n(enemy["x"], low, high) or not _n(enemy["min"], low, high) or not _n(enemy["max"], enemy["min"], high) or not _n(enemy["target"], low, high): return "感染者位置越界"

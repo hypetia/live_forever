@@ -39,6 +39,9 @@ func sync(game: Node2D) -> void:
 		field.special_sites.clear()
 		for key in GearCatalog.PARTS:
 			if GearCatalog.PARTS[key]["map"] == field.location_id and not collected.has(key): field.special_sites.append(int(GearCatalog.PARTS[key]["site"]))
+		if game.has_method("director_snapshot") and game.director.status == "active":
+			var mission: Dictionary = CampaignDirector.CONTRACTS[game.director.contract]
+			if mission["type"] == "survey" and mission["map"] == field.location_id and not field.special_sites.has(int(mission["site"])): field.special_sites.append(int(mission["site"]))
 	if game.has_method("residence_snapshot"): game.residence.sync(game)
 	for actor in game.survivors:
 		actor.weapon_item = {}

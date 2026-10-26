@@ -217,7 +217,7 @@ def main():
             time.sleep(1)
             after = read_save(folder / 'session.json')
             assert after['paused']
-            for field in ['stock', 'goals', 'story', 'campaign', 'expansion', 'residence', 'facilities', 'actors', 'stations']:
+            for field in ['stock', 'goals', 'story', 'campaign', 'expansion', 'residence', 'facilities', 'director', 'actors', 'stations']:
                 assert state_equal(after[field], before[field]), field
             assert abs(after['simulation_time'] - before['simulation_time']) < .000001
             close_process()

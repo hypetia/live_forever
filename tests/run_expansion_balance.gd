@@ -19,6 +19,7 @@ func _run() -> void:
 		var snapshot: Dictionary = data["snapshot"]
 		if not snapshot["campaign"].has("return_requested"): snapshot = SaveSystem.migrate_v9(snapshot)
 		if not snapshot.has("facilities"): snapshot = SaveSystem.migrate_v10(snapshot)
+		if not snapshot.has("director"): snapshot = SaveSystem.migrate_v11(snapshot)
 		var error := SaveSystem.apply_state(game,snapshot)
 		if not error.is_empty():
 			printerr(error)

@@ -8,6 +8,9 @@ const DISTANT := Color("a2aaa6")
 
 static func pending_action(game: Node2D, index: int) -> bool:
 	var field: ExpeditionState = game.expedition
+	if game.director.status == "active" and game.director.trip_progress == 0:
+		var mission: Dictionary = CampaignDirector.CONTRACTS[game.director.contract]
+		if mission["type"] == "survey" and mission["map"] == field.location_id and mission["site"] == index: return true
 	for id in GearCatalog.PARTS:
 		var part: Dictionary = GearCatalog.PARTS[id]
 		if part["map"] == field.location_id and part["site"] == index and not game.expansion.collected.has(id) and not game.expansion.carried.has(id): return true

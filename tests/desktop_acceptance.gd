@@ -68,6 +68,11 @@ func _run() -> void:
 		game.residence_view.toggle()
 		record(game.residence_view.opened and design.encloses(game.residence_view.window.get_global_rect()) and game.paused, "home and relocation drawer fits at %dx%d" % [size.x,size.y])
 		game.residence_view.close()
+		game.briefing.toggle()
+		record(game.briefing.opened and game.paused and design.encloses(game.briefing.window.get_global_rect()) and game.briefing.offer_buttons.values().all(func(button): return design.encloses(button.get_global_rect())), "opportunity briefing fits at %dx%d" % [size.x,size.y])
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png(output.path_join("briefing_%dx%d.png" % [size.x,size.y]))
+		game.briefing.close()
 		game.interface.toggle_workshop()
 		record(game.interface.workshop_open and design.encloses(game.interface.workshop_panel.get_global_rect()) and game.paused, "equipment workshop fits and explicitly pauses at %dx%d" % [size.x, size.y])
 		await RenderingServer.frame_post_draw

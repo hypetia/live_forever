@@ -51,9 +51,9 @@ func _ready() -> void:
 	min_size = Vector2i(1040, 650)
 	get_label().hide()
 	ok_button_text = "返回游戏  [Esc]"
-	var skin := Theme.new()
+	var skin := GameUi.theme()
 	skin.default_font = preload("res://assets/fonts/interface.otf")
-	skin.default_font_size = 16
+	skin.default_font_size = 18
 	theme = skin
 	tabs = TabContainer.new()
 	tabs.custom_minimum_size = Vector2(1000, 550)
@@ -79,7 +79,7 @@ func _ready() -> void:
 	var help := _page("操作指南")
 	_text(help, "第一次游玩", 23)
 	if game.has_method("_compact_card"):
-		_text(help, "1. 白天点设施安排制作、饮食和休息；A/D移动，楼梯口W/S上下楼，Shift奔跑。\n2. 20:00安排搜刮、守夜和睡眠；K页制作、分配装备。开局三张地图，后续按战役开放，共九张。\n3. 夜里A/D或鼠标走动，Ctrl潜行，W/S爬梯；点箱柜或靠近后按住E搜索，F尽量全拿。\n4. J攻击，L手枪换弹；手中显示实际武器。点人物卡右侧装备图标，暂停查看耐久与效果。\n5. 走到地面左／右最边缘确认离开；T也可安排回左侧出口。确认前不入库，取消继续探索。\n6. R让选中者自己用药，P页可由医护帮助别人；F6保存，F9读档，F11全屏。", 16)
+		_text(help, "1. 白天点设施安排制作、饮食和休息；A/D移动，楼梯口W/S上下楼，Shift奔跑。\n2. 20:00安排搜刮、守夜和睡眠；K页制作、分配装备。开局三张地图，后续按战役开放，共九张。\n3. 夜里A/D或鼠标走动，Ctrl潜行，W/S爬梯；点箱柜或靠近后按住E搜索，F尽量全拿。\n4. J攻击，L手枪换弹；手中显示实际武器。点人物卡右侧装备图标，暂停查看耐久与效果。\n5. 走到地面左／右最边缘确认离开；T也可安排回左侧出口。确认前不入库，取消继续探索。\n6. R让选中者自己用药，P页可由医护帮助别人；F6保存，F9读档，F11全屏。\n7. U查看街区动态、风险预报与可选委托；实地完成目标后返回接收补给。", 16)
 	else:
 		_text(help, "1. 给留守者排好任务：F做饭 → G吃饭 → H睡觉。没有熟食时也能预排。\n2. 按3选陈野，再按V选地点；初次建议河湾旧街。装备可选。\n3. A/D移动，Ctrl潜行，Shift奔跑；靠近箱柜按住E搜索。\n4. 看敌人朝向和警觉；J有前摇，有工具时消耗一件击倒，徒手只推开。\n5. 带着物资走回最左侧入口按T，才能带回基地。\n6. 归来会暂停，检查伤势 / 感染，必要时R让归来者给自己用药（医护帮别人请在P页选择双方），再继续。", 16)
 	_text(help, "完整操作", 23)
@@ -136,8 +136,8 @@ func _text(parent: Node, message: String, size: int) -> Label:
 	var label := Label.new()
 	label.text = message
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.add_theme_font_size_override("font_size", size)
-	label.add_theme_color_override("font_color", Color("d8ded7"))
+	label.add_theme_font_size_override("font_size",maxi(17,size))
+	label.add_theme_color_override("font_color",GameUi.TEXT)
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	parent.add_child(label)
 	return label

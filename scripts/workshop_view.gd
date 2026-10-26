@@ -86,7 +86,7 @@ static func _recipe_card(ui: CampaignInterface, body: Control, kind: String, ind
 	var station := "stove" if kind == "cook" else FacilitySystem.station_for(kind)
 	var minimum := int(FacilitySystem.RECIPES.get(kind,{}).get("minimum",FacilitySystem.REQUIREMENTS.get(kind,1)))
 	var locked: bool = int(game.facilities.levels[station]) < minimum
-	var card := ui.panel(body,Vector2((index%2)*650,(index/2)*180),Vector2(630,166),Color("1a2926"))
+	var card := ui.panel(body,Vector2((index%2)*650,(index/2)*180),Vector2(630,166),GameUi.SURFACE)
 	card.draw.connect(func():
 		if GearCatalog.ITEMS.has(kind):
 			EquipmentArt.icon(card,{"kind":kind,"slot":GearCatalog.ITEMS[kind]["slot"],"broken":false},Vector2(33,33))
@@ -118,7 +118,7 @@ static func _recipe_card(ui: CampaignInterface, body: Control, kind: String, ind
 		ui.kitchen_batches.max_value = 3
 		ui.kitchen_batches.value = 1
 		card.add_child(ui.kitchen_batches)
-	if locked: card.modulate = Color(0.65,0.7,0.67)
+	# A locked recipe keeps readable text; the state and button explain the gate.
 
 
 static func _basic(ui: CampaignInterface, task: String) -> void:
@@ -139,7 +139,7 @@ static func _start(ui: CampaignInterface, kind: String) -> void:
 static func _storage_card(ui: CampaignInterface, body: Control, item: Dictionary, index: int) -> void:
 	var game := ui.game
 	var kind: String = item["kind"]
-	var card := ui.panel(body,Vector2((index%2)*650,(index/2)*180),Vector2(630,166),Color("1a2926"))
+	var card := ui.panel(body,Vector2((index%2)*650,(index/2)*180),Vector2(630,166),GameUi.SURFACE)
 	card.draw.connect(func(): EquipmentArt.icon(card,{"kind":kind,"slot":GearCatalog.ITEMS[kind]["slot"],"broken":item["durability"] <= 0},Vector2(35,32)))
 	ui.label(card,GearCatalog.ITEMS[kind]["name"],Vector2(65,15),Vector2(530,30),20,game.GOLD)
 	ui.label(card,"耐久%d/%d · %s" % [item["durability"],GearCatalog.ITEMS[kind]["durability"],"仓库" if item["owner"] == "" else PeopleCatalog.DATA[item["owner"]]["name"]],Vector2(16,57),Vector2(590,30),17)

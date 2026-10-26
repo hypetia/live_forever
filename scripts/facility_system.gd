@@ -56,6 +56,7 @@ func complete(game: Node2D, kind: String, actor: Survivor) -> void:
 		sync(game)
 	else:
 		game.inventory.deposit(cooking_output(kind,actor),recipe["name"])
+		game.director.food_cooked(game,kind,cooking_output(kind,actor)["meals"])
 		actor.person.gain("craft",4)
 
 func sync(game: Node2D) -> void:
