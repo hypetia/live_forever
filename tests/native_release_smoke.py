@@ -194,6 +194,26 @@ def main():
                     break
         assert initial is not None and initial['selected_id'] == 2, 'No real selection/save response after startup'
         assert [actor['person']['persona'] for actor in initial['actors']] == ['lin', 'xu', 'chen']
+        # Regress the reported daytime keyboard gap using genuine OS events.
+        def move_day(name, reference, direction):
+            key(name, True)
+            deadline = time.monotonic() + 25
+            try:
+                while True:
+                    latest = save()
+                    assert not latest['paused'], 'Daytime input probe unexpectedly paused'
+                    if (latest['actors'][2]['position'][0] - reference) * direction > 10:
+                        break
+                    assert time.monotonic() < deadline, ('Actual held movement did not advance', name, latest['simulation_time'], latest['actors'][2]['position'])
+            finally:
+                key(name, False)
+            time.sleep(.2)
+            return save()
+        day_x = initial['actors'][2]['position'][0]
+        moved_right = move_day('d', day_x, 1)
+        moved_left = move_day('a', moved_right['actors'][2]['position'][0], -1)
+        assert moved_left['actors'][2]['route'] == [], 'Released keyboard movement left a saved floor destination'
+        print('NATIVE DAY KEYBOARD PASS: real A/D moves in shelter; key release leaves no phantom route', flush=True)
         press('v')
         press('Return')
         # End-day simulation and the next rendered frame can take longer

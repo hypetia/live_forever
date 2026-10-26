@@ -1,21 +1,21 @@
-# Live Forever · 留一盏灯 v1.3.1
+# Live Forever · 留一盏灯 v1.3.2
 
-单人末日生存游戏：白天直接控制幸存者生活、制作和建设；夜间安排一人搜刮、其他人警戒或睡眠。亲自带回补给和战役零件，在35日窗口内完成撤离，也可以继续无尽生存。敌人为僵尸，暂不新增复杂剧情NPC。人物与房屋采用原创的简化画面。v1.3.1修复搜索进度、空箱外观和返程操作；v1.3补充影响实际操作的角色专长、有准备成本的迁居，以及门窗加固、预警、拒马和安防维护。主画面仍以场景、图标和人物卡为主。
+单人末日生存游戏：白天直接控制幸存者生活、制作和建设；夜间安排一人搜刮、其他人警戒或睡眠。亲自带回补给和战役零件，在35日窗口内完成撤离，也可以继续无尽生存。敌人为僵尸，暂不新增复杂剧情NPC。人物与房屋采用原创的简化画面。v1.3.2补齐白天键盘移动；v1.3.1修复搜索进度、空箱外观和返程操作；v1.3补充影响实际操作的角色专长、有准备成本的迁居，以及门窗加固、预警、拒马和安防维护。主画面仍以场景、图标和人物卡为主。
 
 ## 下载后直接玩
 
 | 用途 | GitHub直接下载 | 使用方法 |
 | --- | --- | --- |
-| Windows 64位游戏 | [live_forever_v13_1_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.3.1/live_forever_v13_1_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
-| Linux x86_64游戏 | [live_forever_v13_1_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.3.1/live_forever_v13_1_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
-| Windows一键验收工具 | [live_forever_v13_1_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.3.1/live_forever_v13_1_windows_acceptance.zip) | 主动运行 `windows_acceptance.cmd`，默认约30分钟 |
-| v1.3.1完整源码 | [live_forever_shelter_m13_1.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.3.1/live_forever_shelter_m13_1.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
+| Windows 64位游戏 | [live_forever_v13_2_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.3.2/live_forever_v13_2_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
+| Linux x86_64游戏 | [live_forever_v13_2_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.3.2/live_forever_v13_2_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
+| Windows一键验收工具 | [live_forever_v13_2_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.3.2/live_forever_v13_2_windows_acceptance.zip) | 主动运行 `windows_acceptance.cmd`，默认约30分钟 |
+| v1.3.2完整源码 | [live_forever_shelter_m13_2.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.3.2/live_forever_shelter_m13_2.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
 
 普通游戏不需要Godot、Python、登录、服务器或持续联网。验收工具是单独的程序，不会在正常游戏中替你操作。Windows包按官方模板导出；**尚未在Windows真实设备完成验收**。
 
-[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.3.1) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
+[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.3.2) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
 
-运行包、验收包、版本源码ZIP托管在`downloads-v1.3.1`分支，开发源码在`main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
+运行包、验收包、版本源码ZIP托管在`downloads-v1.3.2`分支，开发源码在`main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
 
 ## 四项状态都以100为最佳
 
@@ -27,7 +27,7 @@
 
 ## 怎么操作
 
-- 点击人物或底部小卡选人，悬停查看生命／饱腹／水分／精神，双击小卡打开人物详情；左键地面行走，双击奔跑，右键取消。跨楼层沿楼梯走。点击头顶设施图标可避免点到人物。
+- 点击人物或底部小卡选人，悬停查看生命／饱腹／水分／精神，双击小卡打开人物详情；白天和夜间均可A/D或方向键左右移动，Shift奔跑；白天在楼梯口W/S上下楼。也可左键地面行走、双击奔跑、右键取消，跨楼层沿楼梯走。点击头顶设施图标可避免点到人物。
 - 点床休息、点餐桌吃饭、点水桶后走过去喝水。点灶台／工作台选择基础配方和批数，再确认。新命令替换旧命令，Shift追加，最多三项。
 - **R是选中者给自己用药**；P页可由医护帮助别人，界面标明施治者与接受者。饱腹20以下先吃饭，药品可以治伤、感染与疾病，不能代替食物回血。
 - **B建设**：简易床、雨水收集器、加固隔断、取暖炉。选择后点绿色建设位置，人物走过去施工，完成才生效。未完成任务取消或日落退料。
@@ -64,7 +64,7 @@
 
 旧档无需重开。schema10保留家园、迁居、安防、勘察与演奏记录，增加可恢复的返程安排，继续保存装备归属／耐久、弹匣与换弹进度、疾病／寒冷、炉火、工作台在制项目、地图和战役进度，兼容schema1–9。旧版在途物资继续保留，新增战役从导入当天计日；不会因读取旧档反复发装备。系统用户目录和旧版本一致，首次写入保留备份。建议解压到新文件夹，不覆盖正在运行的旧程序。
 
-[v1.3.1交互修复与验证](docs/INTERACTIONS_V131.md) · [v1.3角色、家园与验证](docs/HOMES_V13.md) · [v1.2界面说明](docs/PRESENTATION_V12.md) · [装备、气候、九地图和战役规则](docs/EXPANSION_V11.md) · [Windows检查方法](docs/WINDOWS_ACCEPTANCE.md) · [下载索引](downloads/README.md) · [许可](licenses/README.md)
+[v1.3.2白天键盘修复](docs/KEYBOARD_V132.md) · [v1.3.1交互修复与验证](docs/INTERACTIONS_V131.md) · [v1.3角色、家园与验证](docs/HOMES_V13.md) · [v1.2界面说明](docs/PRESENTATION_V12.md) · [装备、气候、九地图和战役规则](docs/EXPANSION_V11.md) · [Windows检查方法](docs/WINDOWS_ACCEPTANCE.md) · [下载索引](downloads/README.md) · [许可](licenses/README.md)
 
 ```sh
 git clone --single-branch --branch main https://github.com/hypetia/live_forever.git

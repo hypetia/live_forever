@@ -1,0 +1,58 @@
+extends "res://tests/visual_campaign.gd"
+
+func _run() -> void:
+	var game: Node2D = load("res://scenes/campaign.tscn").instantiate()
+	game.persistence_enabled = false
+	root.add_child(game)
+	game.set_process(false)
+	await process_frame
+	var actor: Survivor = game.survivors[0]
+	var initial := actor.position
+	await held_key(KEY_D,true)
+	sim(game,0.5)
+	await held_key(KEY_D,false)
+	check(actor.position.x > initial.x+60 and actor.position.y == initial.y,"actual held D moves the selected person in the daytime shelter")
+	sim(game,0.1)
+	var stopped := actor.position
+	sim(game,0.2)
+	check(actor.position == stopped,"actual key release stops movement")
+	await held_key(KEY_A,true)
+	sim(game,0.5)
+	await held_key(KEY_A,false)
+	check(absf(actor.position.x-initial.x)<1,"actual held A moves left in the shelter")
+	await held_key(KEY_SHIFT,true)
+	await held_key(KEY_RIGHT,true)
+	sim(game,0.5)
+	await held_key(KEY_RIGHT,false)
+	await held_key(KEY_SHIFT,false)
+	check(actor.position.x > initial.x+120,"real Shift and right-arrow input runs faster")
+	await keypress(KEY_SPACE)
+	stopped = actor.position
+	await held_key(KEY_D,true)
+	sim(game,0.3)
+	await held_key(KEY_D,false)
+	check(game.paused and actor.position == stopped,"paused game does not move in response to held D")
+	await keypress(KEY_SPACE)
+	game.move_selected(ShelterNavigation.BOTTOM_STAIR)
+	sim(game,10)
+	await held_key(KEY_W,true)
+	sim(game,1)
+	await held_key(KEY_W,false)
+	check(actor.position.y < 640 and actor.position.y > 430,"real W enters the stairs from the lower landing")
+	sim(game,3)
+	check(actor.position.y == 430,"stair movement lands on a legal upper floor")
+	await held_key(KEY_S,true)
+	sim(game,3)
+	await held_key(KEY_S,false)
+	check(actor.position.y == 640,"real S descends from the upper landing")
+	await keypress(KEY_K)
+	stopped = actor.position
+	await held_key(KEY_A,true)
+	sim(game,0.5)
+	await held_key(KEY_A,false)
+	check(game.interface.workshop_open and actor.position == stopped,"workshop pauses and blocks underlying movement")
+	await keypress(KEY_ESCAPE)
+	check(SaveSystem.validate(SaveSystem.capture(game)).is_empty(),"real keyboard movement keeps the save valid")
+	await dispose_scene(game)
+	print("KEYBOARD VISUAL RESULT: %d checks, %d failures" % [checks,failures])
+	quit(1 if failures else 0)

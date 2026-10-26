@@ -3,6 +3,7 @@ extends "res://scripts/shelter.gd"
 ## this scene owns day/night transitions and direct scene interaction.
 
 var _updating_frame := false
+var shelter_keyboard := ShelterKeyboard.new()
 var compact: CompactHud
 var scene_art := SceneArt.new()
 var cycle := CampaignCycle.new()
@@ -55,7 +56,7 @@ func _ready() -> void:
 	scheduler.external_busy = _external_busy
 	scheduler.station_reserved = func(id: String): return id == "workbench" and expansion.jobs.any(func(job): return job["kind"] != "music" and survivors[int(job["actor"])].route.is_empty() and survivors[int(job["actor"])].position.distance_to(Vector2(485, 640)) <= 10)
 	expansion.sync(self)
-	get_window().title = "Live Forever · 留一盏灯 v1.3.1"
+	get_window().title = "Live Forever · 留一盏灯 v1.3.2"
 	for actor in survivors: actor.metabolism = 0.4
 	for field: ExpeditionState in regions.values(): field.manual_loot = true
 	# Replace the legacy instant water command with a physical action.
@@ -141,6 +142,7 @@ func campaign_snapshot() -> Dictionary:
 
 
 func restore_campaign(data: Dictionary) -> void:
+	shelter_keyboard.reset(self)
 	if data.is_empty():
 		cycle = CampaignCycle.new()
 		if expedition.active:
@@ -230,12 +232,15 @@ func advance_simulation(delta: float) -> void:
 
 
 func _day_step(step: float) -> void:
+	if _day_keyboard_allowed(): shelter_keyboard.step(self,step,super._expedition_controls())
+	else: shelter_keyboard.stop(self)
 	var policies := {}
 	for actor in survivors:
 		if _external_busy(actor.survivor_id):
 			policies[actor.survivor_id] = actor.person.routine
 			actor.person.routine = false
 	_advance_world_step(step)
+	shelter_keyboard.finish_step(self)
 	for id in policies: survivors[int(id)].person.routine = policies[id]
 	_tick_external(step)
 	expansion.tick_day(self, step)
@@ -508,42 +513,50 @@ func begin_day() -> void:
 
 func _expedition_controls() -> Dictionary:
 	if _loot_open: return {}
-	if cycle.phase == "returning": return _route_controls(110, 0, true)
+	if cycle.phase == "returning": return _route_controls(110,0,true)
+	var manual := super._expedition_controls()
+	# Direct movement takes priority before any pending mouse attack or search.
+	if absf(float(manual.get("axis",0))) > 0 or int(manual.get("climb",0)) != 0:
+		cycle.return_requested = false
+		interface.has_move_target = false
+		interface.target_enemy = -1
+		interface.target_site = -1
+		expedition_view.search_held = false
+		return manual
 	if cycle.return_requested:
-		var manual := super._expedition_controls()
-		if absf(float(manual.get("axis",0))) > 0 or int(manual.get("climb",0)) != 0:
-			cycle.return_requested = false
-			return manual
 		return _route_controls(110,0,false) if expedition.floor_level != 0 or expedition.player_x > 119 else {"interact":true}
-	if is_instance_valid(interface) and interface.has_move_target and not _loot_open:
+	if is_instance_valid(interface) and interface.has_move_target:
 		if interface.target_enemy >= 0:
 			var enemy: Dictionary = expedition.enemies[interface.target_enemy]
 			if enemy["hp"] <= 0:
 				interface.has_move_target = false
 				interface.target_enemy = -1
-				return {}
-			var distance := float(enemy["x"]) - expedition.player_x
-			if int(enemy["floor"]) == expedition.floor_level and absf(distance) < float(survivors[expedition.actor_id].weapon().get("reach", 75)) - 7 and expedition.climb_target == -1:
+				return manual
+			var distance := float(enemy["x"])-expedition.player_x
+			if int(enemy["floor"]) == expedition.floor_level and absf(distance) < float(survivors[expedition.actor_id].weapon().get("reach",75))-7 and expedition.climb_target == -1:
 				expedition.facing = signf(distance) if absf(distance) > 1 else expedition.facing
 				if expedition.attack_cooldown <= 0:
 					expedition_attack()
 					interface.has_move_target = false
 					interface.target_enemy = -1
 				return {}
-			interface.target_x = float(enemy["x"]) - signf(distance) * (float(survivors[expedition.actor_id].weapon().get("reach", 75)) - 20)
+			interface.target_x = float(enemy["x"])-signf(distance)*(float(survivors[expedition.actor_id].weapon().get("reach",75))-20)
 			interface.target_floor = int(enemy["floor"])
-		var manual := super._expedition_controls()
-		if absf(float(manual.get("axis", 0))) > 0 or int(manual.get("climb", 0)) != 0:
+		var controls := _route_controls(interface.target_x,interface.target_floor,false)
+		controls["sneak"] = Input.is_physical_key_pressed(KEY_CTRL)
+		controls["sprint"] = interface.target_run and not controls["sneak"]
+		if absf(expedition.player_x-interface.target_x) < 10 and expedition.floor_level == interface.target_floor and expedition.climb_target == -1:
 			interface.has_move_target = false
-		else:
-			var controls := _route_controls(interface.target_x, interface.target_floor, false)
-			controls["sneak"] = Input.is_physical_key_pressed(KEY_CTRL)
-			controls["sprint"] = interface.target_run and not controls["sneak"]
-			if absf(expedition.player_x - interface.target_x) < 10 and expedition.floor_level == interface.target_floor and expedition.climb_target == -1:
-				interface.has_move_target = false
-				if interface.target_site >= 0: expedition_view.search_held = true
-			return controls
-	return super._expedition_controls()
+			if interface.target_site >= 0: expedition_view.search_held = true
+		return controls
+	return manual
+
+
+func _day_keyboard_allowed() -> bool:
+	if paused or game_over or center.visible or interface.workshop_open or residence_view.opened: return false
+	if load_dialog.visible or new_dialog.visible or exit_dialog.visible or prep_dialog.visible or end_day_dialog.visible: return false
+	var focus := get_viewport().gui_get_focus_owner()
+	return not focus is LineEdit and not focus is TextEdit
 
 
 func _route_controls(x: float, floor_level: int, retreat: bool) -> Dictionary:
@@ -830,10 +843,11 @@ func place_build(type: String, slot: int) -> bool:
 
 
 func _external_busy(id: int) -> bool:
-	return expansion.jobs.any(func(job): return job["actor"] == id) or cycle.builds.any(func(build): return build["state"] == "blueprint" and build["actor"] == id) or cycle.actions.any(func(action): return action["actor"] == id)
+	return shelter_keyboard.actor_id == id or expansion.jobs.any(func(job): return job["actor"] == id) or cycle.builds.any(func(build): return build["state"] == "blueprint" and build["actor"] == id) or cycle.actions.any(func(action): return action["actor"] == id)
 
 
 func _cancel_external(id: int, refund: bool = true) -> void:
+	if shelter_keyboard.actor_id == id: shelter_keyboard.stop(self)
 	expansion.cancel(self, id, refund)
 	for build in cycle.builds.duplicate():
 		if build["state"] == "blueprint" and build["actor"] == id:
@@ -846,6 +860,7 @@ func _cancel_external(id: int, refund: bool = true) -> void:
 
 
 func _cancel_all_day_work() -> void:
+	shelter_keyboard.stop(self)
 	for actor in survivors:
 		_cancel_external(actor.survivor_id)
 		scheduler.cancel(actor)
@@ -950,7 +965,7 @@ func _configure_manual() -> void:
 		if node.text.begins_with("1. 给留守者"):
 			node.text = "1. 点击人物或底部卡片选人；左键地面行走，双击奔跑，右键取消。\n2. 点床休息、点餐桌吃饭、点水桶走过去饮水。R让选中者自行用药。\n3. 点灶台／工作台选择配方与批数后确认。新命令替换旧命令，按住Shift可追加。\n4. B选择建设，再点绿色位置；人物会走过去施工，完成后才有作用。K打开装备与战役，人物需走到工作台制作；取暖炉需点燃。H打开家园，安排门窗加固、维护、音乐和迁居。\n5. 20:00进入夜间分工，也可点击结束白天。选择一位搜刮者，其他人守夜或睡眠。\n6. 选择目的地、携带物资再出发；每晚一次，提前归来也结算到清晨。"
 		elif node.text.begins_with("基地："):
-			node.text = "白天：左键走动，双击奔跑，右键取消；1–6／Tab选人，B建设，F／G／C／R为快捷行动，H家园与迁居，Shift追加队列。\n夜间：点地面移动、点容器走近搜索；A/D与W/S也可控制。搜索后逐份拿取／放回，F尽量全部拿走，Esc关闭；整理时夜间时间继续，空格可明确暂停。\n点击敌人靠近并挥击，J也可攻击、L为手枪换弹、R背包用药、B背包饮水、I背包、T在入口撤退。20:00出发，06:00天亮；迟归会沿实际路线自动撤回并增加疲劳与压力。\n分工画面Enter确认，清晨Enter开始新的一天。F6保存、F9读档、F11全屏、Esc菜单。"
+			node.text = "白天：A/D或方向键移动，Shift奔跑，楼梯口W/S上下楼；左键走动，双击奔跑，右键取消；1–6／Tab选人，B建设，F／G／C／R为快捷行动，H家园与迁居，Shift追加队列。\n夜间：点地面移动、点容器走近搜索；A/D与W/S也可控制。搜索后逐份拿取／放回，F尽量全部拿走，Esc关闭；整理时夜间时间继续，空格可明确暂停。\n点击敌人靠近并挥击，J也可攻击、L为手枪换弹、R背包用药、B背包饮水、I背包、T在入口撤退。20:00出发，06:00天亮；迟归会沿实际路线自动撤回并增加疲劳与压力。\n分工画面Enter确认，清晨Enter开始新的一天。F6保存、F9读档、F11全屏、Esc菜单。"
 
 
 func actor_is_starving() -> bool:

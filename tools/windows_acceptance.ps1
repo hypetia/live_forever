@@ -35,6 +35,32 @@ function Read-ValidatedSave([string]$Path) {
     if ($actual -ne $envelope.sha256) { throw "Save checksum failed." }
     return ($envelope.data_json | ConvertFrom-Json)
 }
+function Test-GameNumber($Value) {
+    return ($Value -is [byte] -or $Value -is [int16] -or $Value -is [int32] -or $Value -is [int64] -or $Value -is [single] -or $Value -is [double] -or $Value -is [decimal])
+}
+function Test-GameStateEqual($Left, $Right) {
+    if ($null -eq $Left -or $null -eq $Right) { return ($null -eq $Left -and $null -eq $Right) }
+    if ($Left -is [bool] -or $Right -is [bool]) { return ($Left -is [bool] -and $Right -is [bool] -and $Left -eq $Right) }
+    if ((Test-GameNumber $Left) -and (Test-GameNumber $Right)) {
+        if ([Math]::Floor([double]$Left) -eq $Left -and [Math]::Floor([double]$Right) -eq $Right) { return ($Left -eq $Right) }
+        return ([Math]::Abs([double]$Left - [double]$Right) -le 0.000000001)
+    }
+    if ($Left -is [string] -or $Right -is [string]) { return ($Left -is [string] -and $Right -is [string] -and $Left -ceq $Right) }
+    if ($Left -is [System.Collections.IList] -or $Right -is [System.Collections.IList]) {
+        if (!($Left -is [System.Collections.IList]) -or !($Right -is [System.Collections.IList]) -or $Left.Count -ne $Right.Count) { return $false }
+        for ($i=0; $i -lt $Left.Count; $i++) { if (!(Test-GameStateEqual ($Left[$i]) ($Right[$i]))) { return $false } }
+        return $true
+    }
+    if (!($Left -is [pscustomobject]) -or !($Right -is [pscustomobject])) { return $false }
+    $leftNames = @($Left.PSObject.Properties | ForEach-Object { $_.Name })
+    $rightNames = @($Right.PSObject.Properties | ForEach-Object { $_.Name })
+    if ($leftNames.Count -ne $rightNames.Count) { return $false }
+    foreach ($name in $leftNames) {
+        if ($rightNames -cnotcontains $name) { return $false }
+        if (!(Test-GameStateEqual ($Left.PSObject.Properties[$name].Value) ($Right.PSObject.Properties[$name].Value))) { return $false }
+    }
+    return $true
+}
 function Close-OwnedGame($Process) {
     $Process.Refresh()
     if (!$Process.CloseMainWindow()) { throw "No native game window accepted WM_CLOSE." }
@@ -83,8 +109,8 @@ try {
     if ((Get-Item $slot).LastWriteTimeUtc.Ticks -le $previousWrite) { throw "Actual F6 did not write a new save; input/focus verification failed." }
     $after = Read-ValidatedSave $slot
     if (!$after.paused -or [Math]::Abs($after.simulation_time - $before.simulation_time) -gt 0.000001) { throw "Restart did not preserve paused simulation time." }
-    foreach ($field in @("stock", "goals", "story", "campaign", "expansion", "residence")) {
-        if (($before.$field | ConvertTo-Json -Depth 30 -Compress) -ne ($after.$field | ConvertTo-Json -Depth 30 -Compress)) { throw "Restart changed $field or repeated a reward." }
+    foreach ($field in @("stock", "goals", "story", "campaign", "expansion", "residence", "actors", "stations")) {
+        if (!(Test-GameStateEqual ($before.$field) ($after.$field))) { throw "Restart changed $field or repeated a reward." }
     }
     Close-OwnedGame $process
     foreach ($name in @("continuous.log", "continuous.err.log", "restart.log", "restart.err.log")) {

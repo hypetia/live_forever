@@ -40,6 +40,7 @@ var movement_clock := 0.0
 var facing := 1.0
 var metabolism := 1.0
 var move_multiplier := 1.0
+var manual_walking := false
 var activity: Dictionary = {}
 const MOVE_SPEED := 150.0
 const FONT := preload("res://assets/fonts/interface.otf")
@@ -72,6 +73,7 @@ func advance_route(delta: float) -> void:
 
 
 func status_text() -> String:
+	if manual_walking: return "移动中"
 	if not activity.is_empty(): return "%s · %d%%" % [activity["label"], roundi(activity["progress"] * 100)]
 	match state:
 		TaskState.MOVING: return "前往%s" % target_label
@@ -125,7 +127,7 @@ func _draw() -> void:
 		draw_circle(Vector2(26, -8), 7, Color("72756a"))
 		return
 	var quiet: bool = get_parent().get_parent().has_method("_compact_card")
-	var stride := sin(movement_clock) * 7.0 if state in [TaskState.MOVING, TaskState.RETURNING] else 0.0
+	var stride := sin(movement_clock) * 7.0 if state in [TaskState.MOVING, TaskState.RETURNING] or manual_walking else 0.0
 	draw_ellipse_shadow()
 	if quiet and not selected and Rect2(-22,-76,44,80).has_point(get_local_mouse_position()):
 		var hover_ring := PackedVector2Array()

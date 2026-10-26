@@ -14,6 +14,21 @@ import tempfile
 import time
 
 
+def state_equal(left, right):
+    """Godot JSON may round a timer by a final binary digit; integers and rewards stay exact."""
+    if isinstance(left, bool) or isinstance(right, bool):
+        return type(left) is type(right) and left == right
+    if isinstance(left, (int, float)) and isinstance(right, (int, float)):
+        if int(left) == left and int(right) == right:
+            return left == right
+        return abs(left - right) <= 1e-9
+    if isinstance(left, dict) and isinstance(right, dict):
+        return left.keys() == right.keys() and all(state_equal(left[k], right[k]) for k in left)
+    if isinstance(left, list) and isinstance(right, list):
+        return len(left) == len(right) and all(state_equal(a, b) for a, b in zip(left, right))
+    return type(left) is type(right) and left == right
+
+
 class XDesktop:
     def __init__(self, name):
         self.x = x = C.CDLL(ctypes.util.find_library('X11'))
@@ -201,11 +216,9 @@ def main():
             desktop.press('F6')
             time.sleep(1)
             after = read_save(folder / 'session.json')
-            assert after['paused'] and after['stock'] == before['stock']
-            assert after['goals'] == before['goals'] and after['story'] == before['story']
-            assert after['campaign'] == before['campaign']
-            assert after['expansion'] == before['expansion']
-            assert after['residence'] == before['residence']
+            assert after['paused']
+            for field in ['stock', 'goals', 'story', 'campaign', 'expansion', 'residence', 'actors', 'stations']:
+                assert state_equal(after[field], before[field]), field
             assert abs(after['simulation_time'] - before['simulation_time']) < .000001
             close_process()
         for name in ['continuous.log', 'restart.log']:

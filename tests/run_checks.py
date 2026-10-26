@@ -64,6 +64,8 @@ def main():
     logical += 90
     run('interactions', ['--headless', '--path', str(project), '--script', 'res://tests/test_interactions.gd'], '87 checks, 0 failures')
     logical += 87
+    run('keyboard_movement', ['--headless', '--path', str(project), '--script', 'res://tests/test_keyboard_movement.gd'], '27 checks, 0 failures')
+    logical += 27
     run('startup', ['--headless', '--path', str(project), '--quit-after', '8'])
     for name, phases in [('persistence_process', ['write', 'read']),
                          ('persistence_expedition_process', ['write', 'read', 'verify']),
@@ -81,7 +83,7 @@ def main():
                 f'res://tests/{name}.gd', '--', phase, str(slot)], 'PASS:')
     graphical = 0
     if args.graphics:
-        for name, count in [('visual_smoke', 36), ('visual_expedition', 36), ('visual_long_term', 24), ('visual_people', 22), ('visual_story', 17), ('visual_goals', 24), ('visual_presentation', 45), ('visual_campaign', 47), ('visual_expansion', 15), ('visual_quiet', 20), ('visual_residence', 26), ('visual_interactions', 25)]:
+        for name, count in [('visual_smoke', 36), ('visual_expedition', 36), ('visual_long_term', 24), ('visual_people', 22), ('visual_story', 17), ('visual_goals', 24), ('visual_presentation', 45), ('visual_campaign', 47), ('visual_expansion', 15), ('visual_quiet', 20), ('visual_residence', 26), ('visual_interactions', 25), ('visual_keyboard_movement', 10)]:
             run(name, ['--path', str(project), '--resolution', '1440x900', '--audio-driver', 'Dummy',
                 '--script', f'res://tests/{name}.gd'], f'{count} checks, 0 failures')
             graphical += count
