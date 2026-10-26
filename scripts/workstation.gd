@@ -104,12 +104,15 @@ func _draw_stove() -> void:
 
 
 func _draw_interaction() -> void:
+	var quiet: bool = get_parent().get_parent().has_method("_compact_card")
+	if quiet and not hovered and occupant_id < 0: return
 	var point := Vector2(0, -118)
 	var color := Color("eed2a0") if hovered else Color("b9bb9e")
 	draw_circle(point, 15, Color("1a2927"))
 	draw_arc(point, 15, 0, TAU, 24, color, 1.5, true)
 	var glyph: String = {"bed": "休", "table": "食", "stove": "炊", "workbench": "工", "water": "水", "exit": "出"}[facility_id]
-	draw_string(FONT, point + Vector2(-7, 5), glyph, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, color)
+	if quiet: HudIcons.draw(self,facility_id,point,15,color)
+	else: draw_string(FONT, point + Vector2(-7, 5), glyph, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, color)
 	if hovered:
 		var prompt: String = {"bed": "床位 · 休息", "table": "餐桌 · 进食 / 本人用药", "stove": "灶台 · 做饭", "workbench": "工作台 · 修整 / 制作", "water": "饮水 · 选中者喝水 / 消耗水1", "exit": "门口 · 准备外出 V"}[facility_id]
 		var width := FONT.get_string_size(prompt, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x

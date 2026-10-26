@@ -175,7 +175,7 @@ func _create_plan() -> void:
 		var plus := button(overlay, "+", Vector2(1290, y - 2), Vector2(100, 34), _change_loadout.bind(key, 1))
 		supply_buttons[key] = [minus, plus]
 		row += 1
-	label(overlay, "床眠恢复65疲劳，地铺35；守夜+28，搜刮+35。\n武器、护甲各占1格；弹药每8发占1格。冬衣穿在身上。", Vector2(746, 757), Vector2(650, 44), 13)
+	label(overlay, "精神：床眠+65，地铺+35；守夜−28，搜刮−35。\n武器、护甲各占1格；弹药每8发占1格。冬衣穿在身上。", Vector2(746, 757), Vector2(650, 44), 13)
 	ammo_label = label(overlay, "", Vector2(746, 714), Vector2(430, 30), 15)
 	button(overlay, "−8发", Vector2(1195, 714), Vector2(90, 32), _ammo.bind(-8))
 	button(overlay, "+8发", Vector2(1300, 714), Vector2(90, 32), _ammo.bind(8))
@@ -200,7 +200,7 @@ func _refresh_plan() -> void:
 		role_options[index].select(CampaignCycle.ROLES.find(game.cycle.roles[index]))
 		role_options[index].disabled = actor.health <= 0
 		role_options[index].set_item_disabled(4, actor.health > 0)
-		role_stats[index].text = "生命%d 疲劳%d 饥饿%d · %s%d · %d格" % [roundi(actor.health), roundi(actor.fatigue), roundi(actor.hunger), actor.weapon().get("name", "徒手"), actor.weapon_item.get("durability", 0), CampaignCycle.BAGS[actor.person.persona]]
+		role_stats[index].text = "生命%d 精神%d 饱腹%d · %s%d · %d格" % [Vitals.value(actor,"health"), Vitals.value(actor,"vigor"), Vitals.value(actor,"fullness"), actor.weapon().get("name", "徒手"), actor.weapon_item.get("durability", 0), CampaignCycle.BAGS[actor.person.persona]]
 	var total := 0
 	for amount in game.cycle.loadout.values(): total += int(amount)
 	total += game.expansion.reserved_slots(game)
@@ -243,19 +243,36 @@ func _stay_home() -> void:
 
 func _create_dawn() -> void:
 	label(overlay, "第%d天 · 天亮了" % ExpeditionState.day_at(game.simulation_time), Vector2(80, 48), Vector2(1250, 58), 34, game.GOLD)
-	label(overlay, "一夜的分工、收获与代价", Vector2(83, 121), Vector2(1200, 32), 19)
+	overlay.add_theme_stylebox_override("panel",game._style(Color(0.035,0.055,0.06,0.94),Color("465047")))
+	for index in range(game.survivors.size()):
+		var card := SurvivorCard.new()
+		card.game = game
+		card.member_id = index
+		card.position = Vector2(80+(index%3)*425,180+(index/3)*143)
+		card.size = Vector2(390,96)
+		card.tooltip_text = Vitals.summary(game.survivors[index])
+		for state in ["normal","hover","pressed"]:card.add_theme_stylebox_override(state,StyleBoxEmpty.new())
+		overlay.add_child(card)
+		var role: String = game.cycle.roles[index] if index < game.cycle.roles.size() else "floor"
+		label(overlay,CampaignCycle.ROLE_NAMES[CampaignCycle.ROLES.find(role)],card.position+Vector2(0,101),Vector2(390,24),14)
+	var summary: Array[String] = []
+	for line: String in game.cycle.report:
+		if "已归来" in line or "未能归来" in line or "尸群" in line or "撤离成功" in line or "窗口已关闭" in line: summary.append(line)
+	label(overlay,"\n\n".join(summary).left(220),Vector2(83,508),Vector2(1240,170),19)
 	var scroll := ScrollContainer.new()
-	scroll.position = Vector2(80, 183)
-	scroll.size = Vector2(1280, 535)
+	scroll.position = Vector2(75,173)
+	scroll.size = Vector2(1290,525)
+	scroll.add_theme_stylebox_override("panel",game._style(Color("12201f"),Color("626950")))
 	overlay.add_child(scroll)
 	var lines := Label.new()
 	lines.text = "\n\n".join(game.cycle.report)
-	lines.add_theme_font_override("font", game.FONT)
-	lines.add_theme_font_size_override("font_size", 20)
+	lines.add_theme_font_override("font",game.FONT)
+	lines.add_theme_font_size_override("font_size",18)
 	lines.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	lines.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(lines)
-	label(overlay, "本轮结果已结算并随存档保留；重开窗口不会重复发放或再次扣除。", Vector2(83, 741), Vector2(1250, 30), 15)
+	scroll.hide()
+	button(overlay,"查看 / 收起纪要",Vector2(80,731),Vector2(250,38),func(): scroll.visible = not scroll.visible)
 	var begin := button(overlay, "开始白天的生活 →", Vector2(950, 812), Vector2(400, 50), game.begin_day)
 	begin.disabled = game.game_over or (not game.expansion.outcome.is_empty() and not game.expansion.endless)
 	if not game.expansion.outcome.is_empty() and not game.expansion.endless:
@@ -269,7 +286,7 @@ func _create_dawn() -> void:
 
 
 func _create_loot() -> void:
-	overlay.add_theme_stylebox_override("panel", game._style(Color(0.04, 0.07, 0.07, 0.82), Color("52634c")))
+	overlay.add_theme_stylebox_override("panel", game._style(Color(0.02, 0.04, 0.04, 0.48), Color("52634c")))
 	panel(overlay, Vector2(190, 210), Vector2(1060, 535))
 	loot_title = label(overlay, "", Vector2(218, 230), Vector2(610, 34), 23, game.GOLD)
 	loot_counts = label(overlay, "", Vector2(840, 230), Vector2(370, 34), 20, game.GOLD)
@@ -277,12 +294,16 @@ func _create_loot() -> void:
 	label(overlay, "随身背包", Vector2(850, 279), Vector2(350, 26), 16)
 	var row := 0
 	for key in ShelterInventory.NAMES:
-		var y := 317.0 + row * 38
-		loot_buttons[key] = button(overlay, "", Vector2(220, y), Vector2(485, 32), _take.bind(key))
-		loot_returns[key] = button(overlay, "", Vector2(735, y), Vector2(485, 32), _put.bind(key))
+		var point := Vector2(230+(row%4)*112,328+(row/4)*110)
+		var take := button(overlay,"",point,Vector2(100,96),_take.bind(key))
+		var put := button(overlay,"",point+Vector2(550,0),Vector2(100,96),_put.bind(key))
+		take.draw.connect(_loot_icon.bind(take,key))
+		put.draw.connect(_loot_icon.bind(put,key))
+		loot_buttons[key] = take
+		loot_returns[key] = put
 		row += 1
-	part_button = button(overlay, "", Vector2(220, 592), Vector2(1000, 54), func(): game.expansion.take_part(game); refresh())
-	label(overlay, "整理时场景继续；空格可暂停。只可放回容器原有种类，其余物品可在I背包丢弃。", Vector2(220, 665), Vector2(1000, 28), 13)
+	part_button = button(overlay, "", Vector2(230, 572), Vector2(986, 46), func(): game.expansion.take_part(game); refresh())
+	label(overlay, "点击拿取或放回 · 空格暂停", Vector2(220, 665), Vector2(1000, 28), 13)
 	button(overlay, "尽量全部拿走 F", Vector2(220, 704), Vector2(300, 36), _take_all)
 	button(overlay, "关闭，继续行动 Esc", Vector2(850, 704), Vector2(370, 36), game.close_loot)
 
@@ -300,9 +321,11 @@ func _refresh_loot() -> void:
 	loot_title.text = field.site_definitions()[field.loot_site]["name"]
 	loot_counts.text = "背包 %d / %d格%s" % [field.used_capacity(), field.capacity, " · 已暂停" if game.paused else ""]
 	for key in loot_buttons:
-		loot_buttons[key].text = "%s   %d       拿取1 →" % [ShelterInventory.NAMES[key], site["contents"].get(key, 0)]
+		loot_buttons[key].text = "\n\n%d" % site["contents"].get(key,0)
+		loot_buttons[key].tooltip_text = ShelterInventory.NAMES[key]+" · 点击拿取1"
 		loot_buttons[key].disabled = int(site["contents"].get(key, 0)) <= 0 or field.used_capacity() >= field.capacity
-		loot_returns[key].text = "← 放回1       %s   %d" % [ShelterInventory.NAMES[key], field.bag[key]]
+		loot_returns[key].text = "\n\n%d" % field.bag[key]
+		loot_returns[key].tooltip_text = ShelterInventory.NAMES[key]+" · 点击放回1"
 		loot_returns[key].disabled = field.bag[key] <= 0 or not site["contents"].has(key) or int(site["contents"].get(key, 0)) >= int(field.site_definitions()[field.loot_site]["items"].get(key, 0))
 
 
@@ -436,3 +459,7 @@ func _create_workshop() -> void:
 		label(content, "暂无装备，请在白天制作。", Vector2(0, y), Vector2(1200, 35))
 		y += 45
 	content.custom_minimum_size.y = y + 20
+
+
+func _loot_icon(action: Button, resource: String) -> void:
+	HudIcons.draw(action,resource,Vector2(50,30),29,Color("637064") if action.disabled else game.GOLD)

@@ -82,7 +82,7 @@ func _ready() -> void:
 	_text(help, "完整操作", 23)
 	_text(help, "基地：1–6或底部人物卡选人；点击场景设施展开行动，E确认；右键地面移动（取消此人任务并退料）；F做饭、G吃饭、H睡觉、C制工具、R让选中者自行用药、Q取消、V出发、M街区手册、P人物。\n外出：A/D或方向键移动，W/S上下梯，E按住搜索，J挥击（命中/挥空会在现场显示）、I展开背包、R急救、B用背包水、T入口撤退；按I展开背包后点击资源丢弃一份，无法拾回。\n通用：空格暂停、F6保存、F9确认读档、F1指南、Esc菜单。外出固定1x。\n背包10格，每份资源和携带装备各占一格；未拿走的东西留在箱中。每日仅两处补给轮换，活动中不刷新。\n死亡永久丢失该成员与背包；没有固定天数结局，里程碑后仍可继续。", 15)
 	_text(help, "人物与长期生存", 23)
-	_text(help, "P查看人物、工艺 / 照护 / 探索成长，每项最多3级，加速最多15%。\n可逐人授权自动饮水、做饭、吃饭和睡觉，默认关闭；药品与工具仍由你安排。口渴80起降效、95起伤生命。\n医护可以消耗药品援助队友，共餐安慰消耗熟食；两种行动都有每人180秒冷却。\n第3、6、9天有不同来访者，需要一级据点、生食2、水2、药品1，最多五人存活在队；不会复活旧成员。\n超额食物每清晨按明确比例损耗，升级只提高有限保鲜容量，不会生产物资。\n徒手推搡消耗疲劳；敌人被推后会短暂稳身，不能连续压制，留意扑咬前摇并后退。", 15)
+	_text(help, "P查看人物、工艺 / 照护 / 探索成长，每项最多3级，加速最多15%。\n可逐人授权自动饮水、做饭、吃饭和睡觉，默认关闭；药品与工具仍由你安排。水分低于20降效、低至5伤生命。\n医护可以消耗药品援助队友，共餐安慰消耗熟食；两种行动都有每人180秒冷却。\n第3、6、9天有不同来访者，需要一级据点、生食2、水2、药品1，最多五人存活在队；不会复活旧成员。\n超额食物每清晨按明确比例损耗，升级只提高有限保鲜容量，不会生产物资。\n徒手推搡消耗疲劳；敌人被推后会短暂稳身，不能连续压制，留意扑咬前摇并后退。", 15)
 	var settings := _page("设置 / 退出")
 	_text(settings, "暂停中 · 你的队伍和外出现场都会等待", 20)
 	effects_check = _check(settings, "操作与事件提示音", game.game_audio.enabled, func(value: bool): game.game_audio.enabled = value; game.game_audio.apply_preferences())
@@ -268,7 +268,7 @@ func _create_people_page() -> void:
 	left.add_child(roster_picker)
 	roster_picker.item_selected.connect(func(index: int): game.select_survivor(index); refresh())
 	person_text = _text(left, "", 15)
-	drink_button = _action(left, "给此人饮水 · 水1 / 口渴−60", _drink)
+	drink_button = _action(left, "给此人饮水 · 水1 / 水分+60", _drink)
 	routine_toggle = _check(left, "自动照料：饮水、吃饭、做饭、休息", false, func(value: bool): game.survivors[game.selected_id].person.routine = value)
 	routine_toggle.tooltip_text = "饮水按需要即时使用；做饭、吃饭、睡觉只在空闲时排队。可能消耗食物、水、燃料；不自动花药品或工具。外出前授权的留守照料会继续。随时可关闭。"
 	relationship_text = _text(left, "", 14)
@@ -302,7 +302,7 @@ func _refresh_people() -> void:
 	roster_picker.disabled = game.expedition.active
 	var person := actor.person
 	var definition: Dictionary = PeopleCatalog.DATA[person.persona]
-	person_text.text = "%s\n心境%d · 压力%d · 创伤%d · 口渴%d\n工艺 Lv%d（%d/180） · 照护 Lv%d（%d/180）\n探索 Lv%d（%d/180）\n%s" % [definition["bio"], roundi(person.morale), roundi(person.stress), roundi(person.trauma), roundi(person.thirst), person.level("craft"), roundi(person.experience["craft"]), person.level("care"), roundi(person.experience["care"]), person.level("scout"), roundi(person.experience["scout"]), definition["traits"]]
+	person_text.text = "%s\n生命%d 饱腹%d 水分%d 精神%d（满分100）\n工艺 Lv%d（%d/180） · 照护 Lv%d（%d/180）\n探索 Lv%d（%d/180）\n%s" % [definition["bio"],Vitals.value(actor,"health"),Vitals.value(actor,"fullness"),Vitals.value(actor,"hydration"),Vitals.value(actor,"vigor"), person.level("craft"), roundi(person.experience["craft"]), person.level("care"), roundi(person.experience["care"]), person.level("scout"), roundi(person.experience["scout"]), definition["traits"]]
 	drink_button.disabled = game.expedition.active or game.game_over or actor.health <= 0 or person.thirst <= 0 or game.inventory.amount("water") < 1
 	routine_toggle.set_pressed_no_signal(person.routine)
 	routine_toggle.disabled = game.expedition.active or game.game_over or actor.health <= 0
@@ -331,7 +331,7 @@ func _refresh_people() -> void:
 	storage_text.text = "保鲜容量：生食%d / 熟食%d\n超额部分每清晨损耗15%% / 25%%，向上取整。\n按当前库存预计下次损耗：生食%d、熟食%d。\n升级提高容量，少量现做可减少浪费。\n成长每项最多3级，技能速度加成最多15%%；不能免除食物、药品和装备成本。" % [protected["raw_food"], protected["meals"], loss_raw, loss_meals]
 	if not game.people.daily.is_empty():
 		var latest: Dictionary = game.people.daily.back()
-		storage_text.text += "\n最近记录：第%d天结束，在队%d人，平均饥饿%d、心境%d。" % [latest["day"], latest["alive"], roundi(latest["hunger"]), roundi(latest["morale"])]
+		storage_text.text += "\n最近记录：第%d天结束，在队%d人，平均饱腹%d、心境%d。" % [latest["day"], latest["alive"], roundi(100-latest["hunger"]), roundi(latest["morale"])]
 
 
 func _refresh_support() -> void:
@@ -348,7 +348,7 @@ func _refresh_support() -> void:
 	aid_button.disabled = aid_disabled
 	aid_button.text = "%s → %s · 药品1" % [actor.display_name, game.survivors[int(support_picker.get_item_metadata(support_picker.selected))].display_name] if support_picker.item_count > 0 else "没有可治疗的同伴"
 	aid_button.tooltip_text = "施治者：%s（需要医护）。接受治疗者：下拉框中的同伴。即时消耗药品1，生命+20至26、伤势−40、感染−35、疾病−35；双方180秒冷却。" % actor.display_name
-	if game.has_method("campaign_snapshot"): aid_button.tooltip_text += "\n饥饿80以上时先吃饭：用药仍处理伤势、感染与疾病，但不恢复生命。"
+	if game.has_method("campaign_snapshot"): aid_button.tooltip_text += "\n饱腹20以下时先吃饭：用药仍处理伤势、感染与疾病，但不恢复生命。"
 	support_picker.tooltip_text = "选择接受共餐安慰或医疗援助的同伴。上方当前角色是行动发起者。"
 	support_picker.disabled = game.expedition.active or support_picker.item_count == 0
 
@@ -495,7 +495,7 @@ func _refresh_candidate() -> void:
 		candidate_text.text = "来访者会在第3、6、9天陆续出现。每人仅能加入一次，不会替已故成员复活。\n目前在队%d/%d；至少一级据点才可接纳。" % [living, PeopleCatalog.MAX_LIVING]
 	else:
 		var info: Dictionary = PeopleCatalog.DATA[id]
-		candidate_text.text = "%s\n%s\n接纳准备：%s\n到达时饥饿60、疲劳55，需要继续照料。\n目前在队%d/%d；需要一级据点。" % [info["bio"], info["traits"], ShelterInventory.describe(PeopleCatalog.RECRUIT_COST), living, PeopleCatalog.MAX_LIVING]
+		candidate_text.text = "%s\n%s\n接纳准备：%s\n到达时饱腹40、精神45，需要继续照料。\n目前在队%d/%d；需要一级据点。" % [info["bio"], info["traits"], ShelterInventory.describe(PeopleCatalog.RECRUIT_COST), living, PeopleCatalog.MAX_LIVING]
 	recruit_button.disabled = id.is_empty() or game.expedition.active or game.game_over or living >= PeopleCatalog.MAX_LIVING or game.upkeep.level < 1 or not game.inventory.can_take(PeopleCatalog.RECRUIT_COST)
 
 

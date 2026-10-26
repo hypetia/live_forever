@@ -6,6 +6,7 @@ const FONT := preload("res://assets/fonts/interface.otf")
 const INK := Color("d8ded7")
 const GOLD := Color("d6b584")
 const MUTED := Color("85928e")
+var quiet := false
 var game: Node2D
 var layer: CanvasLayer
 var hud: Control
@@ -43,6 +44,7 @@ var impact_damage := 0
 
 
 func _ready() -> void:
+	quiet = game.has_method("_compact_card")
 	layer = CanvasLayer.new()
 	layer.layer = 3
 	add_child(layer)
@@ -104,6 +106,9 @@ func _ready() -> void:
 		var node: Control = hud.get_child(index)
 		node.hide()
 		bag_nodes.append(node)
+	if quiet:
+		for entry in [[search_button,"search"],[attack_button,"attack"],[medicine_button,"medicine"],[drink_button,"water"],[bag_button,"bag"],[retreat_button,"exit"]]:
+			entry[0].draw.connect(_action_icon.bind(entry[0],entry[1]))
 	layer.visible = false
 	visible = false
 
@@ -179,6 +184,9 @@ func refresh() -> void:
 		damage_amount = ceili(last_health - actor.health)
 		hurt_time = 0.4
 	last_health = actor.health
+	if quiet:
+		_refresh_quiet(state,actor)
+		return
 	title_label.text = "%s  /  第 %d 次外出" % [state.area()["name"], state.attempts]
 	area_hint.text = "%s  /  %s · %s" % [state.area()["summary"], state.weather()["name"], state.weather()["hint"]]
 	var alert := 0.0
@@ -187,10 +195,10 @@ func refresh() -> void:
 	alert_label.text = "噪声 %d  /  警觉 %d  /  %s" % [int(state.noise), int(alert), "藏身中" if state.in_cover() else "潜行" if state.sneaking else "暴露"]
 	actor_label.text = actor.display_name
 	role_label.text = "搜寻者 · 搜索+20% / 脚步声−20%" if actor.speciality == "搜寻者" else actor.speciality + " / 单人实时探索"
-	stats_label.text = "生命 %d · 饥饿 %d · 疲劳 %d\n伤势 %d · 感染 %d · 口渴%d" % [ceili(actor.health), ceili(actor.hunger), ceili(actor.fatigue), ceili(actor.injury), ceili(actor.infection), roundi(actor.person.thirst)]
+	stats_label.text = "生命%d · 饱腹%d · 精神%d\n水分%d · 伤势%d · 感染%d" % [Vitals.value(actor,"health"),Vitals.value(actor,"fullness"),Vitals.value(actor,"vigor"),Vitals.value(actor,"hydration"),roundi(actor.injury),roundi(actor.infection)]
 	gear_label.visible = actor.metabolism < 1
 	if actor.metabolism < 1:
-		stats_label.text = "生命%d · 饥饿%d · 疲劳%d · 渴%d\n伤%d · 感染%d · 疾病%d · 寒冷%d" % [roundi(actor.health), roundi(actor.hunger), roundi(actor.fatigue), roundi(actor.person.thirst), roundi(actor.injury), roundi(actor.infection), roundi(actor.illness), roundi(actor.cold_exposure)]
+		stats_label.text = "生命%d · 饱腹%d · 精神%d · 水分%d\n伤%d · 感染%d · 疾病%d · 寒冷%d" % [Vitals.value(actor,"health"),Vitals.value(actor,"fullness"),Vitals.value(actor,"vigor"),Vitals.value(actor,"hydration"), roundi(actor.injury), roundi(actor.infection), roundi(actor.illness), roundi(actor.cold_exposure)]
 		gear_label.text = "%s · 耐久%d%s\n室外%d℃ · 保暖+%d℃%s" % [actor.weapon().get("name", "徒手"), actor.weapon_item.get("durability", 0), " · 弹匣%d+%d" % [state.magazine, state.reserve_ammo] if actor.weapon().has("magazine") else "", game.expansion.outside(game), actor.warmth(), " · 换弹中" if state.reload_remaining > 0 else ""]
 	stats_label.add_theme_color_override("font_color", Color("dca184") if actor.health < 40 or actor.infection >= 30 else MUTED)
 	for node in bag_nodes: node.visible = bag_open
@@ -239,7 +247,7 @@ func _draw() -> void:
 		return
 	var state: ExpeditionState = game.expedition
 	var camera := _camera()
-	draw_set_transform(game.WORLD_OFFSET, 0, game.WORLD_SCALE)
+	draw_set_transform(game.world_offset(), 0, game.world_scale())
 	draw_rect(Rect2(0, 210, 1095, 490), Color("142126"))
 	for index in range(18):
 		var x := fposmod(index * 107.0 - camera * 0.22, 1150) - 50
@@ -251,6 +259,7 @@ func _draw() -> void:
 	# Each place has its own floor access, props, patrols and resource layout.
 	_rect_world(Rect2(160, 429, 850, 192), Color("2b3430"))
 	_rect_world(Rect2(upper, 285, width - upper - 120, 335), wall)
+	if quiet: game.scene_art.expedition(self,state,camera)
 	for x in [215, 430, 670, 890, 1300, 1560, 1810, 2060, 2340]:
 		_rect_world(Rect2(x, 452 if x < 1000 else 305, 70, 64), Color("52615b"))
 		_rect_world(Rect2(x + 4, 456 if x < 1000 else 309, 62, 56), Color("1a2c32"))
@@ -266,7 +275,7 @@ func _draw() -> void:
 		var cover := Rect2(definition[0], y, definition[1] - definition[0], 50)
 		_rect_world(cover, Color("646c59"))
 		_rect_world(Rect2(cover.position + Vector2(4, 5), cover.size - Vector2(8, 10)), Color("424c41"))
-	_text(Vector2(145 - camera, 660), "← 入口 · E/T 撤退", 14, GOLD)
+	if not quiet: _text(Vector2(145 - camera, 660), "← 入口 · E/T 撤退", 14, GOLD)
 	_rect_world(Rect2(90, 535, 55, 85), Color("344b41"))
 	_rect_world(Rect2(96, 540, 43, 72), Color("142b29"))
 	for index in range(state.site_definitions().size()):
@@ -279,7 +288,10 @@ func _draw() -> void:
 		draw_rect(Rect2(point + Vector2(-18, -34), Vector2(36, 30)), Color("59614e") if empty else accent, false, 2)
 		if state.sites[index]["locked"]:
 			draw_circle(point + Vector2(0, -23), 6, Color("d8c28c"))
-		_text(point + Vector2(-47, 27), definition["name"] + (" · 空" if empty else ""), 12, MUTED if empty else GOLD)
+		if not quiet: _text(point + Vector2(-47, 27), definition["name"] + (" · 空" if empty else ""), 12, MUTED if empty else GOLD)
+		elif state.floor_level == int(definition["floor"]) and absf(state.player_x-float(definition["x"])) < 100:
+			draw_arc(point+Vector2(0,-64),7,0,TAU,20,GOLD,1.5,true)
+			_text(point+Vector2(-18,-84),"E",12,GOLD)
 	_draw_landmarks(state, camera, accent)
 	for enemy in state.enemies:
 		_draw_enemy(enemy, camera, state)
@@ -306,6 +318,7 @@ func _draw() -> void:
 		_text(Vector2(clampf(state.player_x - camera - 35, 55, 960), state.player_y - 116), "受伤 −%d" % damage_amount, 19, Color("edaf93"))
 	_draw_impact(camera)
 	draw_set_transform(Vector2.ZERO)
+	if quiet: return
 	draw_rect(Rect2(0, 0, 1440, 143), Color("101a1e"))
 	draw_rect(Rect2(0, 772, 1440, 128), Color("101a1e"))
 	draw_rect(Rect2(32, 822, 180, 5), Color("34433c"))
@@ -328,7 +341,7 @@ func _draw_enemy(enemy: Dictionary, camera: float, state: ExpeditionState) -> vo
 	var point := Vector2(float(enemy["x"]) - camera, ExpeditionState.FLOOR_Y[int(enemy["floor"])])
 	if point.x < -80 or point.x > 1140: return
 	if enemy["hp"] <= 0:
-		_text(point + Vector2(-22, -38), "已击倒", 12, MUTED)
+		if not quiet: _text(point + Vector2(-22, -38), "已击倒", 12, MUTED)
 		if impact_kind in ["hit", "shot"] and impact_time > 0.65 and absf(impact_point.x - float(enemy["x"])) < 2:
 			var fall := clampf((1 - impact_time) / 0.35, 0, 1)
 			var up := Vector2.UP.rotated(float(enemy["direction"]) * PI * 0.5 * fall)
@@ -350,7 +363,7 @@ func _draw_enemy(enemy: Dictionary, camera: float, state: ExpeditionState) -> vo
 		point.x += direction * windup * 8
 		draw_arc(point + Vector2(0, -30), 47, -PI / 2 if direction > 0 else PI / 2, PI / 2 if direction > 0 else PI * 1.5, 24, Color(0.95, 0.45, 0.26, 0.6), 3, true)
 	draw_colored_polygon(PackedVector2Array([point + Vector2(0, -50), point + Vector2(direction * reach, -85), point + Vector2(direction * reach, -5)]), Color(0.75, 0.36, 0.25, 0.055))
-	if enemy["brace"] > 0 and enemy["mode"] != "stunned": _text(point + Vector2(25, -72), "稳", 11, GOLD)
+	if not quiet and enemy["brace"] > 0 and enemy["mode"] != "stunned": _text(point + Vector2(25, -72), "稳", 11, GOLD)
 	var kind: String = enemy.get("kind", "walker")
 	var stride := sin(state.elapsed * (9 if kind == "runner" else 4 if kind == "brute" else 5)) * (9 if kind == "runner" else 5)
 	if kind == "brute": draw_rect(Rect2(point + Vector2(-18, -58), Vector2(36, 39)), Color("67715b"))
@@ -361,15 +374,15 @@ func _draw_enemy(enemy: Dictionary, camera: float, state: ExpeditionState) -> vo
 	draw_circle(point + Vector2(direction * 5, -58), 9, Color("a1a186"))
 	draw_line(point + Vector2(5 * direction, -44), point + Vector2((42 if enemy["mode"] == "windup" else 23) * direction, -37), Color("c4a185") if enemy["mode"] == "windup" else Color("899174"), 6, true)
 	# Health and awareness have separate positions, colors and explicit labels.
-	_text(point + Vector2(-28, -128), "%s %d" % [{"walker": "行尸", "runner": "迅捷尸", "brute": "重型尸"}[enemy.get("kind", "walker")], enemy["hp"]], 12, Color("e5a68b"))
+	if not quiet: _text(point + Vector2(-28, -128), "%s %d" % [{"walker": "行尸", "runner": "迅捷尸", "brute": "重型尸"}[enemy.get("kind", "walker")], enemy["hp"]], 12, Color("e5a68b"))
 	draw_rect(Rect2(point + Vector2(-28, -118), Vector2(62, 7)), Color("1a2422"))
 	draw_rect(Rect2(point + Vector2(-28, -118), Vector2(62 * clampf(float(enemy["hp"]) / (90.0 if enemy.get("kind") == "brute" else 30.0 if enemy.get("kind") == "runner" else 40.0), 0, 1), 7)), Color("ce7c6b"))
 	if enemy["suspicion"] > 0:
 		draw_rect(Rect2(point + Vector2(-28, -105), Vector2(62 * float(enemy["suspicion"]) / 100, 3)), GOLD)
 	if enemy["mode"] == "windup":
 		draw_arc(point + Vector2(0, -30), 42, 0, TAU, 40, Color("e4a078"), 2, true)
-		_text(point + Vector2(32, -68), "扑咬!", 13, Color("e4a078"))
-	elif enemy["mode"] == "stunned":
+		if not quiet: _text(point + Vector2(32, -68), "扑咬!", 13, Color("e4a078"))
+	elif not quiet and enemy["mode"] == "stunned":
 		_text(point + Vector2(32, -68), "失衡", 13, GOLD)
 
 
@@ -377,7 +390,11 @@ func _draw_player(point: Vector2, actor: Survivor, state: ExpeditionState) -> vo
 	var crouch := 20.0 if state.sneaking else 0.0
 	var stride := sin(state.elapsed * 10) * 6 if state.moving else 0.0
 	var tint := actor.tint.lightened(0.35) if state.invulnerable > 0 and int(state.elapsed * 12) % 2 else actor.tint
-	draw_arc(point + Vector2(0, -3), 23, 0, TAU, 40, GOLD, 1, true)
+	if quiet:
+		var ring := PackedVector2Array()
+		for i in range(33): ring.append(point+Vector2(cos(i*TAU/32)*20,sin(i*TAU/32)*5-2))
+		draw_polyline(ring,Color("b8a781"),1,true)
+	else: draw_arc(point+Vector2(0,-3),23,0,TAU,40,GOLD,1,true)
 	draw_line(point + Vector2(-5, -24 + crouch * 0.5), point + Vector2(-8 + stride, -3), Color("31403b"), 7, true)
 	draw_line(point + Vector2(5, -24 + crouch * 0.5), point + Vector2(10 - stride, -3), Color("31403b"), 7, true)
 	draw_colored_polygon(PackedVector2Array([point + Vector2(-10, -55 + crouch), point + Vector2(10, -55 + crouch), point + Vector2(13, -22 + crouch * 0.5), point + Vector2(-12, -22 + crouch * 0.5)]), tint)
@@ -392,7 +409,7 @@ func _draw_player(point: Vector2, actor: Survivor, state: ExpeditionState) -> vo
 
 
 func _draw_landmarks(state: ExpeditionState, camera: float, accent: Color) -> void:
-	_text(Vector2(230 - camera, 415), str(state.area()["name"]), 22, accent)
+	if not quiet: _text(Vector2(230 - camera, 415), str(state.area()["name"]), 22, accent)
 	if state.location_id == "clinic":
 		_rect_world(Rect2(1080, 302, 55, 15), accent)
 		_rect_world(Rect2(1100, 282, 15, 55), accent)
@@ -490,8 +507,8 @@ func _draw_impact(camera: float) -> void:
 	if impact_time <= 0: return
 	var point := impact_point - Vector2(camera, 0)
 	var color := Color("f1d4a0") if impact_kind in ["hit", "shot", "push"] else Color("b5b9aa")
-	var text: String = {"shot": "射中 −%d" % impact_damage, "hit": "命中 −%d" % impact_damage, "push": "推开 · 0伤害", "miss": "挥空", "blocked": "稳身 · 推不动"}.get(impact_kind, "")
-	_text(Vector2(clampf(point.x - 140, 30, 810), maxf(285, point.y - 155 - (1 - impact_time) * 15)), text, 20, Color(color, minf(1, impact_time * 3)))
+	var text: String = {"shot": "−%d" % impact_damage if quiet else "射中 −%d" % impact_damage, "hit": "−%d" % impact_damage if quiet else "命中 −%d" % impact_damage, "push": "推开 · 0伤害", "miss": "挥空", "blocked": "稳身 · 推不动"}.get(impact_kind, "")
+	_text(Vector2(clampf(point.x - (18 if quiet else 140), 30, 810), maxf(285, point.y - 155 - (1 - impact_time) * 15)), text, 20, Color(color, minf(1, impact_time * 3)))
 	if impact_time > 0.85 and impact_kind == "shot":
 		draw_line(Vector2(game.expedition.player_x - camera, game.expedition.player_y - 50), point, Color("f2d5a0"), 3, true)
 	if impact_time > 0.65 and impact_kind in ["hit", "shot", "push"]:
@@ -500,3 +517,41 @@ func _draw_impact(camera: float) -> void:
 		for index in range(6):
 			var ray := Vector2.from_angle(index * TAU / 6)
 			draw_line(point + ray * radius, point + ray * (radius + 11), color, 2, true)
+
+
+func _action_icon(button: Button, kind: String) -> void:
+	HudIcons.draw(button,kind,Vector2(25,19),19,Color("a5ac98") if button.disabled else GOLD)
+
+
+func _refresh_quiet(state: ExpeditionState, actor: Survivor) -> void:
+	for label in [title_label,area_hint,alert_label,gear_label,actor_label,role_label,stats_label,log_label,context_label,feedback_label]: label.hide()
+	for node in bag_nodes: node.visible = bag_open
+	if bag_open:
+		capacity_label.text = "背包 %d / %d" % [state.used_capacity(),state.capacity]
+		for resource in drop_buttons:
+			drop_buttons[resource].text = "%s  %d  −1" % [ShelterInventory.NAMES[resource],state.bag[resource]]
+			drop_buttons[resource].disabled = state.bag[resource] <= 0
+	search_bar.value = state.search_progress/state.search_duration*100 if state.search_duration > 0 else 0
+	retreat_button.disabled = game.paused
+	search_button.disabled = game.paused
+	attack_button.disabled = game.paused or state.attack_cooldown > 0 or state.climb_target != -1 or state.reload_remaining > 0
+	drink_button.disabled = game.paused or state.bag["water"] <= 0 or actor.person.thirst <= 0
+	medicine_button.disabled = game.paused or state.bag["medicine"] <= 0 or state.medicine_cooldown > 0
+	var actions := [search_button,attack_button,medicine_button,drink_button,bag_button,retreat_button]
+	var keys := ["E","J","R","B","I","T"]
+	var hints := ["按住搜索 E",actor.weapon().get("name","徒手推搡")+" J · "+("L换弹" if actor.weapon().has("magazine") else "攻击"),"背包用药 R","背包饮水 B","背包 I","回入口撤退 T"]
+	for action_index in range(actions.size()):
+		var button: Button = actions[action_index]
+		button.position = Vector2(1060+action_index*58,816)
+		button.size = Vector2(50,62)
+		button.text = "\n"+keys[action_index]
+		button.tooltip_text = hints[action_index]
+	search_bar.position = Vector2(1063,884)
+	search_bar.size = Vector2(338,3)
+	bag_button.text = "\n%d/%d" % [state.used_capacity(),state.capacity]
+	bag_button.tooltip_text += " · %d/%d格" % [state.used_capacity(),state.capacity]
+	attack_button.tooltip_text += "\n耐久%d" % actor.weapon_item.get("durability",0)
+	if actor.weapon().has("magazine"):
+		attack_button.text = "\n%d/%d" % [state.magazine,state.reserve_ammo]
+		attack_button.tooltip_text += "\n弹匣%d / 备用%d" % [state.magazine,state.reserve_ammo]
+	if state.reload_remaining > 0: attack_button.text = "\n换弹"

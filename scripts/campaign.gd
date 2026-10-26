@@ -2,6 +2,9 @@ extends "res://scripts/shelter.gd"
 ## The playable campaign. Shelter remains the shared simulation fixture;
 ## this scene owns day/night transitions and direct scene interaction.
 
+var _updating_frame := false
+var compact: CompactHud
+var scene_art := SceneArt.new()
 var cycle := CampaignCycle.new()
 var expansion := SurvivalExpansion.new()
 var interface: CampaignInterface
@@ -13,6 +16,27 @@ var _loot_pause_before := false
 var _loot_open := false
 var _extra_props: Array[Node2D] = []
 var _props_signature := ""
+
+
+func world_scale() -> Vector2:
+	return Vector2(1.4,1.4)
+
+
+func world_offset() -> Vector2:
+	return Vector2(-30,-160)
+
+
+func _draw() -> void:
+	if not expedition.active: scene_art.shelter(self)
+
+
+func _compact_card(index: int) -> Button:
+	var card := SurvivorCard.new()
+	card.game = self
+	card.member_id = index
+	card.pressed.connect(select_survivor.bind(index))
+	hud.add_child(card)
+	return card
 
 
 func _region_ids() -> Array:
@@ -27,7 +51,7 @@ func _ready() -> void:
 	scheduler.external_busy = _external_busy
 	scheduler.station_reserved = func(id: String): return id == "workbench" and expansion.jobs.any(func(job): return survivors[int(job["actor"])].route.is_empty() and survivors[int(job["actor"])].position.distance_to(Vector2(485, 640)) <= 10)
 	expansion.sync(self)
-	get_window().title = "Live Forever · 留一盏灯 v1.1"
+	get_window().title = "Live Forever · 留一盏灯 v1.2"
 	for actor in survivors: actor.metabolism = 0.4
 	for field: ExpeditionState in regions.values(): field.manual_loot = true
 	# Replace the legacy instant water command with a physical action.
@@ -64,6 +88,9 @@ func _ready() -> void:
 	hud.add_child(batch_count)
 	context_nodes.append(batch_count)
 	base_hud_nodes.append(batch_count)
+	compact = CompactHud.new()
+	compact.game = self
+	add_child(compact)
 	_configure_manual()
 	_log("左键走动，双击奔跑；点床与餐桌直接休息或进食，B选择建设。20:00安排夜间岗位。")
 	_refresh_hud()
@@ -327,7 +354,7 @@ func _settle_night(lines: Array) -> void:
 		if role == "bed" and actor.hunger < 60 and actor.infection < 20:
 			actor.health = minf(100, actor.health + 6)
 			actor.injury = maxf(0, actor.injury - 8)
-		report.append("%s · %s：疲劳%d → %d，饥饿%d，口渴%d。" % [actor.display_name, CampaignCycle.ROLE_NAMES[CampaignCycle.ROLES.find(role)], roundi(before), roundi(actor.fatigue), roundi(actor.hunger), roundi(actor.person.thirst)])
+		report.append("%s · %s：精神%d → %d，饱腹%d，水分%d。" % [actor.display_name, CampaignCycle.ROLE_NAMES[CampaignCycle.ROLES.find(role)], roundi(100-before), Vitals.value(actor,"vigor"), Vitals.value(actor,"fullness"), Vitals.value(actor,"hydration")])
 	_resolve_raid(report)
 	simulation_time = maxf(simulation_time, cycle.night_end)
 	upkeep.tick(minutes, simulation_time)
@@ -448,13 +475,16 @@ func _route_controls(x: float, floor_level: int, retreat: bool) -> Dictionary:
 
 
 func _process(delta: float) -> void:
+	_updating_frame = true
 	super._process(delta)
+	_updating_frame = false
 	if is_instance_valid(interface):
 		if expedition.active and expedition.loot_site >= 0 and not _loot_open:
 			_loot_pause_before = paused
 			_loot_open = true
 			expedition_view.search_held = false
 		interface.refresh()
+	if is_instance_valid(compact): compact.refresh()
 
 
 func close_loot() -> void:
@@ -465,7 +495,15 @@ func close_loot() -> void:
 
 
 func _refresh_hud() -> void:
-	super._refresh_hud()
+	if not is_instance_valid(compact) or context_open:
+		super._refresh_hud()
+	else:
+		# Closed legacy drawers do not need strings, font shaping or new styles.
+		_sync_mode()
+		pause_button.disabled = game_over
+		speed_button.disabled = expedition.active
+		game_over_label.visible = game_over and not expedition.active
+		game_over_label.text = "庇护所失守" if game_over else ""
 	if not is_instance_valid(clock_label): return
 	main_title.hide()
 	subtitle.hide()
@@ -473,19 +511,21 @@ func _refresh_hud() -> void:
 	if not survivors.is_empty():
 		var actor := survivors[selected_id]
 		detail_label.size.y = 58
-		detail_label.text += "\n疾病%d / 寒冷%d / 保暖+%d℃" % [roundi(actor.illness), roundi(actor.cold_exposure), actor.warmth()]
+		detail_label.text = "生命%d / 饱腹%d\n水分%d / 精神%d\n四项满分100，越满越好" % [Vitals.value(actor,"health"),Vitals.value(actor,"fullness"),Vitals.value(actor,"hydration"),Vitals.value(actor,"vigor")]
+		detail_label.tooltip_text = Vitals.summary(actor)
 	var day := cycle.night_day if cycle.phase in ["planning", "scavenge", "returning"] else ExpeditionState.day_at(simulation_time)
 	var minute := CampaignCycle.minute(simulation_time)
-	clock_label.text = "第%d天  %02d:%02d  %s%s" % [day, int(minute) / 60, int(minute) % 60, {"day": "白天", "planning": "夜间分工", "scavenge": "夜间搜刮", "returning": "迟归撤离", "dawn": "清晨"}[cycle.phase], " · 暂停" if paused else ""]
+	if not is_instance_valid(compact): clock_label.text = "第%d天  %02d:%02d  %s%s" % [day, int(minute) / 60, int(minute) % 60, {"day": "白天", "planning": "夜间分工", "scavenge": "夜间搜刮", "returning": "迟归撤离", "dawn": "清晨"}[cycle.phase], " · 暂停" if paused else ""]
 	var remaining := maxf(0, (1200 - minute) / 2.0 / speed) if cycle.phase == "day" else maxf(0, cycle.night_end - simulation_time)
 	phase_label.text = "%s %02d:%02d · %s" % ["距20:00结束白天" if cycle.phase == "day" else "距06:00天亮", int(ceil(remaining)) / 60, int(ceil(remaining)) % 60, "白天生活与建设 / 夜晚分工" if cycle.phase == "day" else "每晚一次搜刮 / 提前归来也等到清晨"]
 	subtitle.text = "左键走动 · 双击奔跑 · 点设施行动 · 右键取消 · B建设"
 	day_bar.value = clampf((minute - 360) / 840.0 * 100, 0, 100) if cycle.phase == "day" else clampf((simulation_time - cycle.night_start) / maxf(1, cycle.night_end - cycle.night_start) * 100, 0, 100)
 	progress_bar.hide()
-	if selected_task == "heal" and actor_is_starving(): recipe_label.text = "饥饿严重：先吃饭才能恢复生命。\n用药仍可处理伤势与感染，不能代替食物。"
+	if selected_task == "heal" and actor_is_starving(): recipe_label.text = "饱腹不足：先吃饭才能恢复生命。\n用药仍可处理伤势与感染，不能代替食物。"
 	if is_instance_valid(interface):
 		interface.refresh()
 		_sync_props()
+	if is_instance_valid(compact) and not _updating_frame: compact.refresh()
 
 
 func open_station(task_id: String) -> void:
@@ -609,7 +649,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	if event.button_index != MOUSE_BUTTON_LEFT: return
-	var point: Vector2 = (event.position - WORLD_OFFSET) / WORLD_SCALE
+	var point: Vector2 = (event.position - world_offset()) / world_scale()
 	if expedition.active:
 		if cycle.phase == "returning": return
 		point.x += expedition_view._camera()

@@ -92,6 +92,14 @@ var move_marker := Vector2.ZERO
 var move_marker_time := 0.0
 
 
+func world_scale() -> Vector2:
+	return WORLD_SCALE
+
+
+func world_offset() -> Vector2:
+	return WORLD_OFFSET
+
+
 func _region_ids() -> Array:
 	return LocationCatalog.IDS
 
@@ -138,8 +146,8 @@ func _ready() -> void:
 
 func _create_world() -> void:
 	world_root = Node2D.new()
-	world_root.position = WORLD_OFFSET
-	world_root.scale = WORLD_SCALE
+	world_root.position = world_offset()
+	world_root.scale = world_scale()
 	add_child(world_root)
 	facility = Workstation.new()
 	facility.position = Vector2(485, ShelterNavigation.LOWER_Y)
@@ -255,7 +263,7 @@ func _check_warnings(actor: Survivor) -> void:
 		var danger := value <= threshold if need == "health" else value >= threshold
 		if danger and not actor.warned[need]:
 			actor.warned[need] = true
-			var advice := "饥饿严重，请安排吃饭；达到95会持续损失生命。" if need == "hunger" else "疲劳严重，请安排睡觉；达到98会持续损失生命。" if need == "fatigue" else "感染加重，请用药治疗；达到60会持续损失生命。" if need == "infection" else "生命垂危！检查伤势、感染、食物与休息。"
+			var advice := "饱腹不足，请安排吃饭；低至5会持续损失生命。" if need == "hunger" else "精神不足，请安排睡觉；低至2会持续损失生命。" if need == "fatigue" else "感染加重，请用药治疗；达到60会持续损失生命。" if need == "infection" else "生命垂危！检查伤势、感染、食物与休息。"
 			_log(actor.display_name + "：" + advice)
 		elif not danger and (value > threshold + 10 if need == "health" else value < threshold - 10):
 			actor.warned[need] = false
@@ -361,7 +369,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if expedition.active or game_over or center.visible: return
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_RIGHT:
-			var point: Vector2 = (event.position - WORLD_OFFSET) / WORLD_SCALE
+			var point: Vector2 = (event.position - world_offset()) / world_scale()
 			if Rect2(113, 300, 874, 355).has_point(point):
 				move_selected(point)
 				get_viewport().set_input_as_handled()
@@ -577,7 +585,7 @@ func _refresh_preparation() -> void:
 		if enemy["hp"] > 0: threats += 1
 	var area := expedition.area()
 	var forecast := expedition.weather()
-	prep_text.text = "%s → %s  /  风险%s  /  %s\n生命%d · 饥饿%d · 疲劳%d；取消本人任务并退料。\n口渴%d · 心境%d · 压力%d；留守照料按授权继续。\n%s\n已知感染者%d；背包10格，必须回入口撤退。\n%s" % [actor.display_name, area["name"], area["risk"], forecast["name"], ceili(actor.health), ceili(actor.hunger), ceili(actor.fatigue), roundi(actor.person.thirst), roundi(actor.person.morale), roundi(actor.person.stress), area["summary"], threats, forecast["hint"]]
+	prep_text.text = "%s → %s  /  风险%s  /  %s\n生命%d · 饱腹%d · 精神%d；取消本人任务并退料。\n水分%d · 心境%d · 压力%d；留守照料按授权继续。\n%s\n已知感染者%d；背包10格，必须回入口撤退。\n%s" % [actor.display_name, area["name"], area["risk"], forecast["name"], Vitals.value(actor,"health"), Vitals.value(actor,"fullness"), Vitals.value(actor,"vigor"), Vitals.value(actor,"hydration"), roundi(actor.person.morale), roundi(actor.person.stress), area["summary"], threats, forecast["hint"]]
 
 
 func start_expedition(take_tool: bool = false, take_medicine: bool = false) -> bool:
@@ -854,8 +862,8 @@ func _refresh_hud() -> void:
 	stock_label.text = "据点库存   生食%d / 水%d / 燃料%d / 熟食%d / 材料%d / 工具%d / 药品%d" % [inventory.amount("raw_food"), inventory.amount("water"), inventory.amount("fuel"), inventory.amount("meals"), inventory.amount("materials"), inventory.amount("tools"), inventory.amount("medicine")]
 	selected_label.text = actor.display_name
 	speciality_label.text = "%s / %s基础%.1f秒" % [actor.speciality, definition["label"], TaskCatalog.duration_for(selected_task, actor)]
-	detail_label.text = "生命%d / 饥饿%d / 疲劳%d\n伤势%d / 感染%d / 效率%d%%" % [ceili(actor.health), ceili(actor.hunger), ceili(actor.fatigue), ceili(actor.injury), ceili(actor.infection), int(actor.effort_factor() * 100)]
-	detail_label.tooltip_text = actor.description + "\n" + PeopleCatalog.DATA[actor.person.persona]["traits"] + "\n心境%d 压力%d 创伤%d 口渴%d · 工艺%d 照护%d 探索%d" % [roundi(actor.person.morale), roundi(actor.person.stress), roundi(actor.person.trauma), roundi(actor.person.thirst), actor.person.level("craft"), actor.person.level("care"), actor.person.level("scout")]
+	detail_label.text = "生命%d / 饱腹%d / 精神%d\n水分%d / 效率%d%%" % [Vitals.value(actor,"health"), Vitals.value(actor,"fullness"), Vitals.value(actor,"vigor"), Vitals.value(actor,"hydration"), int(actor.effort_factor()*100)]
+	detail_label.tooltip_text = actor.description + "\n" + PeopleCatalog.DATA[actor.person.persona]["traits"] + "\n心境%d 压力%d 创伤%d 水分%d · 工艺%d 照护%d 探索%d" % [roundi(actor.person.morale), roundi(actor.person.stress), roundi(actor.person.trauma), Vitals.value(actor,"hydration"), actor.person.level("craft"), actor.person.level("care"), actor.person.level("scout")]
 	detail_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	detail_label.add_theme_color_override("font_color", Color("dca184") if actor.hunger >= 80 or actor.fatigue >= 85 or actor.health <= 30 or actor.infection >= 30 or actor.injury >= 50 or actor.person.thirst >= 80 else MUTED)
 	status_label.text = actor.status_text()
@@ -870,8 +878,8 @@ func _refresh_hud() -> void:
 	var has_materials := inventory.can_take(definition["cost"])
 	match selected_task:
 		"cook", "craft": recipe_label.text = "%s\n→ %s · 开工扣料 / 取消退料" % [ShelterInventory.describe(definition["cost"]), ShelterInventory.describe(definition["output"])]
-		"eat": recipe_label.text = "熟食×1 · 完成后饥饿降低55\n中途取消退料，不恢复饱腹"
-		"sleep": recipe_label.text = "休息20秒，每秒恢复疲劳3\n可中断，保留已获得的休息"
+		"eat": recipe_label.text = "熟食×1 · 饱腹+55，最高100\n中途取消退料，不恢复饱腹"
+		"sleep": recipe_label.text = "休息20秒，每秒精神+3\n可中断，保留已获得的休息"
 		"heal": recipe_label.text = "%s给自己用药 · 药品×1\n生命+25 / 伤势−50 / 感染−40" % actor.display_name
 		_: recipe_label.text = "材料×1 → 完成后结构+18\n低于40%会降效；取消退料"
 	if not has_materials:
@@ -903,7 +911,8 @@ func _refresh_hud() -> void:
 	game_over_label.text = "庇护所失守\n所有幸存者已死亡。可读档或新开一局。" if game_over else ""
 	for index in range(cards.size()):
 		var person := survivors[index]
-		cards[index].text = "%d  %s · %s\n生命%d  饥饿%d  疲劳%d  口渴%d\n%s" % [index + 1, person.display_name, person.speciality, ceili(person.health), ceili(person.hunger), ceili(person.fatigue), roundi(person.person.thirst), person.status_text()]
+		if cards[index] is SurvivorCard: continue
+		cards[index].text = "%d  %s · %s\n生命%d 饱腹%d 精神%d 水分%d\n%s" % [index+1,person.display_name,person.speciality,Vitals.value(person,"health"),Vitals.value(person,"fullness"),Vitals.value(person,"vigor"),Vitals.value(person,"hydration"),person.status_text()]
 		cards[index].tooltip_text = "伤势%d / 感染%d / 心境%d / 压力%d\n点击选中；P查看人物、照料授权与医疗援助。" % [ceili(person.injury), ceili(person.infection), roundi(person.person.morale), roundi(person.person.stress)]
 		cards[index].add_theme_color_override("font_color", Color("dca184") if person.health <= 30 or person.hunger >= 80 or person.fatigue >= 85 or person.infection >= 30 or person.person.thirst >= 80 else INK)
 		cards[index].add_theme_stylebox_override("normal", _style(Color("27332e") if index == selected_id else Color("142125"), GOLD if index == selected_id else Color("2d3c3b")))
@@ -919,7 +928,7 @@ func _draw() -> void:
 	draw_rect(Rect2(0, 0, 1440, 900), Color("101a1e"))
 	if expedition.active:
 		return
-	draw_set_transform(WORLD_OFFSET, 0, WORLD_SCALE)
+	draw_set_transform(world_offset(), 0, world_scale())
 	draw_rect(Rect2(0, 200, 1095, 490), Color("142126"))
 	_draw_city()
 	for i in range(65):
@@ -1109,7 +1118,10 @@ func sync_roster_cards() -> void:
 	var count := survivors.size()
 	var stride := 1380.0 / count
 	for index in range(count):
-		var card := _button("", Vector2(30 + index * stride, 782), Vector2(stride - 10, 94), select_survivor.bind(index))
+		var card: Button
+		if has_method("_compact_card"):
+			card = call("_compact_card",index)
+		else: card = _button("", Vector2(30 + index * stride, 782), Vector2(stride - 10, 94), select_survivor.bind(index))
 		card.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		card.clip_text = true
 		card.add_theme_font_size_override("font_size", 15 if count <= 3 else 12)

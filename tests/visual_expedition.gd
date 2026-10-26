@@ -35,7 +35,8 @@ func simulate(scene: Node2D, seconds: float) -> void:
 
 func picture(path: String) -> void:
 	await process_frame
-	await RenderingServer.frame_post_draw
+	# A paused, unchanged viewport may legitimately skip drawing a frame.
+	RenderingServer.force_draw()
 	check(root.get_texture().get_image().save_png(path) == OK, "actual rendered frame saved: " + path)
 
 

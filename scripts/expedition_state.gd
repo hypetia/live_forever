@@ -375,7 +375,7 @@ func use_medicine(actor: Survivor) -> bool:
 	actor.injury = maxf(0, actor.injury - 40)
 	actor.infection = maxf(0, actor.infection - 35)
 	actor.illness = maxf(0, actor.illness - 35)
-	feedback = "使用药品：生命+%d，伤势-40，感染-35。%s" % [recovered, "先处理饥饿才能恢复生命。" if recovered == 0 else ""]
+	feedback = "使用药品：生命+%d，伤势-40，感染-35。%s" % [recovered, "先恢复饱腹才能恢复生命。" if recovered == 0 else ""]
 	event_reported.emit(feedback)
 	return true
 

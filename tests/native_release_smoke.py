@@ -220,8 +220,19 @@ def main():
             hold('a' if position > 300 else 'd', abs(position - 300) / 190)
             position = save()['expedition']['player_x']
         assert abs(position - 300) < 58, position
-        hold('e', 2.3)
-        searched = save()
+        # Observe actual search completion; wall time can diverge from the
+        # capped simulation delta while a software renderer compiles shaders.
+        key('e', True)
+        deadline = time.monotonic() + 20
+        try:
+            while True:
+                searched = save()
+                field = searched['expedition']
+                if field.get('loot_site', -1) >= 0 or field['bag']['raw_food'] >= 2:
+                    break
+                assert time.monotonic() < deadline, 'Real held-E search never completed'
+        finally:
+            key('e', False)
         if searched['expedition'].get('manual_loot'):
             press('f')
             press('Escape')

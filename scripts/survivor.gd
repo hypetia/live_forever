@@ -124,10 +124,15 @@ func _draw() -> void:
 		draw_line(Vector2(-23, -8), Vector2(22, -8), Color("57615d"), 10, true)
 		draw_circle(Vector2(26, -8), 7, Color("72756a"))
 		return
+	var quiet: bool = get_parent().get_parent().has_method("_compact_card")
 	var stride := sin(movement_clock) * 7.0 if state in [TaskState.MOVING, TaskState.RETURNING] else 0.0
 	draw_ellipse_shadow()
 	if selected:
-		draw_arc(Vector2(0, -3), 25, 0, TAU, 40, Color("d6b584"), 1.5, true)
+		if quiet:
+			var ring := PackedVector2Array()
+			for i in range(33): ring.append(Vector2(cos(i*TAU/32)*20,sin(i*TAU/32)*5-2))
+			draw_polyline(ring,Color("b8a781"),1,true)
+		else: draw_arc(Vector2(0, -3),25,0,TAU,40,Color("d6b584"),1.5,true)
 		draw_colored_polygon(PackedVector2Array([Vector2(-5, -89), Vector2(5, -89), Vector2(0, -83)]), Color("e4bf86"))
 	# Original geometric placeholder characters; coat, pack, limbs and head.
 	if (state == TaskState.WORKING and not orders.is_empty() and orders[0] == "sleep") or activity.get("kind", "") == "sleep":
@@ -157,14 +162,14 @@ func _draw() -> void:
 	if selected or health < 60:
 		draw_rect(Rect2(-26, -117, 52, 5), Color("172320"))
 		draw_rect(Rect2(-26, -117, 52 * health / 100.0, 5), Color("d48f75") if health < 40 else Color("9dbb9b"))
-	if selected:
+	if selected and not quiet:
 		draw_string(FONT, Vector2(-22, 22), display_name, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color("e4d0a8"))
 	if not activity.is_empty():
-		draw_string(FONT, Vector2(-26, -87), activity["label"], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color("c8cbb1"))
+		if not quiet: draw_string(FONT, Vector2(-26, -87), activity["label"], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color("c8cbb1"))
 		draw_rect(Rect2(-23, -102, 46, 4), Color("273236"))
 		draw_rect(Rect2(-23, -102, 46 * activity["progress"], 4), Color("d6b584"))
 	elif state == TaskState.WORKING:
-		draw_string(FONT, Vector2(-26, -87), "用药中" if not orders.is_empty() and orders[0] == "heal" else task_label, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color("c8cbb1"))
+		if not quiet: draw_string(FONT, Vector2(-26, -87), "用药中" if not orders.is_empty() and orders[0] == "heal" else task_label, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color("c8cbb1"))
 		draw_rect(Rect2(-23, -102, 46, 4), Color("273236"))
 		draw_rect(Rect2(-23, -102, 46 * progress(), 4), Color("d6b584"))
 

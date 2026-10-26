@@ -52,7 +52,7 @@ func tick(game: Node2D, delta: float) -> void:
 		elif person.morale >= 35 and person.stress < 65: person.warned = false
 		if person.thirst >= 80 and not person.warned_thirst:
 			person.warned_thirst = true
-			event_reported.emit("%s口渴严重：80起降效，95起缓慢损害生命。基地人物页饮水，外出用背包水按B。" % actor.display_name)
+			event_reported.emit("%s水分不足：20以下降效，低至5缓慢损害生命。基地人物页饮水，外出用背包水按B。" % actor.display_name)
 		elif person.thirst < 70: person.warned_thirst = false
 	if game.simulation_time + 0.000001 >= next_routine:
 		next_routine = game.simulation_time + 1.0
