@@ -40,6 +40,7 @@ func _run() -> void:
 	attacker["hp"] = 90
 	attacker["floor"] = 0
 	attacker["x"] = field.player_x+30
+	attacker["direction"] = -1.0 # This fixture is a frontal bite; rear bites now correctly miss.
 	attacker["mode"] = "windup"
 	attacker["timer"] = 0.01
 	field.invulnerable = 0

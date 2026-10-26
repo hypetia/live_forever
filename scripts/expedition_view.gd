@@ -326,6 +326,11 @@ func _draw() -> void:
 		_draw_enemy(state.enemies[enemy_index], camera, state, enemy_index)
 	var actor: Survivor = game.survivors[state.actor_id]
 	_draw_player(Vector2(state.player_x - camera, state.player_y), actor, state)
+	for cover in state.area()["covers"]:
+		var bottom: float = ExpeditionState.FLOOR_Y[int(cover[2])]
+		_rect_world(Rect2(cover[0],bottom-50,cover[1]-cover[0],50),Color("454f44"))
+		_rect_world(Rect2(cover[0],bottom-50,cover[1]-cover[0],4),Color("85917a"))
+		_rect_world(Rect2(cover[0]+5,bottom-43,cover[1]-cover[0]-10,2),Color("67745e"))
 	if state.attack_windup > 0 or (state.attack_cooldown > maxf(0, float(actor.weapon().get("cooldown", 1.1)) - 0.34)):
 		var swing := Vector2(state.player_x - camera, state.player_y - 38)
 		if swing.x >= 0 and swing.x <= 1065 and not actor.weapon().has("magazine") and actor.weapon_item.get("kind", "") != "spear" and combat_effects.player_time <= 0:
@@ -389,14 +394,14 @@ func _on_player_hurt(point: Vector2, direction: float, damage: int, field: Exped
 
 
 func _draw_enemy(enemy: Dictionary, camera: float, state: ExpeditionState, index: int) -> void:
-	var point := Vector2(float(enemy["x"])-camera,ExpeditionState.FLOOR_Y[int(enemy["floor"])])
+	var point := Vector2(float(enemy["x"])-camera,state.enemy_y(enemy))
 	if point.x < -100 or point.x > 1160: return
 	combat_effects.draw_enemy(self,enemy,index,point,state.elapsed)
 	if enemy["hp"] <= 0: return
 	var definition := EnemyCatalog.stats(enemy["kind"])
 	var direction: float = enemy["direction"]
 	var reach := maxf(55,(52.0 if state.in_cover() else 115.0 if state.sneaking else 290.0)*float(state.weather()["vision"]))
-	draw_colored_polygon(PackedVector2Array([point+Vector2(0,-50),point+Vector2(direction*reach,-85),point+Vector2(direction*reach,-5)]),Color(0.75,0.36,0.25,0.055))
+	if int(enemy["climb_target"]) == -1: draw_colored_polygon(PackedVector2Array([point+Vector2(0,-50),point+Vector2(direction*reach,-85),point+Vector2(direction*reach,-5)]),Color(0.75,0.36,0.25,0.055))
 	var scale: float = definition["scale"]
 	var width := 62.0*scale
 	var bar := point+Vector2(-width/2,-105*scale)
@@ -446,7 +451,7 @@ func _draw_player(point: Vector2, actor: Survivor, state: ExpeditionState) -> vo
 		if held["broken"] or state.climb_target != -1: angle = 1.15
 		elif state.attack_windup > 0: angle = -0.1 if kind in ["pistol","spear"] else -1.4
 		elif state.attack_cooldown > maxf(0,cooldown-0.25): angle = 0.0 if kind in ["pistol","spear"] else lerpf(-1.2,0.6,clampf((cooldown-state.attack_cooldown)/0.25,0,1))
-		var hand := point+Vector2(22*state.facing,-38+crouch)
+		var hand := point+Vector2(22*state.facing,(-58 if kind == "pistol" and state.climb_target == -1 else -38)+crouch)
 		if kind == "spear" and not held["broken"] and state.climb_target == -1:
 			if state.attack_windup > 0: hand.x -= state.facing*12
 			elif state.attack_cooldown > cooldown-0.25: hand.x += state.facing*18*sin(clampf((cooldown-state.attack_cooldown)/0.25,0,1)*PI)
@@ -605,7 +610,7 @@ func _on_combat_resolved(kind: String, point: Vector2, damage: int) -> void:
 	impact_point = point
 	impact_damage = damage
 	impact_time = 1.0
-	if is_instance_valid(game.game_audio): game.game_audio.combat_cue(kind)
+	if is_instance_valid(game.game_audio): game.game_audio.combat_cue("shot" if kind in ["blocked_shot","shot_miss"] else "blocked" if kind == "obstructed" else kind)
 	queue_redraw()
 
 
@@ -613,14 +618,19 @@ func _draw_impact(camera: float) -> void:
 	if impact_time <= 0: return
 	var point := impact_point - Vector2(camera, 0)
 	var color := Color("f1d4a0") if impact_kind in ["hit", "shot", "push"] else Color("b5b9aa")
-	var text: String = {"shot": "−%d" % impact_damage if quiet else "射中 −%d" % impact_damage, "hit": "−%d" % impact_damage if quiet else "命中 −%d" % impact_damage, "push": "推开 · 0伤害", "miss": "挥空", "blocked": "稳身 · 推不动"}.get(impact_kind, "")
+	var text: String = {"shot": "−%d" % impact_damage if quiet else "射中 −%d" % impact_damage, "hit": "−%d" % impact_damage if quiet else "命中 −%d" % impact_damage, "push": "推开 · 0伤害", "miss": "挥空", "blocked": "稳身 · 推不动", "blocked_shot": "", "obstructed": ""}.get(impact_kind, "")
 	_text(Vector2(clampf(point.x - (18 if quiet else 140), 30, 810), maxf(270, point.y - 100 - (1 - impact_time) * 20)), text, 20, Color(color, minf(1, impact_time * 3)))
-	if impact_time > 0.9 and impact_kind == "shot":
-		var muzzle := Vector2(game.expedition.player_x-camera+game.expedition.facing*46,game.expedition.player_y-42)
-		draw_line(muzzle,point,Color("eacb92"),2,true)
-		for i in range(3):
+	if impact_time > 0.9 and impact_kind in ["shot","blocked_shot","shot_miss"]:
+		var muzzle := Vector2(game.expedition.player_x-camera+game.expedition.facing*46,game.expedition.player_y-(38 if game.expedition.sneaking else 58))
+		if (point.x-muzzle.x)*game.expedition.facing >= 0:
+			draw_line(muzzle,point,Color("eacb92"),2,true)
+		for i in range(0 if (point.x-muzzle.x)*game.expedition.facing < 0 else 3):
 			var ray: Vector2 = Vector2.from_angle(-0.55+i*0.55)*game.expedition.facing
 			draw_line(muzzle,muzzle+ray*10,Color("f5dca4"),2,true)
+		if impact_kind == "blocked_shot":
+			for i in range(5): draw_line(point,point+Vector2.from_angle(i*TAU/5)*9,Color("e8c997"),1.5,true)
+	elif impact_time > 0.8 and impact_kind == "obstructed":
+		draw_arc(point,10,PI*0.8,PI*2.2,16,GameUi.WARNING,2,true)
 	elif impact_time > 0.9 and impact_kind == "hit":
 		draw_line(point+Vector2(-7,6),point+Vector2(7,-6),Color("f2c9b2"),2,true)
 	elif impact_time > 0.8 and impact_kind == "push":

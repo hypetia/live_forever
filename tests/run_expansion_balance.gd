@@ -20,6 +20,7 @@ func _run() -> void:
 		if not snapshot["campaign"].has("return_requested"): snapshot = SaveSystem.migrate_v9(snapshot)
 		if not snapshot.has("facilities"): snapshot = SaveSystem.migrate_v10(snapshot)
 		if not snapshot.has("director"): snapshot = SaveSystem.migrate_v11(snapshot)
+		if not snapshot["expedition"]["enemies"][0].has("home_floor"): snapshot = SaveSystem.migrate_v12(snapshot)
 		var error := SaveSystem.apply_state(game,snapshot)
 		if not error.is_empty():
 			printerr(error)

@@ -32,7 +32,8 @@ func render() -> void:
 	window = ui.panel(self, Vector2(25, 20), Vector2(1390, 860))
 	ui.label(window, game.residence.title() + " · 家园与迁居", Vector2(25,17), Vector2(1120,42), 27,game.GOLD)
 	ui.button(window,"关闭 H / Esc",Vector2(1175,17),Vector2(185,42),close)
-	ui.label(window,"安防耐久%d / 100 · 暴露噪声%d · 室内基础保温+%d℃" % [roundi(game.residence.condition),roundi(game.residence.noise),game.residence.indoor_bonus()],Vector2(25,77),Vector2(1300,30),18)
+	ui.label(window,"安防耐久%d / 100 · 暴露噪声%d · 室内基础保温+%d℃" % [roundi(game.residence.condition),roundi(game.residence.noise),game.residence.indoor_bonus()],Vector2(25,77),Vector2(1000,30),18)
+	ui.button(window,"检查安防 Z",Vector2(1080,76),Vector2(280,38),func(): game.security_view.toggle())
 	ui.label(window,"守夜配合门窗、预警和阻挡设施。加固会损耗；制造与音乐留下噪声，可能吸引尸群。",Vector2(25,118),Vector2(1300,30),15)
 	for index in range(game.survivors.size()):
 		var actor: Survivor = game.survivors[index]

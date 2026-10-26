@@ -43,7 +43,8 @@ func render() -> void:
 	ui.button(window,"返回 U / Esc",Vector2(1155,22),Vector2(205,42),close)
 	ui.label(window,"战役第%d天 · 本轮第%d—%d天 · 每轮可选一项，不接取不受惩罚" % [game.expansion.day(game),d.window(game)*3+1,d.window(game)*3+3],Vector2(28,80),Vector2(1320,31),18,GameUi.SECONDARY)
 	var forecast := ui.panel(window,Vector2(28,127),Vector2(1330,94),GameUi.SURFACE)
-	ui.label(forecast,game.night_forecast().replace(" · U查看街区动态",""),Vector2(20,13),Vector2(1290,29),21,GameUi.ACCENT)
+	ui.label(forecast,game.night_forecast().replace(" · U查看街区动态",""),Vector2(20,13),Vector2(1010,29),21,GameUi.ACCENT)
+	ui.button(forecast,"安防详情 Z",Vector2(1080,12),Vector2(225,38),func(): game.security_view.toggle())
 	ui.label(forecast,"尸群活动随日期、营地噪声与安防变化；寒潮按日历到来。护甲、武器、守夜、取暖各有用途。",Vector2(20,52),Vector2(1290,29),18,GameUi.SECONDARY)
 	if d.status in ["active","ready"]:
 		_active(ui,d)

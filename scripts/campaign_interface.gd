@@ -189,6 +189,7 @@ func _create_plan() -> void:
 	button(overlay, "+8发", Vector2(1300, 714), Vector2(90, 32), _ammo.bind(8))
 	plan_error = label(overlay, "", Vector2(38, 786), Vector2(1100, 28), 15, Color("dca184"))
 	button(overlay, "全员留守 · 不携带物资", Vector2(38, 829), Vector2(320, 44), _stay_home)
+	button(overlay,"检查安防 Z",Vector2(380,829),Vector2(220,44),func(): game.security_view.toggle())
 	depart_button = button(overlay, "开始这一夜 →", Vector2(1035, 829), Vector2(360, 44), func(): game.start_expedition())
 
 
@@ -281,6 +282,7 @@ func _create_dawn() -> void:
 	lines.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(lines)
 	scroll.hide()
+	button(overlay,"安防复盘 Z",Vector2(350,731),Vector2(230,38),func(): game.security_view.toggle())
 	button(overlay,"查看 / 收起纪要",Vector2(80,731),Vector2(250,38),func(): scroll.visible = not scroll.visible)
 	var begin := button(overlay, "开始白天的生活 →", Vector2(950, 812), Vector2(400, 50), game.begin_day)
 	begin.disabled = game.game_over or (not game.expansion.outcome.is_empty() and not game.expansion.endless)

@@ -186,9 +186,9 @@ func combat_input(controls: Dictionary) -> Dictionary:
 		var nearest: Dictionary = {}
 		var distance := 70.0
 		for enemy in state.enemies:
-			if enemy["hp"] > 0 and enemy["floor"] == state.floor_level and absf(float(enemy["x"]) - state.player_x) < distance:
+			if enemy["hp"] > 0 and state.enemy_can_reach(enemy) and absf(float(enemy["x"]) - state.player_x) < distance:
 				nearest = enemy; distance = absf(float(enemy["x"]) - state.player_x)
-		if not nearest.is_empty() and (state.bag["tools"] > 0 or nearest["brace"] <= 0) and (not bool(controls.get("interact", false)) or state.search_progress < 0.1 or state.bag["tools"] > 0):
+		if not nearest.is_empty() and state.attack_obstruction(nearest,actor).is_empty() and (state.bag["tools"] > 0 or nearest["brace"] <= 0) and (not bool(controls.get("interact", false)) or state.search_progress < 0.1 or state.bag["tools"] > 0):
 			var direction := signf(float(nearest["x"]) - state.player_x)
 			if state.facing != direction:
 				_advance(1.0 / 30, {"axis": direction})

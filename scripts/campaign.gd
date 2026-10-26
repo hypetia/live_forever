@@ -11,6 +11,7 @@ var expansion := SurvivalExpansion.new()
 var facilities := FacilitySystem.new()
 var director := CampaignDirector.new()
 var briefing: CampaignBriefing
+var security_view: SecurityView
 var residence := ResidenceSystem.new()
 var residence_view: ResidenceInterface
 var interface: CampaignInterface
@@ -67,7 +68,7 @@ func _ready() -> void:
 	scheduler.production_rate = func(id: String): return facilities.rate(id)
 	facilities.sync(self)
 	expansion.sync(self)
-	get_window().title = "Live Forever · 留一盏灯 v1.5"
+	get_window().title = "Live Forever · 留一盏灯 v1.6"
 	for actor in survivors: actor.metabolism = 0.4
 	for field: ExpeditionState in regions.values():
 		field.manual_loot = true
@@ -85,6 +86,9 @@ func _ready() -> void:
 	departure_dialog.confirmed.connect(confirm_departure)
 	departure_dialog.ok_button_text = "带上物资离开"
 	departure_dialog.cancel_button_text = "继续探索"
+	security_view = SecurityView.new()
+	security_view.game = self
+	add_child(security_view)
 	interface = CampaignInterface.new()
 	interface.game = self
 	add_child(interface)
@@ -187,6 +191,7 @@ func campaign_snapshot() -> Dictionary:
 
 
 func restore_campaign(data: Dictionary) -> void:
+	if is_instance_valid(security_view): security_view.dismiss_loaded()
 	shelter_keyboard.reset(self)
 	_departure_side = 0
 	_edge_latched = 0
@@ -570,37 +575,41 @@ func _resolve_raid(report: Array[String]) -> void:
 		return
 	var roll: int = (cycle.seed + cycle.night_day * 7919) % 100
 	if cycle.night_day < 3 or roll >= residence.attack_chance(55 if cycle.night_day < 8 else 70):
-		report.append("这一夜没有尸群袭击。")
+		report.append("【安防】这一夜没有尸群袭击；没有物资损失，也未损耗安防耐久。")
 		return
 	var defense := raid_defense()
 	var threat := minf(2.0, 1.0 + cycle.night_day * 0.035)
+	var contributions := DefenseAssessment.components(self)
+	var condition_before := residence.condition
 	residence.wear(threat)
+	report.append("【安防】第%d夜 · 防守%.2f / 袭击强度%.2f · 耐久%d → %d。" % [cycle.night_day,defense,threat,roundi(condition_before),roundi(residence.condition)])
+	report.append("【安防】抵挡贡献："+DefenseAssessment.summary(contributions))
 	if defense >= threat:
-		report.append("守夜与隔断挡住了尸群袭击，没有丢失物资。")
+		report.append("【安防】成功阻挡尸群；没有人员受伤或物资丢失。")
 		return
 	var stolen := {}
 	for key in ["raw_food", "water", "materials"]:
 		var count := mini(inventory.amount(key), 1 if defense >= 0.8 else 2)
 		if count > 0: stolen[key] = count
 	inventory.try_take(stolen, "夜间防守不足，尸群闯入造成损坏")
-	report.append("尸群袭击突破防守，损失%s。" % ShelterInventory.describe(stolen))
+	report.append("【安防】防守缺口%.2f；损失%s。补充守夜者、隔断或门窗加固；低耐久时先维护。" % [threat-defense,ShelterInventory.describe(stolen) if not stolen.is_empty() else "无库存可损失"])
 	for actor in survivors:
 		if actor.health > 0 and cycle.roles[actor.survivor_id] in ["bed", "floor", "guard"]:
-			actor.health = maxf(0, actor.health - (4 if defense >= 0.8 else 9) * (1 - actor.protection()) * (1 - residence.security["mesh"] * 0.1 * residence.condition / 100))
+			var raw := 4.0 if defense >= 0.8 else 9.0
+			var armored := raw*(1-actor.protection())
+			var harm: float = armored*(1-residence.security["mesh"]*0.1*residence.condition/100)
+			var actual := minf(actor.health,harm)
+			actor.health = maxf(0,actor.health-harm)
+			report.append("【安防】%s生命−%.1f；护甲减免%.1f、防护网再减免%.1f；护甲耐久−%d。" % [actor.display_name,actual,raw-armored,armored-harm,mini(4,int(actor.armor_item.get("durability",0)))])
 			actor.injury = minf(100, actor.injury + 8 * (1 - actor.protection()))
 			if not actor.armor_item.is_empty(): actor.armor_item["durability"] = maxi(0, int(actor.armor_item["durability"]) - 4)
 			actor.person.stress = minf(100, actor.person.stress + 8)
-			report.append("%s在袭击中受伤；请在白天处理。" % actor.display_name)
+			report.append("【安防】%s伤势加重；请在白天处理。" % actor.display_name)
 			break
 
 
 func raid_defense(preview: bool = false) -> float:
-	var defense := (0.9 if cycle.has_build("barricade") else 0.0)+residence.defense()
-	for actor in survivors:
-		if actor.health <= 0 or actor.survivor_id >= cycle.roles.size() or cycle.roles[actor.survivor_id] != "guard": continue
-		var fatigue: float = minf(100,actor.fatigue+28)-28 if preview else actor.fatigue-28
-		defense += actor.health/100.0*maxf(0.2,1-fatigue/160.0)*1.2*residence.guard_multiplier()*CharacterAbilities.factor(actor,"melee")*(1.15 if not actor.weapon().is_empty() else 1.0)
-	return defense
+	return DefenseAssessment.total(DefenseAssessment.components(self,preview))
 
 
 func night_forecast() -> String:
@@ -613,19 +622,18 @@ func night_forecast() -> String:
 
 
 func _resolve_convoy(report: Array[String]) -> void:
-	var escort := 0.0
-	for actor in survivors:
-		if actor.health > 0: escort += actor.health / 100 * (0.7 if actor.weapon().is_empty() else 1.2) * CharacterAbilities.factor(actor,"melee")
+	var escort := DefenseAssessment.total(DefenseAssessment.components(self))
 	var danger := 1.5 + minf(1, cycle.night_day * 0.025)
+	report.append("【安防】迁居护送%.2f / 路线威胁%.2f；%s。营地设施不参与路上护送。" % [escort,danger,DefenseAssessment.summary(DefenseAssessment.components(self))])
 	if escort >= danger:
-		report.append("搬家队伍沿勘察路线穿过尸群，装备与互相掩护避免了人员受伤。")
+		report.append("【安防】搬家队伍沿勘察路线穿过尸群，装备与互相掩护避免了人员受伤。")
 	else:
 		for actor in survivors:
 			if actor.health <= 0: continue
 			actor.health = maxf(0, actor.health - 12 * (1-actor.protection()))
 			actor.injury = minf(100,actor.injury+10)
 			if not actor.armor_item.is_empty(): actor.armor_item["durability"] = maxi(0,int(actor.armor_item["durability"])-4)
-		report.append("迁居途中遭遇尸群，护送力量不足，成员受伤；库存仍随运输队抵达。")
+		report.append("【安防】迁居途中遭遇尸群，护送力量不足，成员受伤；库存仍随运输队抵达。")
 
 
 func begin_day() -> void:
@@ -668,7 +676,7 @@ func _expedition_controls() -> Dictionary:
 				interface.target_enemy = -1
 				return manual
 			var distance := float(enemy["x"])-expedition.player_x
-			if int(enemy["floor"]) == expedition.floor_level and absf(distance) < float(survivors[expedition.actor_id].weapon().get("reach",75))-7 and expedition.climb_target == -1:
+			if expedition.enemy_can_reach(enemy) and absf(distance) < float(survivors[expedition.actor_id].weapon().get("reach",75))-7 and expedition.attack_obstruction(enemy,survivors[expedition.actor_id]).is_empty():
 				expedition.facing = signf(distance) if absf(distance) > 1 else expedition.facing
 				if expedition.attack_cooldown <= 0:
 					expedition_attack()
@@ -676,7 +684,9 @@ func _expedition_controls() -> Dictionary:
 					interface.target_enemy = -1
 				return {}
 			interface.target_x = float(enemy["x"])-signf(distance)*(float(survivors[expedition.actor_id].weapon().get("reach",75))-20)
-			interface.target_floor = int(enemy["floor"])
+			if expedition.enemy_can_reach(enemy) and not expedition.attack_obstruction(enemy,survivors[expedition.actor_id]).is_empty():
+				interface.target_x = float(enemy["x"])
+			interface.target_floor = int(enemy["climb_target"]) if int(enemy["climb_target"]) != -1 else int(enemy["floor"])
 		var controls := _route_controls(interface.target_x,interface.target_floor,false)
 		controls["sneak"] = Input.is_physical_key_pressed(KEY_CTRL)
 		controls["sprint"] = interface.target_run and not controls["sneak"]
@@ -835,6 +845,17 @@ func cancel_selected() -> void:
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
+	if is_instance_valid(security_view) and security_view.opened:
+		if event is InputEventKey and event.pressed and not event.echo:
+			if event.physical_keycode in [KEY_ESCAPE,KEY_Z]: security_view.close()
+			elif event.physical_keycode == KEY_F6: save_game()
+			elif event.physical_keycode == KEY_F11: center._set_fullscreen(not game_audio.fullscreen)
+		get_viewport().set_input_as_handled()
+		return
+	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_Z:
+		if not _loot_open and not departure_dialog.visible and not expedition_view.equipment_dialog.visible: security_view.toggle()
+		get_viewport().set_input_as_handled()
+		return
 	if is_instance_valid(briefing) and briefing.opened:
 		if event is InputEventKey and event.pressed and not event.echo:
 			if event.physical_keycode in [KEY_U,KEY_ESCAPE]: briefing.close()
@@ -907,6 +928,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if is_instance_valid(security_view) and security_view.opened: return
 	if is_instance_valid(briefing) and briefing.opened: return
 	if (is_instance_valid(departure_dialog) and departure_dialog.visible) or (is_instance_valid(expedition_view.equipment_dialog) and expedition_view.equipment_dialog.visible): return
 	if not event is InputEventMouseButton or not event.pressed or game_over or center.visible or (is_instance_valid(residence_view) and residence_view.opened): return
@@ -940,7 +962,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if site < 0:
 			for index in range(expedition.enemies.size()):
 				var enemy: Dictionary = expedition.enemies[index]
-				if enemy["hp"] > 0 and absf(point.x - float(enemy["x"])) < 34 and absf(point.y - ExpeditionState.FLOOR_Y[int(enemy["floor"])]) < 90:
+				if enemy["hp"] > 0 and absf(point.x - float(enemy["x"])) < 34 and Rect2(Vector2(float(enemy["x"])-34,expedition.enemy_y(enemy)-100),Vector2(68,105)).has_point(point):
 					interface.target_enemy = index
 					break
 		get_viewport().set_input_as_handled()

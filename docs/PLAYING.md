@@ -1,6 +1,6 @@
 # 正常游戏：白天生活，夜间分工，清晨结算
 
-[下载Windows游戏](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.3.2/live_forever_v13_2_windows_x64.zip) · [全部下载](../downloads/README.md)
+[下载Windows游戏](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.6.0/live_forever_v16_windows_x64.zip) · [全部下载](../downloads/README.md)
 
 解压整个文件夹，双击LiveForever.exe。游戏离线运行，不需要Godot、Python、账号或服务器。验收包是另一个工具，只有主动运行windows_acceptance.cmd才会自动控制人物测试。
 
@@ -109,3 +109,7 @@ H修好吉他后安排演奏，人物会走到楼上演奏并播放原创合成�
 键盘直接控制会打断该人的当前行动，未完成生产、建设和工作台任务按原规则只退一次用料。暂停、全屏菜单、制作／家园窗口和文本输入框不会让人物在背后移动。保存不记录“还按着移动键”的临时状态，读档并松键后不会继续漂移。
 
 夜间同样保留A/D移动，直接移动优先于未完成的鼠标攻击、搜索与可选返程；拾取窗口仍须Esc关闭，暂停仍需空格继续。J是夜间攻击键。
+
+## v1.6 追踪与安防
+
+敌人根据看见或听见的位置调查，会沿楼梯换层；失去联系后返回巡逻。家具能挡低位攻击，站起抬枪或走到同侧再打；扑咬蓄力结束时再次检查距离、方向与遮挡。被挡住的射击仍耗弹，不算伤害或委托命中。Z检查安防贡献，天亮后可查看实际损失、设施损耗和护甲／窗网减伤。详见[AI与安防规则](AI_SECURITY_V16.md)。

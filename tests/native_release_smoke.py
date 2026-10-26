@@ -214,6 +214,15 @@ def main():
         moved_left = move_day('a', moved_right['actors'][2]['position'][0], -1)
         assert moved_left['actors'][2]['route'] == [], 'Released keyboard movement left a saved floor destination'
         print('NATIVE DAY KEYBOARD PASS: real A/D moves in shelter; key release leaves no phantom route', flush=True)
+        press('z')
+        inspection = save()
+        assert inspection['paused'] and inspection['campaign']['phase'] == 'day', 'Z did not open a paused security inspection'
+        press('Return')
+        inspected = save()
+        assert inspected['simulation_time'] == inspection['simulation_time'] and inspected['campaign']['phase'] == 'day', 'Inspection allowed simulation or a night transition'
+        press('Escape')
+        assert not save()['paused'], 'Closing inspection did not restore play'
+        print('NATIVE SECURITY PASS: real Z opens inspection, Enter is consumed, Escape restores play', flush=True)
         press('v')
         press('Return')
         # End-day simulation and the next rendered frame can take longer

@@ -19,3 +19,5 @@
 - v5_story.json：来自归档v0.7原程序persistence_story_process.gd的write阶段。实际生存两天，保存待处理的林舟故事、原有引导、真实库存与工作；schema5文件未经手工改写。生成日志为构建产物m08-legacy-fixture.log。
 
 `v6_campaign.json`由归档v0.9实际运行持久化目标脚本生成：已完成工厂勘查和付费互助，保留原始schema6信封与校验和，用于v1.0旧档迁移检查。
+
+`v12_equipped_campaign.json`：来自v1.5.0最终干净回归中的真实跨进程装备／战役存档（persistence_expansion_process.json），保留原始schema12封装、数据与校验；用于验证schema13在所有地图补全AI字段而不重置装备或战役。

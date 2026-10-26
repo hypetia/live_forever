@@ -83,6 +83,7 @@ func draw_enemy(c: CanvasItem,enemy: Dictionary,index: int,point: Vector2,time: 
 	var recoil := maxf(0,1-age/0.28)
 	var lean := (sin(recoil*PI)*float(reaction.get("direction",0))*11)/(1.5 if kind == "brute" else 1.0)
 	if age < 0.09: tint = tint.lerp(Color("f3c9bb"),0.85)
+	var climbing: bool = int(enemy.get("climb_target",-1)) != -1
 	var moving: bool = enemy["mode"] in ["chase","patrol","investigate"]
 	var stride := sin(time*(15 if kind == "runner" else 6 if kind == "brute" else 8))* (9 if kind == "runner" else 5) if moving else 0.0
 	var torso := point+Vector2(lean+(direction*5 if kind == "runner" else 0),0)
@@ -97,6 +98,7 @@ func draw_enemy(c: CanvasItem,enemy: Dictionary,index: int,point: Vector2,time: 
 	c.draw_circle(torso+Vector2(direction*5,-64*scale),9*scale,tint.lightened(0.28))
 	var arm := Vector2(direction* (42 if enemy["mode"] == "windup" else 24),-38*scale)
 	if kind == "brute" and enemy["mode"] == "windup": arm = Vector2(direction*23,-80)
+	if climbing: arm = Vector2(sin(time*6)*12,-65*scale)
 	if recoil > 0: arm.x -= float(reaction.get("direction",0))*recoil*14
 	c.draw_line(shoulder+Vector2(direction*7,8),torso+arm,tint.lightened(0.15),6*scale,true)
 	if kind == "brute": c.draw_circle(torso+arm,5.5,tint.lightened(0.1))

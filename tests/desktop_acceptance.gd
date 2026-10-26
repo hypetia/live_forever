@@ -73,6 +73,11 @@ func _run() -> void:
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png(output.path_join("briefing_%dx%d.png" % [size.x,size.y]))
 		game.briefing.close()
+		game.security_view.toggle()
+		record(game.security_view.opened and game.paused and design.encloses(game.security_view.window.get_global_rect()), "security inspection fits and pauses at %dx%d" % [size.x,size.y])
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png(output.path_join("security_%dx%d.png" % [size.x,size.y]))
+		game.security_view.close()
 		game.interface.toggle_workshop()
 		record(game.interface.workshop_open and design.encloses(game.interface.workshop_panel.get_global_rect()) and game.paused, "equipment workshop fits and explicitly pauses at %dx%d" % [size.x, size.y])
 		await RenderingServer.frame_post_draw

@@ -3,7 +3,7 @@ extends RefCounted
 ## Validated snapshots, checksummed JSON, atomic replacement and one backup.
 ## Only data is loaded: no resource paths, scripts or executable expressions.
 
-const VERSION := 12
+const VERSION := 13
 const MAX_BYTES := 2 * 1024 * 1024
 const STATIONS := ["workbench", "stove", "table", "bed"]
 const FLOAT_FIELDS := ["work_elapsed", "work_duration", "hunger", "fatigue", "health", "injury", "infection", "illness", "cold_exposure", "movement_clock", "facing"]
@@ -383,6 +383,8 @@ func _read_file(filename: String) -> Dictionary:
 		data = migrate_v10(data)
 	if int(envelope["version"]) <= 11:
 		data = migrate_v11(data)
+	if int(envelope["version"]) <= 12:
+		data = migrate_v12(data)
 	var error := validate(data)
 	if not error.is_empty():
 		return {"ok": false, "message": error}
@@ -608,4 +610,23 @@ static func migrate_v11(data: Variant) -> Variant:
 	if not data is Dictionary or data.has("director") or not data.get("campaign") is Dictionary: return null
 	var upgraded: Dictionary = data.duplicate(true)
 	upgraded["director"] = {} if upgraded["campaign"].is_empty() else CampaignDirector.new().snapshot()
+	return upgraded
+
+
+static func migrate_v12(data: Variant) -> Variant:
+	if not data is Dictionary or not data.get("other_regions") is Dictionary or not data.get("expedition") is Dictionary: return null
+	var upgraded: Dictionary = data.duplicate(true)
+	for region in [upgraded["expedition"]]+upgraded["other_regions"].values():
+		if not region is Dictionary or not region.get("enemies") is Array: return null
+		for enemy in region["enemies"]:
+			if not enemy is Dictionary or not enemy.has("floor"): return null
+			# Older migrations create fresh maps with the current constructor.
+			if enemy.has("home_floor"):
+				if not enemy.has_all(["target_floor","memory","climb_target","climb_progress"]): return null
+				continue
+			enemy["home_floor"] = enemy["floor"]
+			enemy["target_floor"] = enemy["floor"]
+			enemy["memory"] = 0.0
+			enemy["climb_target"] = -1
+			enemy["climb_progress"] = 0.0
 	return upgraded
