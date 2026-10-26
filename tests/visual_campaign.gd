@@ -58,7 +58,7 @@ func _run() -> void:
 	check(scene.cycle.bed_count() == 1 and scene.inventory.amount("materials") == 4, "placement spends actual stock and grants no premature facility")
 	sim(scene, 45)
 	check(scene.cycle.bed_count() == 2, "builder reaches the site and completes a second usable bed")
-	await picture("res://docs/v10-construction.png")
+	await picture("res://docs/v11-cycle-construction.png")
 	await click_at(scene.cards[1].get_global_rect().get_center())
 	await click_at(scene.stove.global_position + Vector2(0, -118))
 	check(scene.context_open and scene.selected_task == "cook", "clicking the stove opens its physical production choices")
@@ -72,8 +72,8 @@ func _run() -> void:
 	check(scene.survivors[1].orders == ["eat"] and not scene.context_open, "table is a direct eating action without another dashboard confirmation")
 	sim(scene, 10)
 	check(scene.inventory.amount("meals") == 3, "selected person actually eats one cooked meal")
-	await picture("res://docs/v10-day.png")
-	await click_at(Vector2(1310, 170))
+	await picture("res://docs/v11-cycle-day.png")
+	await click_button(scene.hud, "结束白天")
 	check(scene.end_day_dialog.visible and scene.cycle.phase == "day", "end-day button asks before discarding unfinished work")
 	await dialog_click(scene.end_day_dialog, scene.end_day_dialog.get_ok_button())
 	check(scene.cycle.phase == "planning" and scene.interface.shown == "planning" and scene.paused, "confirmation enters a separate frozen night assignment screen")
@@ -84,7 +84,7 @@ func _run() -> void:
 	await click_at(scene.interface.map_buttons["clinic"].get_global_rect().get_center())
 	check(scene.expedition.location_id == "clinic" and not scene.expedition.active, "choosing a destination does not start a trip")
 	await click_at(scene.interface.map_buttons["street"].get_global_rect().get_center())
-	await picture("res://docs/v10-night-planning.png")
+	await picture("res://docs/v11-cycle-night-planning.png")
 	await click_at(scene.interface.depart_button.get_global_rect().get_center())
 	check(scene.cycle.phase == "scavenge" and scene.expedition.active and not scene.paused, "night departure starts exactly one real scavenging session")
 	check(scene.inventory.amount("medicine") == medicine - 1 and scene.expedition.bag["medicine"] == 1, "departure transfers exact equipment once")
@@ -100,7 +100,7 @@ func _run() -> void:
 	time = scene.simulation_time
 	sim(scene, 1)
 	check(scene.paused and scene.simulation_time == time, "explicit pause freezes danger and the night clock in the loot pane")
-	await picture("res://docs/v10-loot.png")
+	await picture("res://docs/v11-cycle-loot.png")
 	await click_at(scene.interface.loot_buttons["raw_food"].get_global_rect().get_center())
 	await click_at(scene.interface.loot_returns["raw_food"].get_global_rect().get_center())
 	check(scene.expedition.bag["raw_food"] == 0 and scene.expedition.sites[0]["contents"]["raw_food"] == 2, "two-way inventory transfer conserves actual items")
@@ -118,7 +118,7 @@ func _run() -> void:
 	check(scene.cycle.phase == "dawn" and scene.interface.shown == "dawn", "actual extraction leads to a dawn report rather than another free trip")
 	check(CampaignCycle.minute(scene.simulation_time) == 360 and scene.inventory.amount("raw_food") == 4, "return advances to 06:00 and credits the selected supplies once")
 	check(scene.cycle.report.size() >= 5 and scene.cycle.report.any(func(line): return "疲劳" in line), "dawn report explains night roles, fatigue and the home defense result")
-	await picture("res://docs/v10-dawn.png")
+	await picture("res://docs/v11-cycle-dawn.png")
 	var path := ProjectSettings.globalize_path("user://campaign_visual_%d.json" % OS.get_process_id())
 	scene.save_store.path = path
 	scene.persistence_enabled = true
@@ -134,12 +134,13 @@ func _run() -> void:
 	scene.free()
 	for suffix in ["", ".bak", ".tmp", ".bak.tmp"]:
 		if FileAccess.file_exists(path + suffix): DirAccess.remove_absolute(path + suffix)
-	# Another fresh run verifies mouse combat without position or damage fixtures.
+	# Another fresh run verifies unarmed mouse combat without position or damage fixtures.
 	scene = load("res://scenes/campaign.tscn").instantiate()
 	scene.persistence_enabled = false
 	root.add_child(scene)
 	scene.set_process(false)
 	await process_frame
+	scene.expansion.equip(scene, 1, 2) # Deliberately test unarmed push.
 	scene.end_day()
 	scene.start_expedition()
 	var enemy: Dictionary = scene.expedition.enemies[0]
@@ -147,7 +148,7 @@ func _run() -> void:
 	check(scene.interface.target_enemy == 0, "clicking an enemy creates a physical approach-and-attack command")
 	sim(scene, 5)
 	check(scene.expedition.enemies[0]["brace"] > 0 and scene.expedition_view.impact_kind == "push", "mouse approach reaches the patrol and performs a real unarmed push")
-	await picture("res://docs/v10-mouse-combat.png")
+	await picture("res://docs/v11-cycle-mouse-combat.png")
 	scene.free()
 	print("CAMPAIGN VISUAL RESULT: %d checks, %d failures" % [checks, failures])
 	await create_timer(0.12).timeout

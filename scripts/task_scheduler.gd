@@ -11,6 +11,8 @@ var survivors: Array[Survivor] = []
 var facilities: Dictionary = {}
 var inventory: ShelterInventory
 var navigation := ShelterNavigation.new()
+var external_busy := Callable()
+var station_reserved := Callable()
 var upkeep: ShelterProgress
 const MAX_ORDERS := 3
 
@@ -23,6 +25,7 @@ func configure(actors: Array[Survivor], stations: Array[Workstation], stock: She
 
 
 func submit(actor: Survivor, task_id: String = "repair") -> bool:
+	if external_busy.is_valid() and external_busy.call(actor.survivor_id): return false
 	if actor.state == Survivor.TaskState.AWAY:
 		event_reported.emit("%s正在外出，不能执行基地任务。" % actor.display_name)
 		return false
@@ -130,6 +133,7 @@ func step(delta: float) -> void:
 
 
 func _try_start(station: Workstation) -> void:
+	if station_reserved.is_valid() and station_reserved.call(station.facility_id): return
 	if station.occupant_id != -1 or station.waiting_ids.is_empty():
 		return
 	var actor := survivors[station.waiting_ids[0]]
@@ -189,6 +193,7 @@ func _finish(actor: Survivor) -> void:
 		if actor.metabolism >= 1 or actor.hunger < 80: actor.health = minf(100, actor.health + 25)
 		actor.injury = maxf(0, actor.injury - 50)
 		actor.infection = maxf(0, actor.infection - 40)
+		actor.illness = maxf(0, actor.illness - 35)
 	actor.completed_jobs += 1
 	actor.completed_by_task[task_id] += 1
 	station.completed_jobs += 1

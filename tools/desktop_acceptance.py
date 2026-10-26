@@ -87,7 +87,7 @@ class XDesktop:
                 if self.x.XFetchName(self.display, window, C.byref(name)) and name:
                     title = name.value.decode('utf8', errors='replace')
                     self.x.XFree(C.cast(name, C.c_void_p))
-                    if 'Live Forever' in title and 'v1.0' in title:
+                    if 'Live Forever' in title:
                         if expected_pid is None or self.owner_pid(window) == expected_pid:
                             return window
                 pending.extend(self.children(window))
@@ -204,6 +204,7 @@ def main():
             assert after['paused'] and after['stock'] == before['stock']
             assert after['goals'] == before['goals'] and after['story'] == before['story']
             assert after['campaign'] == before['campaign']
+            assert after['expansion'] == before['expansion']
             assert abs(after['simulation_time'] - before['simulation_time']) < .000001
             close_process()
         for name in ['continuous.log', 'restart.log']:

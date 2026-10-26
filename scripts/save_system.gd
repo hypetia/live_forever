@@ -3,10 +3,10 @@ extends RefCounted
 ## Validated snapshots, checksummed JSON, atomic replacement and one backup.
 ## Only data is loaded: no resource paths, scripts or executable expressions.
 
-const VERSION := 7
+const VERSION := 8
 const MAX_BYTES := 2 * 1024 * 1024
 const STATIONS := ["workbench", "stove", "table", "bed"]
-const FLOAT_FIELDS := ["work_elapsed", "work_duration", "hunger", "fatigue", "health", "injury", "infection", "movement_clock", "facing"]
+const FLOAT_FIELDS := ["work_elapsed", "work_duration", "hunger", "fatigue", "health", "injury", "infection", "illness", "cold_exposure", "movement_clock", "facing"]
 var path := "user://shelter_v1.json"
 
 
@@ -29,9 +29,10 @@ static func capture(game: Node2D) -> Dictionary:
 	for station: Workstation in game.scheduler.facilities.values():
 		stations[station.facility_id] = {"occupant": station.occupant_id, "waiters": station.waiting_ids.duplicate(), "completed": station.completed_jobs}
 	var other_regions := {}
-	for id in LocationCatalog.IDS:
+	for id in game.regions:
 		if id != game.expedition.location_id: other_regions[id] = game.regions[id].snapshot()
 	return {
+		"expansion": game.expansion_snapshot() if game.has_method("expansion_snapshot") else {},
 		"campaign": game.campaign_snapshot() if game.has_method("campaign_snapshot") else {},
 		"destination": game.expedition.location_id, "other_regions": other_regions, "upkeep": game.upkeep.snapshot(), "people": game.people.snapshot(), "story": game.story.snapshot(), "goals": game.goals.snapshot(),
 		"simulation_time": game.simulation_time, "paused": game.paused, "speed": game.speed,
@@ -97,10 +98,11 @@ static func _segment(a: Array, b: Array) -> bool:
 static func validate(data: Variant) -> String:
 	if not data is Dictionary:
 		return "存档内容不是对象"
-	var required := ["simulation_time", "paused", "speed", "selected_id", "selected_task", "stock", "history", "stairs_open", "actors", "stations", "logs", "expedition", "destination", "other_regions", "upkeep", "people", "story", "goals", "campaign"]
+	var required := ["simulation_time", "paused", "speed", "selected_id", "selected_task", "stock", "history", "stairs_open", "actors", "stations", "logs", "expedition", "destination", "other_regions", "upkeep", "people", "story", "goals", "campaign", "expansion"]
 	if not _exact_keys(data, required):
 		return "存档缺少字段或包含未知字段"
-	if not data["destination"] is String or not LocationCatalog.IDS.has(data["destination"]): return "未知目的地"
+	var region_ids: Array = LocationCatalog.IDS if data["expansion"] is Dictionary and data["expansion"].is_empty() else LocationCatalog.ALL_IDS
+	if not data["destination"] is String or not region_ids.has(data["destination"]): return "未知目的地"
 	if not _number(data["simulation_time"], 0, 1000000000) or not data["paused"] is bool or not data["stairs_open"] is bool or not data["speed"] in [1.0, 3.0]:
 		return "时间或运行设置无效"
 	if not data["actors"] is Array or data["actors"].size() < 3 or data["actors"].size() > PeopleCatalog.MAX_HISTORY: return "队伍数量无效"
@@ -148,7 +150,7 @@ static func validate(data: Variant) -> String:
 		for task in actor["orders"]:
 			if not task is String or not TaskCatalog.TASKS.has(task):
 				return "存档含未知任务"
-		for field in ["hunger", "fatigue", "health", "injury", "infection"]:
+		for field in ["hunger", "fatigue", "health", "injury", "infection", "illness", "cold_exposure"]:
 			if not _number(actor[field], 0, 100):
 				return "生存状态超出范围"
 		if not _number(actor["work_duration"], 0.1, 60) or not _number(actor["work_elapsed"], 0, actor["work_duration"]) or not _number(actor["movement_clock"], 0, 1000000000000) or not actor["facing"] in [-1.0, 1.0]:
@@ -229,7 +231,7 @@ static func validate(data: Variant) -> String:
 		return "探索地点日期超过世界时间"
 	if data["expedition"]["active"] and (data["selected_id"] != data["expedition"]["actor_id"] or data["speed"] != 1.0):
 		return "外出控制角色或速度不符"
-	var inactive_ids := LocationCatalog.IDS.duplicate()
+	var inactive_ids := region_ids.duplicate()
 	inactive_ids.erase(data["destination"])
 	if not _exact_keys(data["other_regions"], inactive_ids): return "地点存档不完整"
 	for id in inactive_ids:
@@ -239,6 +241,8 @@ static func validate(data: Variant) -> String:
 		if world["active"] or world["last_refresh_day"] > ExpeditionState.day_at(data["simulation_time"]): return "非当前地点不能活动或超前刷新"
 	var campaign_error := CampaignCycle.validate(data["campaign"], data)
 	if not campaign_error.is_empty(): return campaign_error
+	var expansion_error := SurvivalExpansion.validate(data["expansion"], data)
+	if not expansion_error.is_empty(): return expansion_error
 	return ShelterProgress.validate(data["upkeep"], float(data["simulation_time"]), bool(data["expedition"]["active"]))
 
 
@@ -261,7 +265,9 @@ static func apply_state(game: Node2D, data: Dictionary) -> String:
 	game.inventory.restore_validated(data["stock"], data["history"])
 	game.expedition = game.regions[data["destination"]]
 	game.expedition.restore_validated(data["expedition"])
-	for id in data["other_regions"]: game.regions[id].restore_validated(data["other_regions"][id])
+	for id in game.regions:
+		if id == data["destination"]: continue
+		game.regions[id].restore_validated(data["other_regions"][id] if data["other_regions"].has(id) else ExpeditionState.new(id).snapshot())
 	game.upkeep.restore_validated(data["upkeep"])
 	game.simulation_time = float(data["simulation_time"])
 	game.paused = data["paused"]
@@ -309,6 +315,7 @@ static func apply_state(game: Node2D, data: Dictionary) -> String:
 	game.game_over = game.survivors.all(func(actor: Survivor): return actor.health <= 0)
 	game.selected_task = data["selected_task"]
 	if game.has_method("restore_campaign"): game.restore_campaign(data["campaign"])
+	if game.has_method("restore_expansion"): game.restore_expansion(data["expansion"])
 	game.expedition_view.reset_feedback()
 	game.select_survivor(int(data["selected_id"]))
 	game._refresh_log()
@@ -352,6 +359,8 @@ func _read_file(filename: String) -> Dictionary:
 		data = migrate_v5(data)
 	if int(envelope["version"]) <= 6:
 		data = migrate_v6(data)
+	if int(envelope["version"]) <= 7:
+		data = migrate_v7(data)
 	var error := validate(data)
 	if not error.is_empty():
 		return {"ok": false, "message": error}
@@ -514,4 +523,36 @@ static func migrate_v6(data: Variant) -> Variant:
 		if not world.has("capacity"): world["capacity"] = 10
 		if not world.has("manual_loot"): world["manual_loot"] = false
 		if not world.has("loot_site"): world["loot_site"] = -1
+	return upgraded
+
+
+static func migrate_v7(data: Variant) -> Variant:
+	if not data is Dictionary or data.has("expansion") or not data.has_all(["actors", "campaign", "expedition", "other_regions"]): return null
+	var upgraded: Dictionary = data.duplicate(true)
+	if not upgraded["actors"] is Array or not upgraded["campaign"] is Dictionary or not upgraded["other_regions"] is Dictionary or not upgraded["expedition"] is Dictionary: return null
+	upgraded["expansion"] = {}
+	if not upgraded["campaign"].is_empty():
+		var expansion := SurvivalExpansion.new()
+		expansion.epoch = ExpeditionState.day_at(float(upgraded.get("simulation_time", 0)))
+		upgraded["expansion"] = expansion.snapshot()
+	for actor in upgraded["actors"]:
+		if not actor is Dictionary: return null
+		actor["illness"] = 0.0
+		actor["cold_exposure"] = 0.0
+	var worlds: Array = upgraded["other_regions"].values()
+	worlds.append(upgraded["expedition"])
+	for world in worlds:
+		if not world is Dictionary or not world.get("enemies") is Array: return null
+		world["extra_slots"] = 0
+		world["reserve_ammo"] = 0
+		world["magazine"] = 0
+		world["reload_remaining"] = 0.0
+		for enemy in world["enemies"]:
+			if not enemy is Dictionary: return null
+			enemy["kind"] = "walker"
+	if not upgraded["campaign"].is_empty():
+		for id in LocationCatalog.ALL_IDS:
+			if not LocationCatalog.IDS.has(id):
+				upgraded["other_regions"][id] = ExpeditionState.new(id).snapshot()
+				if upgraded.get("upkeep") is Dictionary and upgraded["upkeep"].get("returns") is Dictionary: upgraded["upkeep"]["returns"][id] = 0
 	return upgraded

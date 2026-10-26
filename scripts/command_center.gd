@@ -282,7 +282,7 @@ func _create_people_page() -> void:
 	aid_button = _action(aid_row, "治疗所选同伴 · 药品1", _aid)
 	for button in [support_button, aid_button]: button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	support_button.tooltip_text = "共餐安慰：心境+10、压力−20、信任+10；每人180秒冷却，不代替日常进食。"
-	aid_button.tooltip_text = "由当前医护援助所选同伴：生命+20至26、伤势−40、感染−35。消耗药品1，每人180秒冷却。"
+	aid_button.tooltip_text = "由当前医护援助所选同伴：生命+20至26、伤势−40、感染−35、疾病−35。消耗药品1，每人180秒冷却。"
 	_text(left, "心境低于25、压力达到80会降效，但不会随机拒绝命令或离队。照顾需求、休息、治疗与共餐都能帮助恢复。", 13)
 	candidate_picker = OptionButton.new()
 	right.add_child(candidate_picker)
@@ -344,11 +344,11 @@ func _refresh_support() -> void:
 	var aid_disabled: bool = game.expedition.active or game.game_over or support_picker.item_count == 0 or actor.health <= 0 or actor.speciality != "医护" or game.inventory.amount("medicine") < 1
 	if not aid_disabled:
 		var patient: Survivor = game.survivors[int(support_picker.get_item_metadata(support_picker.selected))]
-		aid_disabled = (patient.health >= 100 and patient.injury <= 0 and patient.infection <= 0) or game.simulation_time - actor.person.last_aid < 180 or game.simulation_time - patient.person.last_aid < 180
+		aid_disabled = (patient.health >= 100 and patient.injury <= 0 and patient.infection <= 0 and patient.illness <= 0) or game.simulation_time - actor.person.last_aid < 180 or game.simulation_time - patient.person.last_aid < 180
 	aid_button.disabled = aid_disabled
 	aid_button.text = "%s → %s · 药品1" % [actor.display_name, game.survivors[int(support_picker.get_item_metadata(support_picker.selected))].display_name] if support_picker.item_count > 0 else "没有可治疗的同伴"
-	aid_button.tooltip_text = "施治者：%s（需要医护）。接受治疗者：下拉框中的同伴。即时消耗药品1，生命+20至26、伤势−40、感染−35；双方180秒冷却。" % actor.display_name
-	if game.has_method("campaign_snapshot"): aid_button.tooltip_text += "\n饥饿80以上时先吃饭：用药仍处理伤势与感染，但不恢复生命。"
+	aid_button.tooltip_text = "施治者：%s（需要医护）。接受治疗者：下拉框中的同伴。即时消耗药品1，生命+20至26、伤势−40、感染−35、疾病−35；双方180秒冷却。" % actor.display_name
+	if game.has_method("campaign_snapshot"): aid_button.tooltip_text += "\n饥饿80以上时先吃饭：用药仍处理伤势、感染与疾病，但不恢复生命。"
 	support_picker.tooltip_text = "选择接受共餐安慰或医疗援助的同伴。上方当前角色是行动发起者。"
 	support_picker.disabled = game.expedition.active or support_picker.item_count == 0
 

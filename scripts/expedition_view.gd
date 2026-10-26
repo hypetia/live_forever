@@ -16,6 +16,7 @@ var context_label: Label
 var actor_label: Label
 var role_label: Label
 var stats_label: Label
+var gear_label: Label
 var capacity_label: Label
 var feedback_label: Label
 var log_label: Label
@@ -51,6 +52,7 @@ func _ready() -> void:
 	for world: ExpeditionState in game.regions.values(): world.combat_resolved.connect(_on_combat_resolved)
 	title_label = _label("", Vector2(32, 151), Vector2(680, 34), 22, INK)
 	alert_label = _label("", Vector2(730, 155), Vector2(650, 28), 15, GOLD)
+	gear_label = _label("", Vector2(1050, 151), Vector2(355, 42), 13, GOLD)
 	area_hint = _label("", Vector2(32, 191), Vector2(1370, 42), 13, MUTED)
 	area_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	area_hint.clip_text = true
@@ -186,6 +188,10 @@ func refresh() -> void:
 	actor_label.text = actor.display_name
 	role_label.text = "搜寻者 · 搜索+20% / 脚步声−20%" if actor.speciality == "搜寻者" else actor.speciality + " / 单人实时探索"
 	stats_label.text = "生命 %d · 饥饿 %d · 疲劳 %d\n伤势 %d · 感染 %d · 口渴%d" % [ceili(actor.health), ceili(actor.hunger), ceili(actor.fatigue), ceili(actor.injury), ceili(actor.infection), roundi(actor.person.thirst)]
+	gear_label.visible = actor.metabolism < 1
+	if actor.metabolism < 1:
+		stats_label.text = "生命%d · 饥饿%d · 疲劳%d · 渴%d\n伤%d · 感染%d · 疾病%d · 寒冷%d" % [roundi(actor.health), roundi(actor.hunger), roundi(actor.fatigue), roundi(actor.person.thirst), roundi(actor.injury), roundi(actor.infection), roundi(actor.illness), roundi(actor.cold_exposure)]
+		gear_label.text = "%s · 耐久%d%s\n室外%d℃ · 保暖+%d℃%s" % [actor.weapon().get("name", "徒手"), actor.weapon_item.get("durability", 0), " · 弹匣%d+%d" % [state.magazine, state.reserve_ammo] if actor.weapon().has("magazine") else "", game.expansion.outside(game), actor.warmth(), " · 换弹中" if state.reload_remaining > 0 else ""]
 	stats_label.add_theme_color_override("font_color", Color("dca184") if actor.health < 40 or actor.infection >= 30 else MUTED)
 	for node in bag_nodes: node.visible = bag_open
 	bag_button.text = "%d/%d I" % [state.used_capacity(), state.capacity]
@@ -197,8 +203,9 @@ func refresh() -> void:
 	retreat_button.disabled = game.paused
 	search_button.disabled = game.paused
 	attack_button.disabled = game.paused or state.attack_cooldown > 0 or state.climb_target != -1
-	attack_button.text = ("工具挥击 J" if state.bag["tools"] > 0 else "徒手推搡 J") if state.attack_cooldown <= 0 else "冷却 %.1f" % state.attack_cooldown
-	attack_button.tooltip_text = "有工具：消耗1件，命中造成40伤害。徒手：只推开、不扣生命。面向敌人，75范围内生效；前摇0.2秒，冷却1.1秒。"
+	attack_button.text = (actor.weapon().get("name", "徒手推搡") + " J") if actor.metabolism < 1 else ("工具挥击 J" if state.bag["tools"] > 0 else "徒手推搡 J")
+	if state.attack_cooldown > 0: attack_button.text = "冷却 %.1f" % state.attack_cooldown
+	attack_button.tooltip_text = (GearCatalog.describe(actor.weapon_item["kind"]) + "；L换弹" if not actor.weapon().is_empty() else "徒手只推开，工具用于破锁和制作。") if actor.metabolism < 1 else "有工具：消耗1件，命中造成40伤害。徒手：只推开、不扣生命。面向敌人，75范围内生效；前摇0.2秒，冷却1.1秒。"
 	drink_button.disabled = game.paused or state.bag["water"] <= 0 or actor.person.thirst <= 0
 	medicine_button.disabled = game.paused or state.bag["medicine"] <= 0 or state.medicine_cooldown > 0
 	retreat_button.text = "撤退并带回物资 [T]" if state.floor_level == 0 and state.player_x <= 145 else "回入口撤退 [T]"
@@ -278,17 +285,17 @@ func _draw() -> void:
 		_draw_enemy(enemy, camera, state)
 	var actor: Survivor = game.survivors[state.actor_id]
 	_draw_player(Vector2(state.player_x - camera, state.player_y), actor, state)
-	if state.attack_windup > 0 or state.attack_cooldown > 0.76:
+	if state.attack_windup > 0 or (state.attack_cooldown > maxf(0, float(actor.weapon().get("cooldown", 1.1)) - 0.34)):
 		var swing := Vector2(state.player_x - camera, state.player_y - 38)
 		if swing.x >= 55 and swing.x <= 1010:
 			var angle := 0.0 if state.facing > 0 else PI
 			var windup := state.attack_windup > 0
-			var sweep := (1.1 - state.attack_cooldown) / 0.34
+			var sweep := (float(actor.weapon().get("cooldown", 1.1)) - state.attack_cooldown) / 0.34
 			var color := Color("cba96b") if windup else Color("f1dfb3")
-			draw_arc(swing, 72, angle - 0.85, angle + 0.85, 24, Color(color, 0.25) if windup else color, 1.5 if windup else 4, true)
+			draw_arc(swing, minf(125, float(actor.weapon().get("reach", 72))), angle - 0.85, angle + 0.85, 24, Color(color, 0.25) if windup else color, 1.5 if windup else 4, true)
 			var hand := swing + Vector2.from_angle(angle - 1.0 + sweep * 2.0) * 44
 			draw_line(swing, hand, actor.tint.lightened(0.2), 6, true)
-			if state.bag["tools"] > 0 or impact_kind == "hit" and impact_time > 0.6:
+			if state.bag["tools"] > 0 or impact_kind in ["hit", "shot"] and impact_time > 0.6:
 				draw_line(hand, hand + Vector2(0, -19), Color("d5d7bf"), 4, true)
 	_draw_weather(state)
 	if SurvivalRules.is_night(game.simulation_time):
@@ -322,7 +329,7 @@ func _draw_enemy(enemy: Dictionary, camera: float, state: ExpeditionState) -> vo
 	if point.x < -80 or point.x > 1140: return
 	if enemy["hp"] <= 0:
 		_text(point + Vector2(-22, -38), "已击倒", 12, MUTED)
-		if impact_kind == "hit" and impact_time > 0.65 and absf(impact_point.x - float(enemy["x"])) < 2:
+		if impact_kind in ["hit", "shot"] and impact_time > 0.65 and absf(impact_point.x - float(enemy["x"])) < 2:
 			var fall := clampf((1 - impact_time) / 0.35, 0, 1)
 			var up := Vector2.UP.rotated(float(enemy["direction"]) * PI * 0.5 * fall)
 			var hip := point + Vector2(0, -22 * (1 - fall))
@@ -339,21 +346,24 @@ func _draw_enemy(enemy: Dictionary, camera: float, state: ExpeditionState) -> vo
 	reach = maxf(55, reach * float(state.weather()["vision"]))
 	var direction: float = enemy["direction"]
 	if enemy["mode"] == "windup":
-		var windup := clampf(1.0 - float(enemy["timer"]) / 0.8, 0, 1)
+		var windup := clampf(1.0 - float(enemy["timer"]) / (1.1 if enemy.get("kind") == "brute" else 0.5 if enemy.get("kind") == "runner" else 0.8), 0, 1)
 		point.x += direction * windup * 8
 		draw_arc(point + Vector2(0, -30), 47, -PI / 2 if direction > 0 else PI / 2, PI / 2 if direction > 0 else PI * 1.5, 24, Color(0.95, 0.45, 0.26, 0.6), 3, true)
 	draw_colored_polygon(PackedVector2Array([point + Vector2(0, -50), point + Vector2(direction * reach, -85), point + Vector2(direction * reach, -5)]), Color(0.75, 0.36, 0.25, 0.055))
 	if enemy["brace"] > 0 and enemy["mode"] != "stunned": _text(point + Vector2(25, -72), "稳", 11, GOLD)
-	var stride := sin(state.elapsed * 5) * 5
+	var kind: String = enemy.get("kind", "walker")
+	var stride := sin(state.elapsed * (9 if kind == "runner" else 4 if kind == "brute" else 5)) * (9 if kind == "runner" else 5)
+	if kind == "brute": draw_rect(Rect2(point + Vector2(-18, -58), Vector2(36, 39)), Color("67715b"))
+	if kind == "runner": draw_line(point + Vector2(-5 * direction, -26), point + Vector2(13 * direction, -54), Color("9e806b"), 10, true)
 	draw_line(point + Vector2(-5, -23), point + Vector2(-8 + stride, -2), Color("3b4942"), 7, true)
 	draw_line(point + Vector2(5, -23), point + Vector2(8 - stride, -2), Color("3b4942"), 7, true)
 	draw_colored_polygon(PackedVector2Array([point + Vector2(-11, -49), point + Vector2(10, -53), point + Vector2(13, -22), point + Vector2(-9, -21)]), Color("707b61"))
 	draw_circle(point + Vector2(direction * 5, -58), 9, Color("a1a186"))
 	draw_line(point + Vector2(5 * direction, -44), point + Vector2((42 if enemy["mode"] == "windup" else 23) * direction, -37), Color("c4a185") if enemy["mode"] == "windup" else Color("899174"), 6, true)
 	# Health and awareness have separate positions, colors and explicit labels.
-	_text(point + Vector2(-28, -128), "生命 %d/40" % enemy["hp"], 12, Color("e5a68b"))
+	_text(point + Vector2(-28, -128), "%s %d" % [{"walker": "行尸", "runner": "迅捷尸", "brute": "重型尸"}[enemy.get("kind", "walker")], enemy["hp"]], 12, Color("e5a68b"))
 	draw_rect(Rect2(point + Vector2(-28, -118), Vector2(62, 7)), Color("1a2422"))
-	draw_rect(Rect2(point + Vector2(-28, -118), Vector2(62 * clampf(float(enemy["hp"]) / 40.0, 0, 1), 7)), Color("ce7c6b"))
+	draw_rect(Rect2(point + Vector2(-28, -118), Vector2(62 * clampf(float(enemy["hp"]) / (90.0 if enemy.get("kind") == "brute" else 30.0 if enemy.get("kind") == "runner" else 40.0), 0, 1), 7)), Color("ce7c6b"))
 	if enemy["suspicion"] > 0:
 		draw_rect(Rect2(point + Vector2(-28, -105), Vector2(62 * float(enemy["suspicion"]) / 100, 3)), GOLD)
 	if enemy["mode"] == "windup":
@@ -397,6 +407,42 @@ func _draw_landmarks(state: ExpeditionState, camera: float, accent: Color) -> vo
 		for x in [1850, 2400]:
 			_rect_world(Rect2(x, 565, 55, 55), Color("6d604a"))
 			_rect_world(Rect2(x, 578, 55, 5), accent.darkened(0.3))
+	elif state.location_id == "market":
+		for x in [560, 980, 1430, 2310]:
+			_rect_world(Rect2(x, 500, 130, 17), accent)
+			_rect_world(Rect2(x + 8, 517, 6, 103), accent.darkened(0.4))
+			_rect_world(Rect2(x + 116, 517, 6, 103), accent.darkened(0.4))
+			_rect_world(Rect2(x, 590, 130, 30), Color("5b6347"))
+	elif state.location_id == "waterworks":
+		for x in [600, 1850, 2800]:
+			_rect_world(Rect2(x, 480, 120, 140), Color("526f6d"))
+			_rect_world(Rect2(x + 30, 450, 24, 170), accent.darkened(0.2))
+			_rect_world(Rect2(x - 100, 450, 160, 14), accent.darkened(0.2))
+	elif state.location_id == "depot":
+		for x in [650, 1460, 2950]:
+			_rect_world(Rect2(x, 515, 280, 85), Color("6e5d4c"))
+			_rect_world(Rect2(x + 15, 530, 245, 6), accent)
+			_rect_world(Rect2(x + 30, 600, 38, 20), Color("202b2d"))
+			_rect_world(Rect2(x + 205, 600, 38, 20), Color("202b2d"))
+	elif state.location_id == "broadcast":
+		for height in range(8):
+			var point := Vector2(2800 - camera, 380 - height * 36)
+			var half_width := 65 - height * 6
+			draw_line(point + Vector2(-half_width, 0), point + Vector2(half_width - 5, -36), accent, 3, true)
+			draw_line(point + Vector2(half_width, 0), point + Vector2(-half_width + 5, -36), accent, 3, true)
+		_rect_world(Rect2(2750, 75, 100, 4), accent.lightened(0.2))
+	elif state.location_id == "evac":
+		for x in [550, 1640, 2830, 3620]:
+			_rect_world(Rect2(x, 540, 12, 80), accent)
+			_rect_world(Rect2(x + 145, 540, 12, 80), accent)
+			_rect_world(Rect2(x, 550, 157, 5), accent.darkened(0.2))
+		_rect_world(Rect2(700, 650, 3200, 25), Color("274b55"))
+	elif state.location_id == "residential":
+		for x in [710, 1180, 1690, 2040]:
+			_rect_world(Rect2(x, 366, 90, 14), Color("96a39b"))
+			_rect_world(Rect2(x + 6, 380, 5, 20), accent)
+			_rect_world(Rect2(x + 78, 380, 5, 20), accent)
+
 	else:
 		for x in [590, 1770]:
 			_rect_world(Rect2(x, 450, 95, 18), accent.darkened(0.25))
@@ -405,6 +451,11 @@ func _draw_landmarks(state: ExpeditionState, camera: float, accent: Color) -> vo
 
 func _draw_weather(state: ExpeditionState) -> void:
 	var phase: float = game.weather_time
+	if game.has_method("expansion_snapshot") and game.expansion.outside(game) < 0:
+		for index in range(35):
+			var point := Vector2(fposmod(index * 97.0 - phase * 17, 1080), 260 + fposmod(index * 73.0 + phase * 35, 405))
+			draw_circle(point, 1.5, Color(0.8, 0.87, 0.9, 0.3))
+		return
 	match state.last_refresh_day % 4:
 		2:
 			for index in range(45):
@@ -438,10 +489,12 @@ func _on_combat_resolved(kind: String, point: Vector2, damage: int) -> void:
 func _draw_impact(camera: float) -> void:
 	if impact_time <= 0: return
 	var point := impact_point - Vector2(camera, 0)
-	var color := Color("f1d4a0") if impact_kind in ["hit", "push"] else Color("b5b9aa")
-	var text: String = {"hit": "命中 −%d" % impact_damage, "push": "推开 · 0伤害", "miss": "挥空", "blocked": "稳身 · 推不动"}.get(impact_kind, "")
+	var color := Color("f1d4a0") if impact_kind in ["hit", "shot", "push"] else Color("b5b9aa")
+	var text: String = {"shot": "射中 −%d" % impact_damage, "hit": "命中 −%d" % impact_damage, "push": "推开 · 0伤害", "miss": "挥空", "blocked": "稳身 · 推不动"}.get(impact_kind, "")
 	_text(Vector2(clampf(point.x - 140, 30, 810), maxf(285, point.y - 155 - (1 - impact_time) * 15)), text, 20, Color(color, minf(1, impact_time * 3)))
-	if impact_time > 0.65 and impact_kind in ["hit", "push"]:
+	if impact_time > 0.85 and impact_kind == "shot":
+		draw_line(Vector2(game.expedition.player_x - camera, game.expedition.player_y - 50), point, Color("f2d5a0"), 3, true)
+	if impact_time > 0.65 and impact_kind in ["hit", "shot", "push"]:
 		var radius := (1 - impact_time) * 100 + 8
 		draw_arc(point, radius, 0, TAU, 24, color, 3, true)
 		for index in range(6):

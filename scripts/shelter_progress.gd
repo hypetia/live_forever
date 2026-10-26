@@ -107,7 +107,7 @@ func milestones(game: Node2D) -> Array:
 	return [
 		["第一批补给", returns.values().any(func(n): return n > 0), "亲自搜到物资并从入口带回"],
 		["照顾彼此", cook >= 1 and eat >= 1 and sleep >= 1, "完成做饭、吃饭与睡眠"],
-		["走遍街区", all_places, "从三处地点分别带回净补给"],
+		["走遍街区", all_places, "从所有已开放区域分别带回净补给"],
 		["修补漏风的墙", repairs > 0, "消耗材料，真正完成一次修缮"],
 		["留住这束光", level == 3, "把据点升到三级，仍需维护和补给"],
 		["第七个清晨", ExpeditionState.day_at(game.simulation_time) >= 7 and game.survivors.any(func(a): return a.health > 0), "带着至少一位幸存者抵达第七天；之后可继续"],
@@ -142,13 +142,13 @@ static func validate(data: Variant, seconds: float, away: bool) -> String:
 	if (data["pending_event"] == -1) != (data["event_day"] == 0) or (data["pending_event"] != -1 and data["event_day"] < 2): return "事件状态不一致"
 	for key in ["resolved_events", "repairs"]:
 		if not ExpeditionState._i(data[key], 0, 100000000): return "据点计数无效"
-	if not ExpeditionState._keys(data["returns"], LocationCatalog.IDS) or not ExpeditionState._keys(data["recovered"], ShelterInventory.NAMES.keys()) or not data["trip_loadout"] is Dictionary: return "探索日志种类无效"
+	if (not ExpeditionState._keys(data["returns"], LocationCatalog.IDS) and not ExpeditionState._keys(data["returns"], LocationCatalog.ALL_IDS)) or not ExpeditionState._keys(data["recovered"], ShelterInventory.NAMES.keys()) or not data["trip_loadout"] is Dictionary: return "探索日志种类无效"
 	for field in ["returns", "recovered"]:
 		for amount in data[field].values():
 			if not ExpeditionState._i(amount, 0, 100000000): return "探索统计数量无效"
 	if not away and not data["trip_loadout"].is_empty(): return "未外出却保留携带账目"
 	for key in data["trip_loadout"]:
-		if not key in ["tools", "medicine"] or not ExpeditionState._i(data["trip_loadout"][key], 1, 1): return "携带账目无效"
+		if not key in ShelterInventory.NAMES or not ExpeditionState._i(data["trip_loadout"][key], 1, 16): return "携带账目无效"
 	if not data["journal"] is Array or data["journal"].size() > 16: return "日志容量无效"
 	for line in data["journal"]:
 		if not line is String or line.length() > 300: return "日志内容无效"

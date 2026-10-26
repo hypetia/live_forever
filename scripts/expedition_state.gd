@@ -17,9 +17,14 @@ const SITE_DEFS := LocationCatalog.STREET_SITES
 const MODES := ["patrol", "investigate", "chase", "windup", "stunned", "dead"]
 
 var capacity := CAPACITY
+var extra_slots := 0
+var reserve_ammo := 0
+var magazine := 0
+var reload_remaining := 0.0
 var manual_loot := false
 var loot_site := -1
 var discovered: Array[int] = []
+var special_sites: Array[int] = [] # Derived from campaign parts after loading; never trusted from disk.
 var location_id := "street"
 var active := false
 var actor_id := -1
@@ -90,7 +95,7 @@ func _spawn_enemies(day: int) -> void:
 		definitions.append(area()["extra"].duplicate())
 	for index in range(definitions.size()):
 		var data: Array = definitions[index]
-		enemies.append({"x": data[0], "floor": data[1], "min": data[2], "max": data[3], "direction": -1.0 if (day + index) % 2 else 1.0, "mode": "patrol", "suspicion": 0.0, "target": data[0], "timer": 0.0, "cooldown": 0.0, "brace": 0.0, "hp": 40})
+		enemies.append({"x": data[0], "floor": data[1], "min": data[2], "max": data[3], "direction": -1.0 if (day + index) % 2 else 1.0, "mode": "patrol", "suspicion": 0.0, "target": data[0], "timer": 0.0, "cooldown": 0.0, "brace": 0.0, "hp": (90 if data.size() > 4 and data[4] == "brute" else 30 if data.size() > 4 and data[4] == "runner" else 40), "kind": data[4] if data.size() > 4 else "walker"})
 
 
 func begin(id: int, loadout: Dictionary, previous_speed: float) -> void:
@@ -129,7 +134,7 @@ func begin(id: int, loadout: Dictionary, previous_speed: float) -> void:
 
 
 func used_capacity() -> int:
-	var total := 0
+	var total := extra_slots
 	for amount: int in bag.values(): total += amount
 	return total
 
@@ -154,12 +159,26 @@ func nearby_site() -> int:
 	return nearest
 
 
+func reload(actor: Survivor) -> bool:
+	if not active or reload_remaining > 0 or not actor.weapon().has("magazine") or magazine >= 6 or reserve_ammo <= 0 or attack_windup > 0: return false
+	reload_remaining = 1.4
+	feedback = "换弹中 · 1.4秒，仍可移动。"
+	return true
+
+
 func tick(delta: float, actor: Survivor, controls: Dictionary) -> void:
 	if not active:
 		return
 	if actor.health <= 0:
 		_finish(false)
 		return
+	if reload_remaining > 0:
+		reload_remaining = maxf(0, reload_remaining - delta)
+		if reload_remaining == 0:
+			var rounds := mini(6 - magazine, reserve_ammo)
+			magazine += rounds
+			reserve_ammo -= rounds
+			feedback = "换弹完成 · 弹匣%d / 备用%d" % [magazine, reserve_ammo]
 	elapsed += delta
 	invulnerable = maxf(0, invulnerable - delta)
 	attack_cooldown = maxf(0, attack_cooldown - delta)
@@ -228,7 +247,7 @@ func _search(delta: float, actor: Survivor) -> void:
 	if manual_loot and discovered.has(index):
 		loot_site = index
 		return
-	if site["contents"].values().all(func(amount: int): return amount == 0):
+	if site["contents"].values().all(func(amount: int): return amount == 0) and not special_sites.has(index):
 		feedback = "这个容器已空。同一天反复进出不会刷新物资。"
 		return
 	if search_index != index:
@@ -272,30 +291,49 @@ func _search(delta: float, actor: Survivor) -> void:
 
 
 func attack(actor: Survivor) -> bool:
-	if not active or actor.health <= 0 or attack_cooldown > 0 or climb_target != -1:
+	if not active or actor.health <= 0 or attack_cooldown > 0 or climb_target != -1 or reload_remaining > 0:
 		return false
-	actor.fatigue = minf(100, actor.fatigue + (0.6 if bag["tools"] > 0 else 1.2))
-	attack_cooldown = 1.1
-	attack_windup = 0.2
-	noise_burst = 100
-	feedback = "准备工具挥击 · 有效距离75，前摇0.2秒。" if bag["tools"] > 0 else "准备徒手推搡 · 只推开，不扣敌人生命。"
+	var weapon := actor.weapon()
+	if weapon.has("magazine"):
+		if magazine <= 0:
+			feedback = "弹匣已空：L换弹；没有备用弹药时请撤离。"
+			return false
+		var old_slots := ceili((reserve_ammo + magazine) / 8.0)
+		magazine -= 1
+		extra_slots = maxi(0, extra_slots - old_slots + ceili((reserve_ammo + magazine) / 8.0))
+	actor.fatigue = minf(100, actor.fatigue + (0.6 if not weapon.is_empty() or bag["tools"] > 0 else 1.2))
+	attack_cooldown = float(weapon.get("cooldown", 1.1))
+	attack_windup = float(weapon.get("windup", 0.2))
+	noise_burst = 100 if weapon.has("magazine") or weapon.is_empty() else 65
+	feedback = "准备%s · 距离%d" % [weapon.get("name", "徒手推搡"), weapon.get("reach", 75)]
 	return true
 
 
 func _resolve_attack(actor: Survivor) -> void:
 	var target: Dictionary = {}
-	var closest := 75.0
+	var weapon := actor.weapon()
+	var closest := float(weapon.get("reach", 75.0))
 	for enemy in enemies:
 		var distance := absf(float(enemy["x"]) - player_x)
 		if enemy["hp"] > 0 and enemy["floor"] == floor_level and absf(player_y - FLOOR_Y[floor_level]) < 30 and distance < closest and (float(enemy["x"]) - player_x) * facing >= -10:
 			target = enemy
 			closest = distance
 	if target.is_empty():
-		feedback = "挥空：前方75范围内没有同层敌人。工具未消耗。"
+		if weapon.has("magazine"): actor.weapon_item["durability"] = maxi(0, int(actor.weapon_item["durability"]) - 1)
+		feedback = "挥空：前方有效距离内没有同层敌人；射击仍消耗弹药。"
 		combat_resolved.emit("miss", Vector2(player_x + facing * 55, player_y - 50), 0)
 		event_reported.emit(feedback)
 		return
-	if bag["tools"] > 0:
+	if not weapon.is_empty():
+		var damage := mini(int(target["hp"]), int(weapon["damage"]))
+		target["hp"] -= damage
+		actor.weapon_item["durability"] = maxi(0, int(actor.weapon_item["durability"]) - int(weapon["wear"]))
+		target["mode"] = "dead" if target["hp"] <= 0 else "stunned"
+		target["timer"] = 0.0 if target["hp"] <= 0 else 0.35
+		target["cooldown"] = 0.0
+		combat_resolved.emit("shot" if weapon.has("magazine") else "hit", Vector2(target["x"], FLOOR_Y[int(target["floor"])] - 50), damage)
+		feedback = "%s命中 −%d！敌人剩余生命%d，武器耐久%d。" % [weapon["name"], damage, target["hp"], actor.weapon_item["durability"]]
+	elif actor.metabolism >= 1 and bag["tools"] > 0:
 		bag["tools"] -= 1
 		var damage: int = target["hp"]
 		target["hp"] = 0
@@ -327,7 +365,7 @@ func use_medicine(actor: Survivor) -> bool:
 	if not active or actor.health <= 0 or bag["medicine"] <= 0 or medicine_cooldown > 0:
 		feedback = "背包没有可用药品，或急救仍在冷却。"
 		return false
-	if actor.metabolism < 1 and actor.hunger >= 80 and actor.injury <= 0 and actor.infection <= 0:
+	if actor.metabolism < 1 and actor.hunger >= 80 and actor.injury <= 0 and actor.infection <= 0 and actor.illness <= 0:
 		feedback = "需要先吃饭，药品不能代替食物。没有消耗药品。"
 		return false
 	bag["medicine"] -= 1
@@ -336,6 +374,7 @@ func use_medicine(actor: Survivor) -> bool:
 	actor.health = minf(100, actor.health + recovered)
 	actor.injury = maxf(0, actor.injury - 40)
 	actor.infection = maxf(0, actor.infection - 35)
+	actor.illness = maxf(0, actor.illness - 35)
 	feedback = "使用药品：生命+%d，伤势-40，感染-35。%s" % [recovered, "先处理饥饿才能恢复生命。" if recovered == 0 else ""]
 	event_reported.emit(feedback)
 	return true
@@ -384,6 +423,7 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 	enemy["brace"] = maxf(0, float(enemy["brace"]) - delta)
 	enemy["cooldown"] = maxf(0, float(enemy["cooldown"]) - delta)
 	var distance := absf(float(enemy["x"]) - player_x)
+	var kind: String = enemy.get("kind", "walker")
 	var same_floor: bool = enemy["floor"] == floor_level and absf(player_y - FLOOR_Y[int(enemy["floor"])]) < 65
 	if enemy["mode"] == "stunned":
 		enemy["timer"] = maxf(0, float(enemy["timer"]) - delta)
@@ -393,15 +433,18 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 		enemy["timer"] = maxf(0, float(enemy["timer"]) - delta)
 		if enemy["timer"] == 0:
 			if same_floor and distance < 62 and invulnerable <= 0:
-				actor.health = maxf(0, actor.health - 14)
-				actor.injury = minf(100, actor.injury + 12)
-				actor.infection = minf(100, actor.infection + 8)
+				var reduction := 1 - actor.protection()
+				var damage := roundi((24 if kind == "brute" else 10 if kind == "runner" else 14) * reduction)
+				actor.health = maxf(0, actor.health - damage)
+				actor.injury = minf(100, actor.injury + 12 * reduction)
+				actor.infection = minf(100, actor.infection + 8 * reduction)
+				if not actor.armor_item.is_empty(): actor.armor_item["durability"] = maxi(0, int(actor.armor_item["durability"]) - 8)
 				actor.person.stress = minf(100, actor.person.stress + 8)
 				actor.person.trauma = minf(100, actor.person.trauma + 2)
 				actor.person.morale = maxf(0, actor.person.morale - 2)
 				invulnerable = 1.6
 				player_x = clampf(player_x + (1 if player_x >= enemy["x"] else -1) * 42, 90 if floor_level == 0 else upper_left(), right_edge(floor_level))
-				feedback = "被扑咬！生命-14，伤势与感染上升；R 用药，拉开距离撤退。"
+				feedback = "被扑咬！生命-%d（护甲已计入），伤势与感染上升；R用药。" % damage
 				event_reported.emit(feedback)
 			enemy["mode"] = "chase"
 			enemy["cooldown"] = 1.8
@@ -427,7 +470,7 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 	if enemy["mode"] == "chase":
 		if same_floor and distance < 48 and enemy["cooldown"] <= 0:
 			enemy["mode"] = "windup"
-			enemy["timer"] = 0.8
+			enemy["timer"] = 1.1 if kind == "brute" else 0.5 if kind == "runner" else 0.8
 			feedback = "感染者正在蓄力扑咬！后退或 J 推开。"
 			return
 		if same_floor: enemy["target"] = player_x
@@ -436,7 +479,7 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 		var difference := float(enemy["target"]) - float(enemy["x"])
 		if absf(difference) > 8:
 			enemy["direction"] = signf(difference)
-			enemy["x"] = clampf(float(enemy["x"]) + signf(difference) * (105 if enemy["mode"] == "chase" else 48) * delta, 90 if int(enemy["floor"]) == 0 else upper_left(), right_edge(int(enemy["floor"])))
+			enemy["x"] = clampf(float(enemy["x"]) + signf(difference) * ((155 if kind == "runner" else 75 if kind == "brute" else 105) if enemy["mode"] == "chase" else 48) * delta, 90 if int(enemy["floor"]) == 0 else upper_left(), right_edge(int(enemy["floor"])))
 		elif enemy["mode"] == "investigate": enemy["mode"] = "patrol"
 	else:
 		if enemy["x"] <= enemy["min"]: enemy["direction"] = 1.0
@@ -447,7 +490,7 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 
 func snapshot() -> Dictionary:
 	return {
-		"discovered": discovered.duplicate(), "capacity": capacity, "manual_loot": manual_loot, "loot_site": loot_site,
+		"extra_slots": extra_slots, "reserve_ammo": reserve_ammo, "magazine": magazine, "reload_remaining": reload_remaining, "discovered": discovered.duplicate(), "capacity": capacity, "manual_loot": manual_loot, "loot_site": loot_site,
 		"active": active, "actor_id": actor_id, "attempts": attempts, "last_refresh_day": last_refresh_day,
 		"return_speed": return_speed, "player_x": player_x, "player_y": player_y, "floor": floor_level,
 		"facing": facing, "sneaking": sneaking, "sprinting": sprinting, "moving": moving,
@@ -460,7 +503,7 @@ func snapshot() -> Dictionary:
 
 
 func restore_validated(data: Dictionary) -> void:
-	for property in ["capacity", "manual_loot", "loot_site", "active", "facing", "sneaking", "sprinting", "moving", "return_speed", "player_x", "player_y", "noise", "noise_burst", "elapsed", "invulnerable", "attack_cooldown", "attack_windup", "medicine_cooldown", "climb_progress", "search_progress", "search_duration", "search_tool", "feedback"]:
+	for property in ["extra_slots", "reserve_ammo", "magazine", "reload_remaining", "capacity", "manual_loot", "loot_site", "active", "facing", "sneaking", "sprinting", "moving", "return_speed", "player_x", "player_y", "noise", "noise_burst", "elapsed", "invulnerable", "attack_cooldown", "attack_windup", "medicine_cooldown", "climb_progress", "search_progress", "search_duration", "search_tool", "feedback"]:
 		set(property, data[property])
 	discovered.clear()
 	for index in data["discovered"]: discovered.append(int(index))
@@ -501,13 +544,14 @@ static func _keys(value: Variant, keys: Array) -> bool:
 
 
 static func validate_snapshot(data: Variant, actors: Array, id: String = "street") -> String:
-	if not LocationCatalog.IDS.has(id): return "未知探索地点"
+	if not LocationCatalog.ALL_IDS.has(id): return "未知探索地点"
 	var definition := LocationCatalog.area(id)
 	var site_defs: Array = definition["sites"]
 	var upper: float = definition["upper_left"]
 	var width: float = definition["width"]
-	var fields := ["discovered", "capacity", "manual_loot", "loot_site", "active", "actor_id", "attempts", "last_refresh_day", "return_speed", "player_x", "player_y", "floor", "facing", "sneaking", "sprinting", "moving", "noise", "noise_burst", "elapsed", "invulnerable", "attack_cooldown", "attack_windup", "medicine_cooldown", "climb_target", "climb_progress", "search_index", "search_progress", "search_duration", "search_tool", "feedback", "bag", "sites", "enemies"]
+	var fields := ["extra_slots", "reserve_ammo", "magazine", "reload_remaining", "discovered", "capacity", "manual_loot", "loot_site", "active", "actor_id", "attempts", "last_refresh_day", "return_speed", "player_x", "player_y", "floor", "facing", "sneaking", "sprinting", "moving", "noise", "noise_burst", "elapsed", "invulnerable", "attack_cooldown", "attack_windup", "medicine_cooldown", "climb_target", "climb_progress", "search_index", "search_progress", "search_duration", "search_tool", "feedback", "bag", "sites", "enemies"]
 	if not _keys(data, fields): return "探索字段不完整"
+	if not _i(data["extra_slots"], 0, 16) or not _i(data["reserve_ammo"], 0, 120) or not _i(data["magazine"], 0, 6) or not _n(data["reload_remaining"], 0, 1.4): return "弹药或装备负重无效"
 	if not _i(data["capacity"], 10, 16) or not data["manual_loot"] is bool or not _i(data["loot_site"], -1, site_defs.size() - 1): return "背包容量或物资窗口无效"
 	if not data["discovered"] is Array or data["discovered"].size() > site_defs.size(): return "已搜索容器记录无效"
 	var unique: Array = []
@@ -532,7 +576,7 @@ static func validate_snapshot(data: Variant, actors: Array, id: String = "street
 	else:
 		if not data["active"] or target == level or absf(data["player_x"] - float(definition["ladder"])) > 0.01 or data["climb_progress"] >= 1 or absf(data["player_y"] - lerpf(FLOOR_Y[level], FLOOR_Y[target], data["climb_progress"])) > 0.01: return "探索攀爬路径不一致"
 	if not _keys(data["bag"], ShelterInventory.NAMES.keys()): return "探索背包种类无效"
-	var used := 0
+	var used := int(data["extra_slots"])
 	for resource in data["bag"]:
 		if not _i(data["bag"][resource], 0, int(data["capacity"])): return "探索背包数量无效"
 		used += int(data["bag"][resource])
@@ -563,8 +607,8 @@ static func validate_snapshot(data: Variant, actors: Array, id: String = "street
 		if data["search_tool"] and (not site["locked"] or data["bag"]["tools"] < 1): return "破锁没有实际工具"
 	if not data["enemies"] is Array or data["enemies"].size() != (definition["guards"].size() + (1 if int(data["last_refresh_day"]) % 3 == 0 else 0)): return "感染者数量与迁入日期不符"
 	for enemy in data["enemies"]:
-		if not _keys(enemy, ["x", "floor", "min", "max", "direction", "mode", "suspicion", "target", "timer", "cooldown", "brace", "hp"]): return "感染者字段无效"
-		if not _i(enemy["floor"], 0, 1) or not enemy["mode"] in MODES or not _i(enemy["hp"], 0, 40) or not enemy["direction"] in [-1.0, 1.0]: return "感染者状态无效"
+		if not _keys(enemy, ["x", "floor", "min", "max", "direction", "mode", "suspicion", "target", "timer", "cooldown", "brace", "hp", "kind"]): return "感染者字段无效"
+		if not _i(enemy["floor"], 0, 1) or not enemy["mode"] in MODES or not enemy["kind"] in ["walker", "runner", "brute"] or not _i(enemy["hp"], 0, 90 if enemy["kind"] == "brute" else 30 if enemy["kind"] == "runner" else 40) or not enemy["direction"] in [-1.0, 1.0]: return "感染者状态无效"
 		var low := 90.0 if enemy["floor"] == 0 else upper
 		var high := width - 100 if enemy["floor"] == 0 else width - 150
 		if not _n(enemy["x"], low, high) or not _n(enemy["min"], low, high) or not _n(enemy["max"], enemy["min"], high) or not _n(enemy["target"], low, high): return "感染者位置越界"

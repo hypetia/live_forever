@@ -19,6 +19,14 @@ var loot_buttons: Dictionary = {}
 var loot_returns: Dictionary = {}
 var loot_title: Label
 var loot_counts: Label
+var climate_label: Label
+var workshop_button: Button
+var workshop_panel: Panel
+var workshop_pause := false
+var workshop_open := false
+var map_page := 0
+var part_button: Button
+var ammo_label: Label
 var shown := ""
 var has_move_target := false
 var target_x := 110.0
@@ -37,6 +45,8 @@ func _ready() -> void:
 	add_child(root)
 	build_button = button(root, "建设 B", Vector2(1040, 150), Vector2(160, 42), toggle_build_menu)
 	placement_hint = label(root, "", Vector2(32, 246), Vector2(1000, 38), 17, game.GOLD)
+	workshop_button = button(root, "装备 / 战役 K", Vector2(1212, 150), Vector2(200, 42), toggle_workshop)
+	climate_label = label(root, "", Vector2(32, 151), Vector2(990, 62), 15)
 	refresh(true)
 
 
@@ -86,11 +96,16 @@ func panel(parent: Node, point: Vector2, size: Vector2, color: Color = Color("14
 
 func refresh(force: bool = false) -> void:
 	if not is_instance_valid(root): return
+	workshop_button.visible = game.cycle.phase == "day"
+	climate_label.visible = game.cycle.phase == "day"
+	if climate_label.visible:
+		climate_label.text = "战役第%d/35天 · 室外 %d℃ / 室内 %d℃  %s\n%s" % [game.expansion.day(game), game.expansion.outside(game), game.expansion.outside(game) + 8 + (18 if game.expansion.heater_remaining > 0 else 0), "炉火剩余%d分" % int(game.expansion.heater_remaining * 2) if game.expansion.heater_remaining > 0 else "炉火未点燃", game.expansion.objective(game)]
 	build_button.visible = game.cycle.phase == "day" and not game.expedition.active
 	placement_hint.visible = not game.placement.is_empty() and game.cycle.phase == "day"
 	if placement_hint.visible: placement_hint.text = "放置%s：点击绿色建设位置；右键或Esc取消。" % CampaignCycle.RECIPES[game.placement]["name"]
 	var mode: String = game.cycle.phase if game.cycle.phase in ["planning", "dawn"] else "loot" if game._loot_open else ""
 	if shown != mode or (force and not mode.is_empty()):
+		if workshop_open: close_workshop()
 		shown = mode
 		if is_instance_valid(overlay):
 			overlay.hide()
@@ -121,13 +136,17 @@ func _create_plan() -> void:
 	label(overlay, "先选搜刮地点，再安排每个人的夜晚。随身物资出发时才扣；每晚只能搜刮一次。", Vector2(38, 80), Vector2(1300, 28), 16)
 	button(overlay, "保存 F6", Vector2(1260, 30), Vector2(140, 42), func(): game.save_game())
 	label(overlay, "目的地", Vector2(38, 129), Vector2(600, 30), 19, game.GOLD)
-	for index in range(LocationCatalog.IDS.size()):
-		var id: String = LocationCatalog.IDS[index]
+	button(overlay, "‹ 上一组", Vector2(770, 122), Vector2(150, 34), _page_maps.bind(-1))
+	label(overlay, "%d / 3" % (map_page + 1), Vector2(935, 122), Vector2(100, 32))
+	button(overlay, "下一组 ›", Vector2(1040, 122), Vector2(150, 34), _page_maps.bind(1))
+	button(overlay, "装备 / 战役 K", Vector2(1200, 122), Vector2(195, 34), toggle_workshop)
+	for index in range(3):
+		var id: String = LocationCatalog.ALL_IDS[map_page * 3 + index]
 		var area := LocationCatalog.area(id)
 		var x := 38.0 + index * 458
 		panel(overlay, Vector2(x, 169), Vector2(440, 145), Color(str(area["color"])).darkened(0.15))
 		label(overlay, area["name"] + "  /  风险" + area["risk"], Vector2(x + 16, 181), Vector2(405, 30), 21)
-		var summary := label(overlay, area["summary"], Vector2(x + 16, 220), Vector2(405, 46), 14)
+		var summary := label(overlay, area["summary"] if game.expansion.unlocked(game, id) else "尚未开放：" + game.expansion.lock_reason(id), Vector2(x + 16, 220), Vector2(405, 46), 14)
 		summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		map_buttons[id] = button(overlay, "选择地点", Vector2(x + 16, 267), Vector2(405, 35), func(): game.choose_destination(id); refresh())
 	label(overlay, "夜间岗位  /  一名搜刮者 · 床位%d" % game.cycle.bed_count(), Vector2(38, 334), Vector2(650, 30), 19, game.GOLD)
@@ -156,7 +175,10 @@ func _create_plan() -> void:
 		var plus := button(overlay, "+", Vector2(1290, y - 2), Vector2(100, 34), _change_loadout.bind(key, 1))
 		supply_buttons[key] = [minus, plus]
 		row += 1
-	label(overlay, "床眠恢复65疲劳，地铺35；守夜+28，搜刮+35。\n第3夜起可能遭袭；无守夜者时，物资和同伴更危险。\n装备与物资每份占一格；工具破锁或命中仍会消耗。", Vector2(746, 721), Vector2(650, 75), 14)
+	label(overlay, "床眠恢复65疲劳，地铺35；守夜+28，搜刮+35。\n武器、护甲各占1格；弹药每8发占1格。冬衣穿在身上。", Vector2(746, 757), Vector2(650, 44), 13)
+	ammo_label = label(overlay, "", Vector2(746, 714), Vector2(430, 30), 15)
+	button(overlay, "−8发", Vector2(1195, 714), Vector2(90, 32), _ammo.bind(-8))
+	button(overlay, "+8发", Vector2(1300, 714), Vector2(90, 32), _ammo.bind(8))
 	plan_error = label(overlay, "", Vector2(38, 786), Vector2(1100, 28), 15, Color("dca184"))
 	button(overlay, "全员留守 · 不携带物资", Vector2(38, 829), Vector2(320, 44), _stay_home)
 	depart_button = button(overlay, "开始这一夜 →", Vector2(1035, 829), Vector2(360, 44), func(): game.start_expedition())
@@ -178,16 +200,20 @@ func _refresh_plan() -> void:
 		role_options[index].select(CampaignCycle.ROLES.find(game.cycle.roles[index]))
 		role_options[index].disabled = actor.health <= 0
 		role_options[index].set_item_disabled(4, actor.health > 0)
-		role_stats[index].text = "生命%d · 疲劳%d · 饥饿%d · 背包%d格" % [roundi(actor.health), roundi(actor.fatigue), roundi(actor.hunger), CampaignCycle.BAGS[actor.person.persona]]
+		role_stats[index].text = "生命%d 疲劳%d 饥饿%d · %s%d · %d格" % [roundi(actor.health), roundi(actor.fatigue), roundi(actor.hunger), actor.weapon().get("name", "徒手"), actor.weapon_item.get("durability", 0), CampaignCycle.BAGS[actor.person.persona]]
 	var total := 0
 	for amount in game.cycle.loadout.values(): total += int(amount)
+	total += game.expansion.reserved_slots(game)
+	ammo_label.text = "弹药库存%d / 携带%d；取暖：%s" % [game.expansion.ammo, game.expansion.ammo_loadout, "预留燃料" if game.expansion.use_night_heat else "关闭（K调整）"]
 	plan_capacity.text = "随身 %d / %d格  ·  据点库存不会在此刻扣除" % [total, game.cycle.capacity(game)]
 	for key in supply_labels:
 		var amount := int(game.cycle.loadout.get(key, 0))
 		supply_labels[key].text = "%s    库存%d    携带%d" % [ShelterInventory.NAMES[key], game.inventory.amount(key), amount]
 		supply_buttons[key][0].disabled = amount <= 0
 		supply_buttons[key][1].disabled = total >= game.cycle.capacity(game) or amount >= game.inventory.amount(key)
-	for id in map_buttons: map_buttons[id].text = "✓ 当前目的地" if id == game.expedition.location_id else "选择地点"
+	for id in map_buttons:
+		map_buttons[id].text = "✓ 当前目的地" if id == game.expedition.location_id else "选择地点"
+		map_buttons[id].disabled = not game.expansion.unlocked(game, id)
 	var error: String = game.cycle.plan_error(game)
 	plan_error.text = error if not error.is_empty() else "岗位和装备已就绪。留守者不会在夜里继续白天的生产任务。"
 	depart_button.disabled = not error.is_empty()
@@ -211,6 +237,7 @@ func _stay_home() -> void:
 			beds -= 1
 		else: game.cycle.roles[index] = "floor"
 	game.cycle.loadout.clear()
+	game.expansion.ammo_loadout = 0
 	refresh()
 
 
@@ -230,7 +257,12 @@ func _create_dawn() -> void:
 	scroll.add_child(lines)
 	label(overlay, "本轮结果已结算并随存档保留；重开窗口不会重复发放或再次扣除。", Vector2(83, 741), Vector2(1250, 30), 15)
 	var begin := button(overlay, "开始白天的生活 →", Vector2(950, 812), Vector2(400, 50), game.begin_day)
-	begin.disabled = game.game_over
+	begin.disabled = game.game_over or (not game.expansion.outcome.is_empty() and not game.expansion.endless)
+	if not game.expansion.outcome.is_empty() and not game.expansion.endless:
+		begin.text = "继续无尽生存 →"
+		begin.disabled = game.game_over
+		for connection in begin.pressed.get_connections(): begin.pressed.disconnect(connection["callable"])
+		begin.pressed.connect(func(): game.expansion.endless = true; game.begin_day())
 	button(overlay, "保存 F6", Vector2(80, 812), Vector2(180, 50), func(): game.save_game())
 	button(overlay, "读取存档 F9", Vector2(280, 812), Vector2(200, 50), game.request_load)
 	if game.game_over: button(overlay, "新的一局", Vector2(500, 812), Vector2(200, 50), game.request_new_game)
@@ -238,7 +270,7 @@ func _create_dawn() -> void:
 
 func _create_loot() -> void:
 	overlay.add_theme_stylebox_override("panel", game._style(Color(0.04, 0.07, 0.07, 0.82), Color("52634c")))
-	panel(overlay, Vector2(190, 210), Vector2(1060, 470))
+	panel(overlay, Vector2(190, 210), Vector2(1060, 535))
 	loot_title = label(overlay, "", Vector2(218, 230), Vector2(610, 34), 23, game.GOLD)
 	loot_counts = label(overlay, "", Vector2(840, 230), Vector2(370, 34), 20, game.GOLD)
 	label(overlay, "容器里的物资", Vector2(220, 279), Vector2(500, 26), 16)
@@ -249,14 +281,21 @@ func _create_loot() -> void:
 		loot_buttons[key] = button(overlay, "", Vector2(220, y), Vector2(485, 32), _take.bind(key))
 		loot_returns[key] = button(overlay, "", Vector2(735, y), Vector2(485, 32), _put.bind(key))
 		row += 1
-	label(overlay, "整理时场景继续；空格可暂停。只可放回容器原有种类，其余物品可在I背包丢弃。", Vector2(220, 589), Vector2(1000, 28), 13)
-	button(overlay, "尽量全部拿走 F", Vector2(220, 626), Vector2(300, 36), _take_all)
-	button(overlay, "关闭，继续行动 Esc", Vector2(850, 626), Vector2(370, 36), game.close_loot)
+	part_button = button(overlay, "", Vector2(220, 592), Vector2(1000, 54), func(): game.expansion.take_part(game); refresh())
+	label(overlay, "整理时场景继续；空格可暂停。只可放回容器原有种类，其余物品可在I背包丢弃。", Vector2(220, 665), Vector2(1000, 28), 13)
+	button(overlay, "尽量全部拿走 F", Vector2(220, 704), Vector2(300, 36), _take_all)
+	button(overlay, "关闭，继续行动 Esc", Vector2(850, 704), Vector2(370, 36), game.close_loot)
 
 
 func _refresh_loot() -> void:
 	var field: ExpeditionState = game.expedition
 	if field.loot_site < 0: return
+	var part_name := ""
+	for key in GearCatalog.PARTS:
+		var part: Dictionary = GearCatalog.PARTS[key]
+		if part["map"] == field.location_id and part["site"] == field.loot_site and not game.expansion.collected.has(key): part_name = ("放回：" if game.expansion.carried.has(key) else "拿取：") + part["name"]
+	part_button.text = "战役零件：%s（占1格，须活着带回）" % part_name if not part_name.is_empty() else "此处没有未收集的战役零件 · 随身%d件" % game.expansion.carried.size()
+	part_button.disabled = part_name.is_empty() or (field.used_capacity() >= field.capacity and not part_name.begins_with("放回"))
 	var site: Dictionary = field.sites[field.loot_site]
 	loot_title.text = field.site_definitions()[field.loot_site]["name"]
 	loot_counts.text = "背包 %d / %d格%s" % [field.used_capacity(), field.capacity, " · 已暂停" if game.paused else ""]
@@ -295,7 +334,7 @@ func set_target(x: float, floor_level: int, run: bool, site: int) -> void:
 func toggle_build_menu() -> void:
 	build_open = not build_open
 	if not is_instance_valid(build_panel):
-		build_panel = panel(root, Vector2(32, 270), Vector2(370, 430))
+		build_panel = panel(root, Vector2(32, 270), Vector2(370, 535))
 		label(build_panel, "建设 · 选设施，再点场景位置", Vector2(16, 16), Vector2(340, 30), 17, game.GOLD)
 		var row := 0
 		for type in CampaignCycle.RECIPES:
@@ -313,3 +352,87 @@ func _select_build(type: String) -> void:
 	build_open = false
 	build_panel.hide()
 	refresh()
+
+
+func _page_maps(direction: int) -> void:
+	map_page = posmod(map_page + direction, 3)
+	refresh(true)
+
+
+func _ammo(change: int) -> void:
+	game.expansion.ammo_loadout = clampi(game.expansion.ammo_loadout + change, 0, mini(120, game.expansion.ammo))
+	refresh()
+
+
+func toggle_workshop() -> void:
+	if workshop_open:
+		close_workshop()
+		return
+	if not game.cycle.phase in ["day", "planning"]: return
+	workshop_pause = game.paused
+	game.paused = true
+	workshop_open = true
+	_create_workshop()
+
+
+func close_workshop() -> void:
+	if not workshop_open: return
+	workshop_open = false
+	if is_instance_valid(workshop_panel):
+		workshop_panel.hide()
+		workshop_panel.queue_free()
+	if game.cycle.phase == "day": game.paused = workshop_pause
+
+
+func _create_workshop() -> void:
+	if is_instance_valid(workshop_panel):
+		workshop_panel.hide()
+		workshop_panel.queue_free()
+	workshop_panel = panel(root, Vector2(25, 20), Vector2(1390, 860))
+	label(workshop_panel, "工作台与战役 · 已暂停", Vector2(25, 17), Vector2(1070, 40), 27, game.GOLD)
+	button(workshop_panel, "关闭 K", Vector2(1180, 17), Vector2(180, 40), close_workshop)
+	label(workshop_panel, "第%d/35天 · %s\n%s" % [game.expansion.day(game), SurvivalExpansion.STAGES[game.expansion.stage], game.expansion.objective(game)], Vector2(25, 70), Vector2(1335, 65), 17)
+	for index in range(game.survivors.size()):
+		var actor: Survivor = game.survivors[index]
+		button(workshop_panel, ("✓ " if game.selected_id == index else "") + actor.display_name, Vector2(25 + index * 150, 142), Vector2(140, 36), func(): game.select_survivor(index); _create_workshop())
+	button(workshop_panel, "点燃炉火 · 燃料1", Vector2(810, 142), Vector2(240, 36), func(): game.expansion.ignite(game); _create_workshop())
+	button(workshop_panel, "夜间取暖 " + ("开" if game.expansion.use_night_heat else "关"), Vector2(1065, 142), Vector2(295, 36), func(): game.expansion.use_night_heat = not game.expansion.use_night_heat; _create_workshop())
+	label(workshop_panel, "夜间取暖出发前扣燃料（每份8小时，最多2份），归来物资不能补烧过去的夜晚。", Vector2(25, 189), Vector2(1040, 26), 14)
+	button(workshop_panel, "净水泵 " + ("开：燃料1换水3/日" if game.expansion.pump_on else "关"), Vector2(1065, 187), Vector2(295, 36), func(): game.expansion.pump_on = not game.expansion.pump_on; _create_workshop())
+	var scroll := ScrollContainer.new()
+	scroll.position = Vector2(25, 235)
+	scroll.size = Vector2(1335, 595)
+	workshop_panel.add_child(scroll)
+	var content := Control.new()
+	content.custom_minimum_size = Vector2(1300, 1)
+	scroll.add_child(content)
+	var y := 0.0
+	label(content, "制作需要人物走到工作台并花时间；点击已装备物品可卸下。修理消耗材料2，恢复60耐久。", Vector2(0, y), Vector2(1280, 30), 15, game.GOLD)
+	y += 42
+	for kind in GearCatalog.ITEMS.keys() + GearCatalog.PROJECTS.keys():
+		var recipe := GearCatalog.recipe(kind)
+		label(content, recipe["name"] + " · " + ShelterInventory.describe(recipe["cost"]), Vector2(0, y), Vector2(610, 30), 17)
+		var hint := GearCatalog.describe(kind) if GearCatalog.ITEMS.has(kind) else "弹药供手枪使用，射击会引来尸群。" if kind == "ammo" else "消耗带回的专属零件，完成后推进战役。"
+		label(content, hint, Vector2(0, y + 30), Vector2(1025, 28), 14)
+		var make := button(content, "制作 · %d秒" % recipe["seconds"], Vector2(1080, y + 3), Vector2(200, 42), func():
+			if game.expansion.start_job(game, kind): close_workshop()
+			else: _create_workshop()
+		)
+		make.disabled = game.cycle.phase != "day" or not game.inventory.can_take(recipe["cost"]) or (recipe.has("part") and not game.expansion.parts.has(recipe["part"])) or (kind == "radio" and game.expansion.stage != 0) or (kind == "pump" and game.expansion.stage != 2) or (kind == "beacon" and (game.expansion.stage != 3 or not game.expansion.parts.has("power_cell")))
+		y += 73
+	label(content, "装备仓库 · 弹药库存%d · 装备占背包，冬衣保暖不占格" % game.expansion.ammo, Vector2(0, y), Vector2(1200, 30), 21, game.GOLD)
+	y += 43
+	for item in game.expansion.gear:
+		var kind: String = item["kind"]
+		var name: String = GearCatalog.ITEMS[kind]["name"]
+		label(content, "%s · 耐久%d/%d · %s" % [name, item["durability"], GearCatalog.ITEMS[kind]["durability"], "仓库" if item["owner"] == "" else PeopleCatalog.DATA[item["owner"]]["name"]], Vector2(0, y), Vector2(820, 36), 17)
+		button(content, "装备 / 卸下", Vector2(850, y), Vector2(200, 36), func(): game.expansion.equip(game, int(item["id"]), game.selected_id); _create_workshop())
+		var repair := button(content, "修理 · 材料2", Vector2(1080, y), Vector2(200, 36), func():
+			if game.expansion.start_job(game, "repair", int(item["id"])): close_workshop()
+		)
+		repair.disabled = game.cycle.phase != "day" or item["durability"] >= GearCatalog.ITEMS[kind]["durability"]
+		y += 51
+	if game.expansion.gear.is_empty():
+		label(content, "暂无装备，请在白天制作。", Vector2(0, y), Vector2(1200, 35))
+		y += 45
+	content.custom_minimum_size.y = y + 20

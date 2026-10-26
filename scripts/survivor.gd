@@ -29,6 +29,11 @@ var fatigue := 30.0
 var health := 100.0
 var injury := 0.0
 var infection := 0.0
+var illness := 0.0
+var cold_exposure := 0.0
+var weapon_item: Dictionary = {}
+var armor_item: Dictionary = {}
+var coat_item: Dictionary = {}
 var warned := {"hunger": false, "fatigue": false, "health": false, "infection": false}
 var feedback := "等待你的安排"
 var movement_clock := 0.0
@@ -83,9 +88,26 @@ func progress() -> float:
 	return clampf(work_elapsed / work_duration, 0.0, 1.0)
 
 
+func weapon() -> Dictionary:
+	if weapon_item.is_empty() or weapon_item["durability"] <= 0: return {}
+	return GearCatalog.ITEMS[weapon_item["kind"]]
+
+
+func protection() -> float:
+	if armor_item.is_empty() or armor_item["durability"] <= 0: return 0.0
+	return float(GearCatalog.ITEMS[armor_item["kind"]].get("protection", 0))
+
+
+func warmth() -> float:
+	var total := 0.0
+	for item in [armor_item, coat_item]:
+		if not item.is_empty() and item["durability"] > 0: total += float(GearCatalog.ITEMS[item["kind"]].get("warmth", 0))
+	return total
+
+
 func effort_factor() -> float:
 	# Slower work is visible and recoverable; eat and sleep never slow down.
-	return (0.8 if hunger >= 80 else 1.0) * (0.7 if fatigue >= 85 else 1.0) * (0.85 if injury >= 50 else 1.0) * person.emotional_effort()
+	return (0.65 if illness >= 50 else 1.0) * (0.8 if hunger >= 80 else 1.0) * (0.7 if fatigue >= 85 else 1.0) * (0.85 if injury >= 50 else 1.0) * person.emotional_effort()
 
 
 func _unhandled_input(event: InputEvent) -> void:

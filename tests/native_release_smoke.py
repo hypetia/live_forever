@@ -93,7 +93,7 @@ def main():
             pending = children(root)
             while pending:
                 window = pending.pop()
-                if 'Live Forever' in title(window) and 'v1.0' in title(window):
+                if 'Live Forever' in title(window):
                     if expected_pid is None or owner_pid(window) == expected_pid:
                         return window
                 pending.extend(children(window))

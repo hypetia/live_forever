@@ -92,13 +92,17 @@ var move_marker := Vector2.ZERO
 var move_marker_time := 0.0
 
 
+func _region_ids() -> Array:
+	return LocationCatalog.IDS
+
+
 func _ready() -> void:
 	get_tree().auto_accept_quit = false
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--qa-slot="): save_store.path = argument.trim_prefix("--qa-slot=")
 	get_window().close_requested.connect(_on_window_close_requested)
 	if DisplayServer.get_name() != "headless": get_window().title = "Live Forever · 留一盏灯 v0.9"
-	for id in LocationCatalog.IDS:
+	for id in _region_ids():
 		regions[id] = expedition if id == "street" else ExpeditionState.new(id)
 	_create_world()
 	scheduler.upkeep = upkeep
@@ -544,7 +548,7 @@ func open_center(page: int = 0) -> void:
 func choose_destination(id: String) -> bool:
 	if expedition.active or not regions.has(id): return false
 	expedition = regions[id]
-	if is_instance_valid(prep_destination): prep_destination.select(LocationCatalog.IDS.find(id))
+	if is_instance_valid(prep_destination): prep_destination.select(maxi(0, LocationCatalog.IDS.find(id)))
 	if is_instance_valid(prep_text): _refresh_preparation()
 	return true
 

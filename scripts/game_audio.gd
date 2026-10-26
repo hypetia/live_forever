@@ -35,7 +35,7 @@ func _ready() -> void:
 	wind = AudioStreamPlayer.new()
 	add_child(wind)
 	if sound_bank.is_empty():
-		for kind in ["work", "danger", "return", "notice", "hit", "push", "miss", "blocked"]: sound_bank[kind] = _tone(kind)
+		for kind in ["work", "danger", "return", "notice", "hit", "push", "miss", "blocked", "shot"]: sound_bank[kind] = _tone(kind)
 		sound_bank["wind"] = _wind()
 	sounds = sound_bank
 	wind.stream = sound_bank["wind"]
@@ -79,8 +79,8 @@ func _tone(kind: String) -> AudioStreamWAV:
 		var frequency := 220.0 if kind == "danger" else 440.0 if kind == "notice" else 554.37 if kind == "work" else 659.25
 		var envelope := sin(PI * t / seconds) * exp(-t * 8)
 		var value := (sin(TAU * frequency * t) + 0.25 * sin(TAU * frequency * 2 * t)) * envelope * 0.35
-		if kind in ["hit", "push", "miss", "blocked"]:
-			var pitch := 115.0 if kind == "hit" else 165.0 if kind == "push" else 390.0 if kind == "miss" else 90.0
+		if kind in ["hit", "push", "miss", "blocked", "shot"]:
+			var pitch := 65.0 if kind == "shot" else 115.0 if kind == "hit" else 165.0 if kind == "push" else 390.0 if kind == "miss" else 90.0
 			value = sin(TAU * (pitch * t - 160 * t * t)) * exp(-t * 32) * 0.5 * minf(t * 700, 1)
 		bytes.encode_s16(sample * 2, int(value * 32767))
 	var sound := AudioStreamWAV.new()

@@ -7,8 +7,9 @@ const PHASES := ["day", "planning", "scavenge", "returning", "dawn"]
 const ROLES := ["scavenge", "guard", "bed", "floor", "dead"]
 const ROLE_NAMES := ["外出搜刮", "留守警戒", "床上睡眠", "地铺睡眠", "已故"]
 const BAGS := {"lin": 12, "xu": 10, "chen": 14, "he": 12, "gu": 10, "tang": 14}
-const SLOTS := [Vector2(330, 640), Vector2(650, 640), Vector2(190, 430)]
+const SLOTS := [Vector2(330, 640), Vector2(650, 640), Vector2(190, 430), Vector2(755, 430), Vector2(905, 640)]
 const RECIPES := {
+	"heater": {"name": "取暖炉", "cost": {"materials": 5, "tools": 1}, "seconds": 40.0, "hint": "点燃消耗燃料1，室内升温18℃持续8小时；夜间可提前预留燃料。"},
 	"bed": {"name": "简易床", "cost": {"materials": 4}, "seconds": 36.0, "hint": "夜间增加一个床上睡眠名额；白天也可直接躺下休息。"},
 	"filter": {"name": "雨水收集器", "cost": {"materials": 3, "tools": 1}, "seconds": 30.0, "hint": "细雨天气的清晨收集水2；晴天不会凭空产水。"},
 	"barricade": {"name": "加固隔断", "cost": {"materials": 4, "tools": 1}, "seconds": 42.0, "hint": "夜间防守强度+0.9，仍需安排健康且有精神的守夜者。"},
@@ -63,6 +64,8 @@ func plan_error(game: Node2D) -> String:
 	if roles.count("bed") > bed_count(): return "床位不足：改为地铺或白天建造简易床。"
 	var total := 0
 	for amount in loadout.values(): total += int(amount)
+	if game.has_method("expansion_snapshot"): total += game.expansion.reserved_slots(game)
+	if game.has_method("expansion_snapshot") and game.expansion.ammo_loadout > game.expansion.ammo: return "携带弹药超过库存。"
 	if total > capacity(game): return "随身物资超过这位角色的背包容量。"
 	if not game.inventory.can_take(loadout): return "据点库存已变化，请重新调整携带物资。"
 	for index in range(roles.size()):
@@ -122,10 +125,13 @@ static func validate(data: Variant, world: Dictionary) -> String:
 	if data["phase"] == "dawn" and data["last_resolved_day"] != data["night_day"]: return "清晨结算标记缺失"
 	if not data["builds"] is Array or data["builds"].size() > SLOTS.size() or not data["actions"] is Array or data["actions"].size() > 5: return "建设或行动容量无效"
 	var slots: Array = []
+	var types: Array = []
 	var occupied: Array = []
 	for build in data["builds"]:
 		if not CharacterState.keys(build, ["slot", "type", "state", "actor", "elapsed"]): return "建设字段无效"
 		if not CharacterState.integer(build["slot"], 0, SLOTS.size() - 1) or slots.has(int(build["slot"])) or not RECIPES.has(build["type"]) or not build["state"] in ["blueprint", "complete"]: return "建设位置或类型无效"
+		if (build["type"] != "bed" and types.has(build["type"])) or (build["type"] == "bed" and types.count("bed") >= 2): return "设施数量超出上限"
+		types.append(build["type"])
 		slots.append(int(build["slot"]))
 		if not CharacterState.integer(build["actor"], -1, world["actors"].size() - 1) or not CharacterState.number(build["elapsed"], 0, RECIPES[build["type"]]["seconds"]): return "建设工时无效"
 		if build["state"] == "complete":

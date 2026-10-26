@@ -65,12 +65,20 @@ func _run() -> void:
 		record(game.cards.all(func(card): return design.encloses(card.get_global_rect())), "complete roster cards fit at %dx%d" % [size.x, size.y])
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png(output.path_join("shelter_%dx%d.png" % [size.x, size.y]))
+		game.interface.toggle_workshop()
+		record(game.interface.workshop_open and design.encloses(game.interface.workshop_panel.get_global_rect()) and game.paused, "equipment workshop fits and explicitly pauses at %dx%d" % [size.x, size.y])
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png(output.path_join("workshop_%dx%d.png" % [size.x, size.y]))
+		game.interface.close_workshop()
 		game.open_station("heal")
 		record(design.encloses(game.assign_button.get_global_rect()) and game.assign_button.text.contains(game.survivors[game.selected_id].display_name), "named treatment confirmation fits at %dx%d" % [size.x, size.y])
 		game.context_open = false
 		game._refresh_hud()
 		game.end_day()
 		for frame in range(3): await get_tree().process_frame
+		game.interface._page_maps(1)
+		record(game.interface.map_buttons.has("waterworks") and game.interface.map_buttons["waterworks"].disabled, "additional maps and campaign gates appear at %dx%d" % [size.x, size.y])
+		game.interface._page_maps(-1)
 		record(game.cycle.phase == "planning" and design.encloses(game.interface.depart_button.get_global_rect()) and game.interface.role_options.size() == 3, "night assignment fits and names all roles at %dx%d" % [size.x, size.y])
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png(output.path_join("night_%dx%d.png" % [size.x, size.y]))
