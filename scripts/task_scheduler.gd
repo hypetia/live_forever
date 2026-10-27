@@ -6,6 +6,8 @@ extends RefCounted
 signal event_reported(message: String)
 signal task_finished(actor_id: int, task: String)
 signal survivor_lost(actor_id: int)
+signal tasks_cancelled(actor_id: int)
+signal task_failed(actor_id: int)
 
 var survivors: Array[Survivor] = []
 var facilities: Dictionary = {}
@@ -108,6 +110,7 @@ func cancel(actor: Survivor) -> void:
 		_step_aside(actor, used_station)
 	actor.queue_redraw()
 	event_reported.emit("已取消%s的全部任务。%s" % [actor.display_name, "退还%s。" % ShelterInventory.describe(refund) if not refund.is_empty() else "未消耗材料。"])
+	tasks_cancelled.emit(actor.survivor_id)
 
 
 func step(delta: float) -> void:
@@ -251,6 +254,7 @@ func _fail_current(actor: Survivor, reason: String) -> void:
 	actor.state = Survivor.TaskState.IDLE
 	actor.feedback = reason
 	event_reported.emit("%s的%s未执行，%s；此项已移出队列，未扣料。" % [actor.display_name, label, reason])
+	task_failed.emit(actor.survivor_id)
 	if not actor.orders.is_empty():
 		_activate(actor)
 	else:

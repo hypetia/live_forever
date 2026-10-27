@@ -24,6 +24,7 @@ func _run() -> void:
 		if not snapshot["expedition"].has("stacked"): snapshot = SaveSystem.migrate_v13(snapshot)
 		if not snapshot["expedition"].has("route_open"): snapshot = SaveSystem.migrate_v14(snapshot)
 		if not snapshot.has("districts"): snapshot = SaveSystem.migrate_v15(snapshot)
+		if not snapshot.has("self_care"): snapshot = SaveSystem.migrate_v16(snapshot)
 		var error := SaveSystem.apply_state(game,snapshot)
 		if not error.is_empty():
 			printerr(error)

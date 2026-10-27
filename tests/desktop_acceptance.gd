@@ -88,6 +88,24 @@ func _run() -> void:
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png(output.path_join("workshop_%dx%d.png" % [size.x, size.y]))
 		game.interface.close_workshop()
+		game.open_center(5)
+		for frame in range(3): await get_tree().process_frame
+		var people_rect := Rect2(Vector2.ZERO,Vector2(game.center.size))
+		record(game.center.routine_toggle.button_pressed and not game.center.cooking_toggle.button_pressed and people_rect.encloses(game.center.routine_toggle.get_global_rect()) and people_rect.encloses(game.center.cooking_toggle.get_global_rect()),"basic self-care and separate cooking policy fit at %dx%d" % [size.x,size.y])
+		game.center.close()
+		game.survivors[0].person.thirst = 85
+		game.paused = false;game.advance_simulation(.1)
+		record(game.survivors[0].self_care_kind == "drink" and game.survivors[0].route.size()>1 and game.inventory.amount("water")==4,"autonomous water use begins with actual travel at %dx%d" % [size.x,size.y])
+		var care_save_path: String = game.save_store.path
+		game.save_store.path = output.path_join("care_preflight_%dx%d.json" % [size.x,size.y])
+		var care_saved: bool = game.save_store.write_state(game)["ok"]
+		var care_loaded: bool = game.load_game()
+		game.save_store.path = care_save_path
+		record(care_saved and care_loaded and game.paused and game.survivors[0].self_care_kind == "drink" and game.inventory.amount("water")==4,"unfinished autonomous travel restores without duplicate payment at %dx%d" % [size.x,size.y])
+		game.paused = false;game.advance_simulation(22)
+		var drank_once: bool = game.people.drinks == 1 and game.inventory.amount("water") == 3 and game.survivors[0].person.thirst < 30 and SaveSystem.validate(SaveSystem.capture(game)).is_empty()
+		var care_restored: bool = SaveSystem.apply_state(game,initial_campaign).is_empty()
+		record(drank_once and care_restored,"physical self-care consumes one water and cleanly restores the test fixture at %dx%d" % [size.x,size.y])
 		game.open_station("heal")
 		record(design.encloses(game.assign_button.get_global_rect()) and game.assign_button.text.contains(game.survivors[game.selected_id].display_name), "named treatment confirmation fits at %dx%d" % [size.x, size.y])
 		game.context_open = false

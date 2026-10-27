@@ -11,6 +11,7 @@ var expansion := SurvivalExpansion.new()
 var facilities := FacilitySystem.new()
 var director := CampaignDirector.new()
 var districts := DistrictSystem.new()
+var self_care := SelfCareSystem.new()
 var district_view: DistrictView
 var briefing: CampaignBriefing
 var security_view: SecurityView
@@ -70,8 +71,14 @@ func _ready() -> void:
 	scheduler.production_rate = func(id: String): return facilities.rate(id)
 	facilities.sync(self)
 	expansion.sync(self)
-	get_window().title = "Live Forever · 留一盏灯 v1.9"
-	for actor in survivors: actor.metabolism = 0.4
+	get_window().title = "Live Forever · 留一盏灯 v1.10"
+	self_care.sync(self)
+	scheduler.task_finished.connect(func(id: int,task: String): self_care.finished(self,id,task))
+	scheduler.tasks_cancelled.connect(func(id: int): self_care.manual(self,id))
+	scheduler.task_failed.connect(func(id: int): self_care.failed(self,id))
+	for actor in survivors:
+		actor.metabolism = 0.4
+		if actor.feedback == "等待你的安排": actor.feedback = "空闲"
 	for field: ExpeditionState in regions.values():
 		field.manual_loot = true
 		field.stacked = true
@@ -143,6 +150,19 @@ func _ready() -> void:
 
 func districts_snapshot() -> Dictionary:
 	return districts.snapshot()
+
+
+func self_care_snapshot() -> Dictionary:
+	return self_care.snapshot(self)
+
+
+func restore_self_care(data: Dictionary) -> void:
+	self_care.restore(data,self)
+	if is_instance_valid(center): center.refresh()
+
+
+func plan_self_care() -> void:
+	self_care.plan(self)
 
 
 func restore_districts(data: Dictionary) -> void:
@@ -269,6 +289,7 @@ func restore_campaign(data: Dictionary) -> void:
 func add_survivor(persona: String) -> Survivor:
 	var actor := super.add_survivor(persona)
 	actor.metabolism = 0.4
+	actor.feedback = "空闲"
 	return actor
 
 
@@ -327,6 +348,7 @@ func advance_simulation(delta: float) -> void:
 
 func _day_step(step: float) -> void:
 	director.sync_day(self)
+	self_care.maintain(self)
 	if _day_keyboard_allowed(): shelter_keyboard.step(self,step,super._expedition_controls())
 	else: shelter_keyboard.stop(self)
 	var policies := {}
@@ -339,6 +361,7 @@ func _day_step(step: float) -> void:
 	for id in policies: survivors[int(id)].person.routine = policies[id]
 	_tick_external(step)
 	expansion.tick_day(self, step)
+	self_care.sync(self)
 	residence.noise = maxf(0, residence.noise - step * 0.006)
 	for actor in survivors:
 		if actor.route.is_empty(): actor.move_multiplier = 1
@@ -358,6 +381,7 @@ func request_expedition() -> void:
 func end_day() -> void:
 	if cycle.phase != "day" or game_over: return
 	_cancel_all_day_work()
+	self_care.suspended = true
 	var policies: Array[bool] = []
 	for actor in survivors:
 		policies.append(actor.person.routine)
@@ -371,6 +395,7 @@ func end_day() -> void:
 		left -= step
 		if survivors.all(func(actor): return actor.health <= 0): game_over = true
 	for index in range(survivors.size()): survivors[index].person.routine = policies[index] and survivors[index].health > 0
+	self_care.suspended = false
 	if not game_over: enter_night_planning()
 	_refresh_hud()
 
@@ -1057,17 +1082,19 @@ func begin_drink() -> void:
 	_start_action("drink", -1, water_store.position)
 
 
-func _start_action(kind: String, slot: int, target: Vector2) -> bool:
-	var actor := survivors[selected_id]
+func _start_action(kind: String, slot: int, target: Vector2, actor_id: int = -1, automatic: bool = false) -> bool:
+	if actor_id < 0: actor_id = selected_id
+	var actor := survivors[actor_id]
 	if actor.health <= 0 or cycle.phase != "day": return false
+	if kind == "sleep" and cycle.actions.any(func(a): return a["kind"] == "sleep" and a["slot"] == slot and a["actor"] != actor_id): return false
 	var route := scheduler.navigation.route_between(actor.position, target)
 	if route.is_empty(): return false
-	_cancel_external(selected_id)
+	if not automatic: _cancel_external(actor_id)
 	scheduler.cancel(actor)
 	actor.route = route
 	actor.state = Survivor.TaskState.RETURNING
 	actor.feedback = "前往饮水" if kind == "drink" else "前往床位休息"
-	cycle.actions.append({"actor": selected_id, "kind": kind, "slot": slot, "elapsed": 0.0})
+	cycle.actions.append({"actor": actor_id, "kind": kind, "slot": slot, "elapsed": 0.0})
 	context_open = false
 	return true
 
@@ -1105,6 +1132,7 @@ func _external_busy(id: int) -> bool:
 
 
 func _cancel_external(id: int, refund: bool = true) -> void:
+	self_care.manual(self,id)
 	if shelter_keyboard.actor_id == id: shelter_keyboard.stop(self)
 	expansion.cancel(self, id, refund)
 	for build in cycle.builds.duplicate():
@@ -1152,13 +1180,16 @@ func _tick_external(step: float) -> void:
 		action["elapsed"] = minf(duration, float(action["elapsed"]) + step)
 		actor.activity = {"kind": action["kind"], "label": "床上休息" if action["kind"] == "sleep" else "饮水", "progress": action["elapsed"] / duration}
 		if action["kind"] == "sleep": actor.fatigue = maxf(0, actor.fatigue - step * 3 * CharacterAbilities.factor(actor,"sleep"))
-		if action["elapsed"] >= duration:
+		var rested: bool = action["kind"] == "sleep" and actor.self_care_kind == "sleep" and actor.fatigue <= 15
+		if action["elapsed"] >= duration or rested:
 			if action["kind"] == "drink": people.drink(self, actor.survivor_id)
 			else:
 				actor.completed_jobs += 1
 				actor.completed_by_task["sleep"] += 1
 				bed.completed_jobs += 1
 				scheduler.task_finished.emit(actor.survivor_id, "sleep")
+			if action["kind"] == "drink": self_care.finished(self,actor.survivor_id,"drink")
+			actor.feedback = "饮水完成" if action["kind"] == "drink" else "休息结束"
 			actor.activity.clear()
 			cycle.actions.erase(action)
 

@@ -60,6 +60,9 @@ func tick(game: Node2D, delta: float) -> void:
 
 
 func _routines(game: Node2D) -> void:
+	if game.has_method("plan_self_care"):
+		game.plan_self_care()
+		return
 	for actor: Survivor in game.survivors:
 		if not actor.person.routine or actor.health <= 0 or actor.state == Survivor.TaskState.AWAY: continue
 		if actor.person.thirst >= 60: drink(game, actor.survivor_id)
@@ -157,7 +160,7 @@ func recruit(game: Node2D, id: String) -> bool:
 	actor.person.joined_day = ExpeditionState.day_at(game.simulation_time)
 	sync_members(game.survivors)
 	game.sync_roster_cards()
-	event_reported.emit("%s加入了队伍。需要额外食物与床位时间，自动照料默认关闭。" % actor.display_name)
+	event_reported.emit("%s加入了队伍。需要额外食物与床位时间，%s。" % [actor.display_name,"基本自理默认开启" if game.has_method("plan_self_care") else "自动照料默认关闭"])
 	return true
 
 

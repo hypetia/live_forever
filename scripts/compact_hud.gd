@@ -154,6 +154,7 @@ func refresh() -> void:
 			card.position = Vector2(32,790)
 			card.size = Vector2(280,94)
 		card.tooltip_text = game.survivors[index].display_name+"\n"+Vitals.summary(game.survivors[index])+"\n保暖+%d℃" % game.survivors[index].warmth()+"\n双击查看人物详情 P"
+		card.tooltip_text += "\n"+game.self_care.summary(game.survivors[index])
 		card.queue_redraw()
 	game.interface.build_button.position = Vector2(1220,798)
 	game.interface.build_button.size = Vector2(86,36)

@@ -27,3 +27,5 @@
 `v14_stacked_campaign.json`保留v1.7最终干净回归的`persistence_backpack_stacks_process.json.bak`原始schema14封装与校验值，来源为真实跨进程拾取、返回后的存档；用来验证schema15地图字段迁移不会改变库存、物资和感染者AI。它不是当前版本反向生成的旧档。
 
 `v15_open_route_campaign.json`保留v1.8最终干净回归的`persistence_map_environments_process.json`原始schema15封装、校验与开放通路状态，用于验证schema16迁移保留实际库存、地图通路和感染者AI，不凭空建立前哨或补充诱饵。
+
+`v16_autonomy_upgrade_campaign.json` is an unchanged schema16 envelope from the v1.9 final cross-process campaign run. The autonomy migration must preserve stock, people, map state and existing cooking policy while enabling basic self-care for living residents.

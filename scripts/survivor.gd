@@ -42,6 +42,8 @@ var metabolism := 1.0
 var move_multiplier := 1.0
 var manual_walking := false
 var activity: Dictionary = {}
+var self_care_kind := ""
+var self_care_wait := ""
 const MOVE_SPEED := 150.0
 const FONT := preload("res://assets/fonts/interface.otf")
 var visual_time := 0.0
@@ -74,6 +76,9 @@ func advance_route(delta: float) -> void:
 
 func status_text() -> String:
 	if manual_walking: return "移动中"
+	if not self_care_kind.is_empty():
+		var labels := {"drink":"自行饮水","eat":"自行吃饭","cook_eat":"自行备餐","sleep":"自行休息"}
+		return labels.get(self_care_kind,"") + (" · 行走中" if not route.is_empty() else " · 等待设施" if state == TaskState.WAITING else "")
 	if not activity.is_empty(): return "%s · %d%%" % [activity["label"], roundi(activity["progress"] * 100)]
 	match state:
 		TaskState.MOVING: return "前往%s" % target_label
@@ -183,6 +188,8 @@ func _draw() -> void:
 		if not quiet: draw_string(FONT, Vector2(-26, -87), "用药中" if not orders.is_empty() and orders[0] == "heal" else task_label, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color("c8cbb1"))
 		draw_rect(Rect2(-23, -102, 46, 4), Color("273236"))
 		draw_rect(Rect2(-23, -102, 46 * progress(), 4), Color("d6b584"))
+	if not self_care_kind.is_empty():
+		HudIcons.draw(self,"hydration" if self_care_kind == "drink" else "vigor" if self_care_kind == "sleep" else "fullness",Vector2(29,-91),13,Color("b9c5ac"))
 
 
 func draw_ellipse_shadow() -> void:

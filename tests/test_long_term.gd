@@ -146,8 +146,10 @@ func test_weather_changes_perception() -> void:
 	march(a, 0.1, {"axis": 1.0, "sprint": true})
 	march(b, 0.1, {"axis": 1.0, "sprint": true})
 	expect(a.expedition.enemies[0]["suspicion"] > b.expedition.enemies[0]["suspicion"], "rain masks some sprint noise at the hearing boundary")
-	b.expedition.player_x = 500
-	b.expedition.enemies[0]["x"] = 540.0
+	# Both actors are behind the same furniture front. Across its edge, the
+	# physical obstruction introduced in v1.6 correctly blocks sight even nearby.
+	b.expedition.player_x = 480
+	b.expedition.enemies[0]["x"] = 515.0
 	b.expedition.enemies[0]["direction"] = 1.0
 	b.expedition.enemies[0]["suspicion"] = 0.0
 	b.expedition.enemies[0]["mode"] = "patrol"
