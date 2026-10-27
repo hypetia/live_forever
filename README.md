@@ -66,7 +66,7 @@
 
 旧档无需重开。schema14加入堆叠规则，兼容schema1–13，保留实际件数、装备与敌人AI；schema13增加敌人的原巡逻楼层、目标记忆和攀爬进度，兼容schema1–12；schema10保留家园、迁居、安防、勘察与演奏记录，增加可恢复的返程安排，继续保存装备归属／耐久、弹匣与换弹进度、疾病／寒冷、炉火、工作台在制项目、地图和战役进度，兼容schema1–9。旧版在途物资继续保留，新增战役从导入当天计日；不会因读取旧档反复发装备。系统用户目录和旧版本一致，首次写入保留备份。建议解压到新文件夹，不覆盖正在运行的旧程序。
 
-[v1.7背包堆叠](docs/BACKPACK_STACKS_V17.md) · [REA研究状态](docs/REA_RESEARCH_V17.md) · [v1.6敌人AI、攻击与安防](docs/AI_SECURITY_V16.md) · [v1.5事件、界面与战斗](docs/DIRECTOR_UI_COMBAT_V15.md) · [v1.4设施升级](docs/FACILITIES_V14.md) · [v1.3.3离场与装备](docs/DEPARTURE_EQUIPMENT_V133.md) · [v1.3.2白天键盘修复](docs/KEYBOARD_V132.md) · [v1.3.1交互修复与验证](docs/INTERACTIONS_V131.md) · [v1.3角色、家园与验证](docs/HOMES_V13.md) · [v1.2界面说明](docs/PRESENTATION_V12.md) · [装备、气候、九地图和战役规则](docs/EXPANSION_V11.md) · [Windows检查方法](docs/WINDOWS_ACCEPTANCE.md) · [下载索引](downloads/README.md) · [许可](licenses/README.md)
+[v1.7背包堆叠](docs/BACKPACK_STACKS_V17.md) · [REA研究状态](docs/REA_RESEARCH_V17.md) · [原作公开资料研究](docs/TWOM_PUBLIC_RESEARCH.md) · [v1.6敌人AI、攻击与安防](docs/AI_SECURITY_V16.md) · [v1.5事件、界面与战斗](docs/DIRECTOR_UI_COMBAT_V15.md) · [v1.4设施升级](docs/FACILITIES_V14.md) · [v1.3.3离场与装备](docs/DEPARTURE_EQUIPMENT_V133.md) · [v1.3.2白天键盘修复](docs/KEYBOARD_V132.md) · [v1.3.1交互修复与验证](docs/INTERACTIONS_V131.md) · [v1.3角色、家园与验证](docs/HOMES_V13.md) · [v1.2界面说明](docs/PRESENTATION_V12.md) · [装备、气候、九地图和战役规则](docs/EXPANSION_V11.md) · [Windows检查方法](docs/WINDOWS_ACCEPTANCE.md) · [下载索引](downloads/README.md) · [许可](licenses/README.md)
 
 ```sh
 git clone --single-branch --branch main https://github.com/hypetia/live_forever.git
