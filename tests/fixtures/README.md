@@ -21,3 +21,5 @@
 `v6_campaign.json`由归档v0.9实际运行持久化目标脚本生成：已完成工厂勘查和付费互助，保留原始schema6信封与校验和，用于v1.0旧档迁移检查。
 
 `v12_equipped_campaign.json`：来自v1.5.0最终干净回归中的真实跨进程装备／战役存档（persistence_expansion_process.json），保留原始schema12封装、数据与校验；用于验证schema13在所有地图补全AI字段而不重置装备或战役。
+
+`v13_equipped_campaign.json`：来自v1.6.0完整干净验证的真实schema13跨进程装备／战役存档（persistence_expansion_process.json），保留原封装和校验，用于验证schema14只调整背包规则、不重置物资、装备或敌人AI。

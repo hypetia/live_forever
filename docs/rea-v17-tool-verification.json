@@ -1,0 +1,79 @@
+{
+  "date": "2026-10-27",
+  "rea_version": "6.8.0",
+  "node_version": "24.22.1",
+  "repository": "https://github.com/morluto/rea",
+  "source_commit": "79b8219f290ef6304e469d9b8c40dc2af30edba9",
+  "npm_integrity": "sha512-9QDeRnGqEDzABZyr04eLnBXBv/c6I9/TWu/6M0MD4pEfkySI/BIgwTODIbAReX3C1x6hjw9+Jlx4A2yUSPZ9ww==",
+  "verified_target": "Own Live Forever v1.6 Windows executable; not This War of Mine",
+  "target_sha256": "aaae220f1ffbc462a5c7bcbefa76e3b3c5086ada15ef0825a8acf928c1d1bcef",
+  "target_executed": false,
+  "commands": [
+    {
+      "name": "version",
+      "arguments": [
+        "--version"
+      ],
+      "exit_code": 0,
+      "report_sha256": "4c7d245d1e1c2c70e26c15a790671f5aacaacfffafbcbe8e86ce9df0bbd835bf"
+    },
+    {
+      "name": "installation",
+      "arguments": [
+        "inspect-desktop-application",
+        "/workspace/artifacts/v16-release-final/windows",
+        "--detail",
+        "complete",
+        "--json"
+      ],
+      "exit_code": 0,
+      "report_sha256": "09efe85d456a1579958d2ff290541341d5d45ac1dbdd7bc9d3526338bb3f98b1"
+    },
+    {
+      "name": "pe-imports",
+      "arguments": [
+        "inspect-pe-imports",
+        "/workspace/artifacts/v16-release-final/windows/LiveForever.exe",
+        "--max-file-bytes",
+        "105527504",
+        "--json"
+      ],
+      "exit_code": 0,
+      "report_sha256": "97f092c64248b6c0e9341fbd6d04e38544901503e8fe7087e4fcc6b7ec7c6478"
+    }
+  ],
+  "observed_runtime_families": [
+    "godot"
+  ],
+  "native_provider_checks": [
+    {
+      "name": "node",
+      "ok": true,
+      "classification": "healthy",
+      "detail": "24.22.1",
+      "details": {
+        "runtime": "node",
+        "version": "24.22.1"
+      }
+    },
+    {
+      "name": "ghidra",
+      "ok": false,
+      "classification": "missing_analysis_engine",
+      "detail": "GHIDRA_INSTALL_DIR is not set",
+      "remediation": "Set GHIDRA_INSTALL_DIR to an extracted Ghidra 12.1.x release directory."
+    }
+  ],
+  "ghidra_release_fetch": "HTTPS proxy tunnel rejected with 403; Ghidra remains unavailable",
+  "original_game_platform": "Windows Steam, confirmed by user",
+  "original_game_files_available": false,
+  "original_game_mechanics_verified": false,
+  "evidence_limitations": [
+    "Runtime candidates and component markers do not establish loaded code, execution, or build correspondence.",
+    "The directory SHA-256 commits only to retained paths, omission kinds, available filesystem metadata and read-range digests, not to every file's contents. Unread bytes are unknown.",
+    "Special-entry payloads are not read. Their paths and kinds are retained; other special-entry metadata is unavailable in this report.",
+    "Child symlinks are not followed. Executable section-embedded PCKs without a trailer and encrypted contents remain unexamined.",
+    "This is a sequence of stable entry observations, not an atomic snapshot of the entire directory.",
+    "Unity reference decoding stops after a witness in each Data/Managed directory; other assemblies' references are unexamined. Header facts remain per-file."
+  ]
+}

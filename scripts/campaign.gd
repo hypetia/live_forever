@@ -68,10 +68,11 @@ func _ready() -> void:
 	scheduler.production_rate = func(id: String): return facilities.rate(id)
 	facilities.sync(self)
 	expansion.sync(self)
-	get_window().title = "Live Forever · 留一盏灯 v1.6"
+	get_window().title = "Live Forever · 留一盏灯 v1.7"
 	for actor in survivors: actor.metabolism = 0.4
 	for field: ExpeditionState in regions.values():
 		field.manual_loot = true
+		field.stacked = true
 		field.confirm_exits = true
 		field.exit_requested.connect(_offer_departure)
 		field.combat_resolved.connect(func(kind: String, _point: Vector2, damage: int): director.shot(self,kind,damage))
@@ -191,6 +192,8 @@ func campaign_snapshot() -> Dictionary:
 
 
 func restore_campaign(data: Dictionary) -> void:
+	expedition_view.bag_open = false
+	if is_instance_valid(expedition_view.stack_panel): expedition_view.stack_panel.hide()
 	if is_instance_valid(security_view): security_view.dismiss_loaded()
 	shelter_keyboard.reset(self)
 	_departure_side = 0
@@ -222,6 +225,7 @@ func restore_campaign(data: Dictionary) -> void:
 		actor.move_multiplier = 1
 	for field: ExpeditionState in regions.values():
 		field.manual_loot = true
+		field.stacked = true
 		field.confirm_exits = true
 	_props_signature = ""
 	context_open = false
@@ -404,6 +408,7 @@ func start_expedition(take_tool: bool = false, take_medicine: bool = false) -> b
 	upkeep.begin_trip(equipment)
 	expedition.capacity = cycle.capacity(self)
 	expedition.manual_loot = true
+	expedition.stacked = true
 	expedition.begin(id, equipment, 1.0)
 	expedition.reserve_ammo = expansion.ammo_loadout
 	expansion.ammo -= expansion.ammo_loadout

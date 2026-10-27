@@ -1,6 +1,6 @@
 # 正常游戏：白天生活，夜间分工，清晨结算
 
-[下载Windows游戏](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.6.0/live_forever_v16_windows_x64.zip) · [全部下载](../downloads/README.md)
+[下载Windows游戏](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.7.0/live_forever_v17_windows_x64.zip) · [全部下载](../downloads/README.md)
 
 解压整个文件夹，双击LiveForever.exe。游戏离线运行，不需要Godot、Python、账号或服务器。验收包是另一个工具，只有主动运行windows_acceptance.cmd才会自动控制人物测试。
 
@@ -113,3 +113,7 @@ H修好吉他后安排演奏，人物会走到楼上演奏并播放原创合成�
 ## v1.6 追踪与安防
 
 敌人根据看见或听见的位置调查，会沿楼梯换层；失去联系后返回巡逻。家具能挡低位攻击，站起抬枪或走到同侧再打；扑咬蓄力结束时再次检查距离、方向与遮挡。被挡住的射击仍耗弹，不算伤害或委托命中。Z检查安防贡献，天亮后可查看实际损失、设施损耗和护甲／窗网减伤。详见[AI与安防规则](AI_SECURITY_V16.md)。
+
+## v1.7 背包堆叠
+
+物品按独立上限堆叠：材料8、食物／水／燃料4、药品2、工具1、弹药8。背包与拾取窗口显示实际格子，单击转移1份，Shift单击转移本格；满格时仍可补满已有堆叠。I背包内点击仅丢弃1份。详见[完整规则](BACKPACK_STACKS_V17.md)。REA工具链已做自检，原作研究仍需要Windows Steam游戏文件，详见[研究记录](REA_RESEARCH_V17.md)。

@@ -17,6 +17,8 @@ var depart_button: Button
 var map_buttons: Dictionary = {}
 var loot_buttons: Dictionary = {}
 var loot_returns: Dictionary = {}
+var container_grid: BackpackGrid
+var cargo_grid: BackpackGrid
 var loot_title: Label
 var loot_counts: Label
 var climate_label: Label
@@ -211,8 +213,7 @@ func _refresh_plan() -> void:
 		role_options[index].disabled = actor.health <= 0 or not game.residence.convoy.is_empty()
 		role_options[index].set_item_disabled(4, actor.health > 0)
 		role_stats[index].text = "生命%d 精神%d 饱腹%d · %s%d · %d格" % [Vitals.value(actor,"health"), Vitals.value(actor,"vigor"), Vitals.value(actor,"fullness"), actor.weapon().get("name", "徒手"), actor.weapon_item.get("durability", 0), CampaignCycle.BAGS[actor.person.persona]]
-	var total := 0
-	for amount in game.cycle.loadout.values(): total += int(amount)
+	var total := BackpackStacks.slots(game.cycle.loadout)
 	total += game.expansion.reserved_slots(game)
 	ammo_label.text = "弹药库存%d / 携带%d；取暖：%s" % [game.expansion.ammo, game.expansion.ammo_loadout, "预留燃料" if game.expansion.use_night_heat else "关闭（K调整）"]
 	plan_capacity.text = "随身 %d / %d格  ·  据点库存不会在此刻扣除" % [total, game.cycle.capacity(game)]
@@ -220,7 +221,7 @@ func _refresh_plan() -> void:
 		var amount := int(game.cycle.loadout.get(key, 0))
 		supply_labels[key].text = "%s    库存%d    携带%d" % [ShelterInventory.NAMES[key], game.inventory.amount(key), amount]
 		supply_buttons[key][0].disabled = amount <= 0
-		supply_buttons[key][1].disabled = total >= game.cycle.capacity(game) or amount >= game.inventory.amount(key)
+		supply_buttons[key][1].disabled = BackpackStacks.room(game.cycle.loadout,key,game.cycle.capacity(game),game.expansion.reserved_slots(game)) <= 0 or amount >= game.inventory.amount(key)
 	for id in map_buttons:
 		map_buttons[id].text = "✓ 当前目的地" if id == game.expedition.location_id else "选择地点"
 		map_buttons[id].disabled = not game.expansion.unlocked(game, id)
@@ -231,6 +232,7 @@ func _refresh_plan() -> void:
 
 
 func _change_loadout(key: String, change: int) -> void:
+	if change > 0 and (int(game.cycle.loadout.get(key,0)) >= game.inventory.amount(key) or BackpackStacks.room(game.cycle.loadout,key,game.cycle.capacity(game),game.expansion.reserved_slots(game)) <= 0): return
 	var amount := maxi(0, int(game.cycle.loadout.get(key, 0)) + change)
 	if amount == 0: game.cycle.loadout.erase(key)
 	else: game.cycle.loadout[key] = amount
@@ -298,27 +300,27 @@ func _create_dawn() -> void:
 
 func _create_loot() -> void:
 	overlay.add_theme_stylebox_override("panel", game._style(Color(0.02, 0.04, 0.04, 0.48), Color("52634c")))
-	panel(overlay, Vector2(190, 210), Vector2(1060, 535))
-	loot_title = label(overlay, "", Vector2(218, 230), Vector2(610, 34), 23, game.GOLD)
-	loot_counts = label(overlay, "", Vector2(840, 230), Vector2(370, 34), 20, game.GOLD)
-	label(overlay, "容器里的物资", Vector2(220, 279), Vector2(500, 26), 16)
-	label(overlay, "随身背包", Vector2(850, 279), Vector2(350, 26), 16)
-	var row := 0
-	for key in ShelterInventory.NAMES:
-		var point := Vector2(230+(row%4)*112,328+(row/4)*110)
-		var take := button(overlay,"",point,Vector2(100,96),_take.bind(key))
-		var put := button(overlay,"",point+Vector2(550,0),Vector2(100,96),_put.bind(key))
-		take.draw.connect(_loot_icon.bind(take,key))
-		put.draw.connect(_loot_icon.bind(put,key))
-		loot_buttons[key] = take
-		loot_returns[key] = put
-		row += 1
-	part_button = button(overlay, "", Vector2(230, 572), Vector2(986, 46), func(): game.expansion.take_part(game); refresh())
-	survey_button = button(overlay,"勘察新住处",Vector2(230,625),Vector2(986,36),func(): game.residence.survey(game); refresh())
-	label(overlay, "点击拿取或放回 · 空格暂停", Vector2(220, 665), Vector2(1000, 28), 13)
-	button(overlay, "尽量全部拿走 F", Vector2(220, 704), Vector2(300, 36), _take_all)
-	button(overlay, "返程 T", Vector2(540,704), Vector2(280,36), game.expedition_retreat)
-	button(overlay, "关闭，继续行动 Esc", Vector2(850, 704), Vector2(370, 36), game.close_loot)
+	panel(overlay,Vector2(100,130),Vector2(1240,650))
+	loot_title = label(overlay,"",Vector2(135,151),Vector2(730,36),25,game.GOLD)
+	loot_counts = label(overlay,"",Vector2(905,151),Vector2(390,36),21,game.GOLD)
+	label(overlay,"容器",Vector2(150,201),Vector2(450,30),19)
+	label(overlay,"随身背包",Vector2(815,201),Vector2(450,30),19)
+	container_grid = BackpackGrid.new()
+	container_grid.position = Vector2(150,240)
+	container_grid.activated = _grid_take
+	container_grid.available = _can_grid_take
+	overlay.add_child(container_grid)
+	cargo_grid = BackpackGrid.new()
+	cargo_grid.position = Vector2(815,240)
+	cargo_grid.activated = _grid_put
+	cargo_grid.available = _can_grid_put
+	overlay.add_child(cargo_grid)
+	part_button = button(overlay, "", Vector2(150,607), Vector2(1108,38), func(): game.expansion.take_part(game); refresh())
+	survey_button = button(overlay,"勘察新住处",Vector2(150,650),Vector2(1108,34),func(): game.residence.survey(game); refresh())
+	label(overlay, "点击转移1份 · Shift点击本格 · 空格暂停", Vector2(150,689), Vector2(1108,28), 13)
+	button(overlay, "尽量全部拿走 F", Vector2(150,731), Vector2(300,36), _take_all)
+	button(overlay, "返程 T", Vector2(470,731),Vector2(280,36), game.expedition_retreat)
+	button(overlay, "关闭，继续行动 Esc", Vector2(815,731),Vector2(440,36), game.close_loot)
 
 
 func _refresh_loot() -> void:
@@ -333,17 +335,46 @@ func _refresh_loot() -> void:
 		var part: Dictionary = GearCatalog.PARTS[key]
 		if part["map"] == field.location_id and part["site"] == field.loot_site and not game.expansion.collected.has(key): part_name = ("放回：" if game.expansion.carried.has(key) else "拿取：") + part["name"]
 	part_button.text = "战役零件：%s（占1格，须活着带回）" % part_name if not part_name.is_empty() else "此处没有未收集的战役零件 · 随身%d件" % game.expansion.carried.size()
+	part_button.visible = not part_name.is_empty()
 	part_button.disabled = part_name.is_empty() or (field.used_capacity() >= field.capacity and not part_name.begins_with("放回"))
 	var site: Dictionary = field.sites[field.loot_site]
 	loot_title.text = field.site_definitions()[field.loot_site]["name"]
 	loot_counts.text = "背包 %d / %d格%s" % [field.used_capacity(), field.capacity, " · 已暂停" if game.paused else ""]
-	for key in loot_buttons:
-		loot_buttons[key].text = "\n\n%d" % site["contents"].get(key,0)
-		loot_buttons[key].tooltip_text = ShelterInventory.NAMES[key]+" · 点击拿取1"
-		loot_buttons[key].disabled = int(site["contents"].get(key, 0)) <= 0 or field.used_capacity() >= field.capacity
-		loot_returns[key].text = "\n\n%d" % field.bag[key]
-		loot_returns[key].tooltip_text = ShelterInventory.NAMES[key]+" · 点击放回1"
-		loot_returns[key].disabled = field.bag[key] <= 0 or not site["contents"].has(key) or int(site["contents"].get(key, 0)) >= int(field.site_definitions()[field.loot_site]["items"].get(key, 0))
+	var contents := BackpackStacks.entries(site["contents"])
+	for key in GearCatalog.PARTS:
+		var part: Dictionary = GearCatalog.PARTS[key]
+		if part["map"] == field.location_id and part["site"] == field.loot_site and not game.expansion.collected.has(key) and not game.expansion.carried.has(key):
+			contents.append({"kind":"part","key":key,"count":1,"limit":1})
+	container_grid.render(contents,16)
+	cargo_grid.render(BackpackStacks.carried(field,game.survivors[field.actor_id],game.expansion.carried),field.capacity)
+	loot_buttons = container_grid.first_resources
+	loot_returns = cargo_grid.first_resources
+
+
+func _can_grid_take(entry: Dictionary) -> bool:
+	return game.expedition.room_for(entry["key"]) > 0 if entry["kind"] == "resource" else game.expedition.used_capacity() < game.expedition.capacity
+
+
+func _can_grid_put(entry: Dictionary) -> bool:
+	if entry["kind"] == "part":
+		var part: Dictionary = GearCatalog.PARTS[entry["key"]]
+		return part["map"] == game.expedition.location_id and part["site"] == game.expedition.loot_site
+	if entry["kind"] != "resource": return false
+	var site: Dictionary = game.expedition.sites[game.expedition.loot_site]
+	var bound: int = game.expedition.site_definitions()[game.expedition.loot_site]["items"].get(entry["key"],0)
+	return int(site["contents"].get(entry["key"],0)) < bound
+
+
+func _grid_take(entry: Dictionary, count: int) -> void:
+	if entry["kind"] == "resource": game.expedition.take_loot(entry["key"],count,game.survivors[game.expedition.actor_id])
+	else: game.expansion.take_part(game)
+	refresh()
+
+
+func _grid_put(entry: Dictionary, count: int) -> void:
+	if entry["kind"] == "resource": game.expedition.put_loot(entry["key"],count)
+	elif entry["kind"] == "part": game.expansion.take_part(game)
+	refresh()
 
 
 func _take(key: String) -> void:

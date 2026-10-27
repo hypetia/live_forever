@@ -95,6 +95,19 @@ func _run() -> void:
 		record(game.cycle.phase == "planning" and design.encloses(game.interface.depart_button.get_global_rect()) and game.interface.role_options.size() == 3, "night assignment fits and names all roles at %dx%d" % [size.x, size.y])
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png(output.path_join("night_%dx%d.png" % [size.x, size.y]))
+		game.start_expedition()
+		game.paused = true
+		var field: ExpeditionState = game.expedition
+		field.player_x = 300
+		field._search(10,game.survivors[field.actor_id])
+		game._process(0)
+		game.interface._take_all()
+		record(game._loot_open and field.bag["raw_food"] == 2 and field.bag["water"] == 1 and field.used_capacity() == 3,"actual units are grouped into stacks at %dx%d" % [size.x,size.y])
+		record(design.encloses(game.interface.cargo_grid.get_global_rect()) and design.encloses(game.interface.container_grid.get_global_rect()),"both physical stack grids fit at %dx%d" % [size.x,size.y])
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png(output.path_join("stacks_%dx%d.png" % [size.x,size.y]))
+		game.close_loot(); game.expedition_view.toggle_bag(); game._process(0)
+		record(game.expedition_view.stack_panel.visible and design.encloses(game.expedition_view.stack_panel.get_global_rect()),"field stack drawer fits at %dx%d" % [size.x,size.y])
 		record(SaveSystem.apply_state(game, initial_campaign).is_empty(), "preflight restores untouched campaign at %dx%d" % [size.x, size.y])
 		game.center.open(7)
 		for frame in range(3): await get_tree().process_frame

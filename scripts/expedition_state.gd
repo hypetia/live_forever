@@ -20,6 +20,7 @@ const SITE_DEFS := LocationCatalog.STREET_SITES
 const MODES := ["patrol", "investigate", "chase", "windup", "stunned", "dead"]
 
 var capacity := CAPACITY
+var stacked := false # The legacy shelter fixture retains its original unit capacity. Campaigns use stacks.
 var extra_slots := 0
 var reserve_ammo := 0
 var magazine := 0
@@ -143,9 +144,11 @@ func begin(id: int, loadout: Dictionary, previous_speed: float) -> void:
 
 
 func used_capacity() -> int:
-	var total := extra_slots
-	for amount: int in bag.values(): total += amount
-	return total
+	return extra_slots+BackpackStacks.slots(bag,stacked)
+
+
+func room_for(resource: String) -> int:
+	return BackpackStacks.room(bag,resource,capacity,extra_slots,stacked)
 
 
 func in_cover() -> bool:
@@ -300,7 +303,7 @@ func _search(delta: float, actor: Survivor) -> void:
 		return
 	var taken := {}
 	for resource in ShelterInventory.NAMES:
-		var quantity := mini(int(site["contents"].get(resource, 0)), capacity - used_capacity())
+		var quantity := mini(int(site["contents"].get(resource, 0)), room_for(resource))
 		if quantity > 0:
 			bag[resource] += quantity
 			site["contents"][resource] -= quantity
@@ -615,7 +618,7 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 
 func snapshot() -> Dictionary:
 	return {
-		"extra_slots": extra_slots, "reserve_ammo": reserve_ammo, "magazine": magazine, "reload_remaining": reload_remaining, "discovered": discovered.duplicate(), "capacity": capacity, "manual_loot": manual_loot, "loot_site": loot_site,
+		"stacked": stacked, "extra_slots": extra_slots, "reserve_ammo": reserve_ammo, "magazine": magazine, "reload_remaining": reload_remaining, "discovered": discovered.duplicate(), "capacity": capacity, "manual_loot": manual_loot, "loot_site": loot_site,
 		"active": active, "actor_id": actor_id, "attempts": attempts, "last_refresh_day": last_refresh_day,
 		"return_speed": return_speed, "player_x": player_x, "player_y": player_y, "floor": floor_level,
 		"facing": facing, "sneaking": sneaking, "sprinting": sprinting, "moving": moving,
@@ -629,7 +632,7 @@ func snapshot() -> Dictionary:
 
 func restore_validated(data: Dictionary) -> void:
 	_exit_interact_held = false
-	for property in ["extra_slots", "reserve_ammo", "magazine", "reload_remaining", "capacity", "manual_loot", "loot_site", "active", "facing", "sneaking", "sprinting", "moving", "return_speed", "player_x", "player_y", "noise", "noise_burst", "elapsed", "invulnerable", "attack_cooldown", "attack_windup", "medicine_cooldown", "climb_progress", "search_progress", "search_duration", "search_tool", "feedback"]:
+	for property in ["stacked", "extra_slots", "reserve_ammo", "magazine", "reload_remaining", "capacity", "manual_loot", "loot_site", "active", "facing", "sneaking", "sprinting", "moving", "return_speed", "player_x", "player_y", "noise", "noise_burst", "elapsed", "invulnerable", "attack_cooldown", "attack_windup", "medicine_cooldown", "climb_progress", "search_progress", "search_duration", "search_tool", "feedback"]:
 		set(property, data[property])
 	discovered.clear()
 	for index in data["discovered"]: discovered.append(int(index))
@@ -675,7 +678,7 @@ static func validate_snapshot(data: Variant, actors: Array, id: String = "street
 	var site_defs: Array = definition["sites"]
 	var upper: float = definition["upper_left"]
 	var width: float = definition["width"]
-	var fields := ["extra_slots", "reserve_ammo", "magazine", "reload_remaining", "discovered", "capacity", "manual_loot", "loot_site", "active", "actor_id", "attempts", "last_refresh_day", "return_speed", "player_x", "player_y", "floor", "facing", "sneaking", "sprinting", "moving", "noise", "noise_burst", "elapsed", "invulnerable", "attack_cooldown", "attack_windup", "medicine_cooldown", "climb_target", "climb_progress", "search_index", "search_progress", "search_duration", "search_tool", "feedback", "bag", "sites", "enemies"]
+	var fields := ["stacked", "extra_slots", "reserve_ammo", "magazine", "reload_remaining", "discovered", "capacity", "manual_loot", "loot_site", "active", "actor_id", "attempts", "last_refresh_day", "return_speed", "player_x", "player_y", "floor", "facing", "sneaking", "sprinting", "moving", "noise", "noise_burst", "elapsed", "invulnerable", "attack_cooldown", "attack_windup", "medicine_cooldown", "climb_target", "climb_progress", "search_index", "search_progress", "search_duration", "search_tool", "feedback", "bag", "sites", "enemies"]
 	if not _keys(data, fields): return "探索字段不完整"
 	if not _i(data["extra_slots"], 0, 16) or not _i(data["reserve_ammo"], 0, 120) or not _i(data["magazine"], 0, 6) or not _n(data["reload_remaining"], 0, 1.4): return "弹药或装备负重无效"
 	if not _i(data["capacity"], 10, 16) or not data["manual_loot"] is bool or not _i(data["loot_site"], -1, site_defs.size() - 1): return "背包容量或物资窗口无效"
@@ -684,7 +687,7 @@ static func validate_snapshot(data: Variant, actors: Array, id: String = "street
 	for index in data["discovered"]:
 		if not _i(index, 0, site_defs.size() - 1) or unique.has(int(index)): return "已搜索容器重复或越界"
 		unique.append(int(index))
-	for field in ["active", "sneaking", "sprinting", "moving", "search_tool"]:
+	for field in ["stacked", "active", "sneaking", "sprinting", "moving", "search_tool"]:
 		if not data[field] is bool: return "探索开关无效"
 	if not _i(data["actor_id"], -1, PeopleCatalog.MAX_HISTORY - 1) or not _i(data["attempts"], 0, 10000000) or not _i(data["last_refresh_day"], 1, 10000000): return "探索人员或地点日期无效"
 	if not data["return_speed"] in [1.0, 3.0] or not data["facing"] in [-1.0, 1.0] or not _i(data["floor"], 0, 1): return "探索方向与楼层无效"
@@ -704,8 +707,8 @@ static func validate_snapshot(data: Variant, actors: Array, id: String = "street
 	if not _keys(data["bag"], ShelterInventory.NAMES.keys()): return "探索背包种类无效"
 	var used := int(data["extra_slots"])
 	for resource in data["bag"]:
-		if not _i(data["bag"][resource], 0, int(data["capacity"])): return "探索背包数量无效"
-		used += int(data["bag"][resource])
+		if not _i(data["bag"][resource], 0, int(data["capacity"])*BackpackStacks.limit(resource,data["stacked"])): return "探索背包数量无效"
+		used += ceili(int(data["bag"][resource])/float(BackpackStacks.limit(resource,data["stacked"])))
 	if used > int(data["capacity"]): return "探索背包超重"
 	var away: Array[int] = []
 	for index in range(actors.size()):
@@ -778,7 +781,7 @@ func weather() -> Dictionary:
 func take_loot(resource: String, count: int, actor: Survivor) -> int:
 	if not active or loot_site < 0 or not ShelterInventory.NAMES.has(resource) or count <= 0: return 0
 	var site: Dictionary = sites[loot_site]
-	var gained := mini(count, mini(int(site["contents"].get(resource, 0)), capacity - used_capacity()))
+	var gained := mini(count, mini(int(site["contents"].get(resource, 0)), room_for(resource)))
 	if gained <= 0: return 0
 	site["contents"][resource] -= gained
 	bag[resource] += gained

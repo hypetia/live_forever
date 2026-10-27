@@ -66,8 +66,7 @@ func plan_error(game: Node2D) -> String:
 	if roles.size() != game.survivors.size(): return "请为所有成员选择夜间岗位。"
 	if roles.count("scavenge") > 1: return "每晚只能有一名搜刮者。"
 	if roles.count("bed") > bed_count(): return "床位不足：改为地铺或白天建造简易床。"
-	var total := 0
-	for amount in loadout.values(): total += int(amount)
+	var total := BackpackStacks.slots(loadout)
 	if game.has_method("expansion_snapshot"): total += game.expansion.reserved_slots(game)
 	if game.has_method("expansion_snapshot") and game.expansion.ammo_loadout > game.expansion.ammo: return "携带弹药超过库存。"
 	if total > capacity(game): return "随身物资超过这位角色的背包容量。"
@@ -105,6 +104,8 @@ func restore(data: Dictionary) -> void:
 static func validate(data: Variant, world: Dictionary) -> String:
 	# Empty means a legacy/core snapshot; the campaign scene imports it once.
 	if data is Dictionary and data.is_empty(): return ""
+	for field in [world["expedition"]]+world["other_regions"].values():
+		if not field["stacked"]: return "战役背包必须使用堆叠规则"
 	if not CharacterState.keys(data, ["phase", "return_requested", "night_day", "night_start", "night_end", "roles", "loadout", "report", "late_warned", "builds", "actions", "seed", "last_resolved_day"]): return "昼夜记录字段无效"
 	if not data["return_requested"] is bool or (data["return_requested"] and data["phase"] != "scavenge"): return "返程安排与昼夜阶段不符"
 	if not data["phase"] in PHASES or not data["late_warned"] is bool: return "昼夜阶段无效"
@@ -122,8 +123,8 @@ static func validate(data: Variant, world: Dictionary) -> String:
 	if not data["loadout"] is Dictionary: return "携带物资无效"
 	var total := 0
 	for key in data["loadout"]:
-		if not ShelterInventory.NAMES.has(key) or not CharacterState.integer(data["loadout"][key], 0, 16): return "携带物资种类或数量无效"
-		total += int(data["loadout"][key])
+		if not ShelterInventory.NAMES.has(key) or not CharacterState.integer(data["loadout"][key], 0, 16*BackpackStacks.limit(key)): return "携带物资种类或数量无效"
+		total += ceili(int(data["loadout"][key])/float(BackpackStacks.limit(key)))
 	if total > 16: return "携带物资超出最大背包"
 	if not data["report"] is Array or data["report"].size() > 32: return "清晨记录容量无效"
 	for line in data["report"]:

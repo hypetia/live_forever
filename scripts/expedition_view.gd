@@ -36,6 +36,9 @@ var last_attempt := -1
 var last_actor := -1
 var bag_open := false
 var bag_nodes: Array[Control] = []
+var stack_panel: Panel
+var stack_grid: BackpackGrid
+var stack_capacity: Label
 var bag_button: Button
 var impact_time := 0.0
 var impact_kind := ""
@@ -119,6 +122,30 @@ func _ready() -> void:
 		node.hide()
 		bag_nodes.append(node)
 	if quiet:
+		stack_panel = Panel.new()
+		stack_panel.position = Vector2(925,205)
+		stack_panel.size = Vector2(495,535)
+		stack_panel.theme = GameUi.theme()
+		stack_panel.add_theme_stylebox_override("panel",GameUi.box())
+		hud.add_child(stack_panel)
+		stack_capacity = Label.new()
+		stack_capacity.position = Vector2(20,18); stack_capacity.size = Vector2(390,32)
+		stack_capacity.add_theme_font_size_override("font_size",23)
+		stack_panel.add_child(stack_capacity)
+		var close := Button.new()
+		close.text = "×"; close.position = Vector2(435,16); close.size = Vector2(42,36)
+		GameUi.button(close); close.pressed.connect(toggle_bag); stack_panel.add_child(close)
+		stack_grid = BackpackGrid.new(); stack_grid.position = Vector2(20,68)
+		stack_grid.resource_hint = "点击丢弃1份，无法拾回"
+		stack_grid.activated = func(entry: Dictionary,_count: int):
+			if entry["kind"] == "resource": game.expedition_drop(entry["key"])
+		stack_grid.available = func(entry: Dictionary): return entry["kind"] == "resource"
+		stack_panel.add_child(stack_grid)
+		var hint := Label.new()
+		hint.text = "点击丢弃1份 · 此处无法拾回"
+		hint.position = Vector2(20,467); hint.size = Vector2(450,30)
+		stack_panel.add_child(hint)
+		stack_panel.hide()
 		equipment_name = _label("",Vector2(350,788),Vector2(340,23),15,GOLD)
 		for index in range(3):
 			var button := _button("",Vector2(350+index*76,817),Vector2(66,60),show_equipment)
@@ -651,12 +678,11 @@ func _refresh_quiet(state: ExpeditionState, actor: Survivor) -> void:
 		equipment_buttons[index].tooltip_text = _equipment_description(slots[index])+"\n点击查看随身装备"
 		equipment_buttons[index].queue_redraw()
 	for label in [title_label,area_hint,alert_label,gear_label,actor_label,role_label,stats_label,log_label,context_label,feedback_label]: label.hide()
-	for node in bag_nodes: node.visible = bag_open
+	for node in bag_nodes: node.hide()
+	stack_panel.visible = bag_open
 	if bag_open:
-		capacity_label.text = "背包 %d / %d" % [state.used_capacity(),state.capacity]
-		for resource in drop_buttons:
-			drop_buttons[resource].text = "%s  %d  −1" % [ShelterInventory.NAMES[resource],state.bag[resource]]
-			drop_buttons[resource].disabled = state.bag[resource] <= 0
+		stack_capacity.text = "背包 %d / %d格" % [state.used_capacity(),state.capacity]
+		stack_grid.render(BackpackStacks.carried(state,actor,game.expansion.carried),state.capacity)
 	search_bar.value = state.search_progress/state.search_duration*100 if state.search_duration > 0 else 0
 	retreat_button.disabled = false if quiet else game.paused
 	search_button.disabled = game.paused or state.nearby_site() < 0 or game.cycle.return_requested or game.cycle.phase == "returning"

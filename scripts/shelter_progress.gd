@@ -148,7 +148,7 @@ static func validate(data: Variant, seconds: float, away: bool) -> String:
 			if not ExpeditionState._i(amount, 0, 100000000): return "探索统计数量无效"
 	if not away and not data["trip_loadout"].is_empty(): return "未外出却保留携带账目"
 	for key in data["trip_loadout"]:
-		if not key in ShelterInventory.NAMES or not ExpeditionState._i(data["trip_loadout"][key], 1, 16): return "携带账目无效"
+		if not key in ShelterInventory.NAMES or not ExpeditionState._i(data["trip_loadout"][key], 1, 16*BackpackStacks.limit(key)): return "携带账目无效"
 	if not data["journal"] is Array or data["journal"].size() > 16: return "日志容量无效"
 	for line in data["journal"]:
 		if not line is String or line.length() > 300: return "日志内容无效"
