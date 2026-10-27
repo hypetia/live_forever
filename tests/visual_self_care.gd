@@ -2,7 +2,7 @@ extends "res://tests/visual_campaign.gd"
 
 func _run() -> void:
 	var game: Node2D = load("res://scenes/campaign.tscn").instantiate()
-	game.persistence_enabled = false;root.add_child(game);game.set_process(false)
+	game.persistence_enabled = false;root.add_child(game); ArchiveFixture.campaign(game);game.set_process(false)
 	await process_frame;await process_frame
 	await keypress(KEY_P)
 	check(game.center.routine_toggle.button_pressed and not game.center.cooking_toggle.button_pressed,"new game exposes enabled basic self-care and separate optional cooking")

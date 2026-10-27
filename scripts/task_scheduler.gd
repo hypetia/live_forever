@@ -131,7 +131,7 @@ func step(delta: float) -> void:
 		var recovery_task := actor.orders[0] in ["eat", "sleep", "heal"]
 		var skill_bonus := actor.person.bonus("care" if actor.orders[0] == "heal" else "craft") if actor.orders[0] not in ["eat", "sleep"] else 1.0
 		var station_rate := float(production_rate.call(TaskCatalog.TASKS[actor.orders[0]]["facility"])) if production_rate.is_valid() and not recovery_task else 1.0
-		actor.work_elapsed += delta * skill_bonus * station_rate * (1.0 if recovery_task else actor.effort_factor() * (upkeep.efficiency() if upkeep != null else 1.0))
+		actor.work_elapsed += delta * skill_bonus * station_rate * (CharacterAbilities.factor(actor,"work") if not recovery_task else 1.0) * (1.0 if recovery_task else actor.effort_factor() * (upkeep.efficiency() if upkeep != null else 1.0))
 		actor.queue_redraw()
 		if actor.work_elapsed >= actor.work_duration:
 			_finish(actor)

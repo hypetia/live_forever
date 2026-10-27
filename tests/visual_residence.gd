@@ -3,7 +3,7 @@ extends "res://tests/visual_campaign.gd"
 func _run() -> void:
 	var game: Node2D = load("res://scenes/campaign.tscn").instantiate()
 	game.persistence_enabled = false
-	root.add_child(game)
+	root.add_child(game); ArchiveFixture.campaign(game)
 	game.set_process(false)
 	await process_frame
 	game._process(0)
@@ -38,7 +38,7 @@ func _run() -> void:
 	await picture("res://docs/v13-character.png")
 	game.center.close()
 	var report: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://docs/v13-home-journey.json"))
-	check(SaveSystem.apply_state(game,SaveSystem.migrate_v16(SaveSystem.migrate_v15(SaveSystem.migrate_v14(SaveSystem.migrate_v13(SaveSystem.migrate_v12(SaveSystem.migrate_v11(SaveSystem.migrate_v10(SaveSystem.migrate_v9(report["snapshot"]))))))))).is_empty(),"natural journey snapshot restores the actually acquired new home")
+	check(SaveSystem.apply_state(game,SaveSystem.migrate_v17(SaveSystem.migrate_v16(SaveSystem.migrate_v15(SaveSystem.migrate_v14(SaveSystem.migrate_v13(SaveSystem.migrate_v12(SaveSystem.migrate_v11(SaveSystem.migrate_v10(SaveSystem.migrate_v9(report["snapshot"])))))))))).is_empty(),"natural journey snapshot restores the actually acquired new home")
 	game._process(0)
 	check(game.residence.current == "row" and game.residence.security["gate"] == 1,"relocated home and rebuilt security are rendered from saved state")
 	await picture("res://docs/v13-relocated.png")

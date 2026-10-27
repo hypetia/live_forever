@@ -6,7 +6,7 @@ func _run() -> void:
 	for id: String in LocationCatalog.ALL_IDS:
 		var game: Node2D = load("res://scenes/campaign.tscn").instantiate()
 		game.persistence_enabled = false
-		root.add_child(game);game.set_process(false)
+		root.add_child(game); ArchiveFixture.campaign(game);game.set_process(false)
 		await process_frame
 		# Declared unlocked-map presentation fixture, not a natural campaign journey.
 		game.expansion.stage = 4;game.simulation_time = 27*720

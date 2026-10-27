@@ -3,7 +3,7 @@ extends RefCounted
 ## Validated snapshots, checksummed JSON, atomic replacement and one backup.
 ## Only data is loaded: no resource paths, scripts or executable expressions.
 
-const VERSION := 17
+const VERSION := 18
 const MAX_BYTES := 2 * 1024 * 1024
 const STATIONS := ["workbench", "stove", "table", "bed"]
 const FLOAT_FIELDS := ["work_elapsed", "work_duration", "hunger", "fatigue", "health", "injury", "infection", "illness", "cold_exposure", "movement_clock", "facing"]
@@ -32,6 +32,8 @@ static func capture(game: Node2D) -> Dictionary:
 	for id in game.regions:
 		if id != game.expedition.location_id: other_regions[id] = game.regions[id].snapshot()
 	return {
+		"chronicle": game.chronicle_snapshot() if game.has_method("chronicle_snapshot") else {},
+		"siege": game.siege_snapshot() if game.has_method("siege_snapshot") else {},
 		"self_care": game.self_care_snapshot() if game.has_method("self_care_snapshot") else {},
 		"districts": game.districts_snapshot() if game.has_method("districts_snapshot") else {},
 		"director": game.director_snapshot() if game.has_method("director_snapshot") else {},
@@ -107,6 +109,8 @@ static func validate(data: Variant) -> String:
 	required.append("director")
 	required.append("districts")
 	required.append("self_care")
+	required.append("chronicle")
+	required.append("siege")
 	if not _exact_keys(data, required):
 		return "存档缺少字段或包含未知字段"
 	var region_ids: Array = LocationCatalog.IDS if data["expansion"] is Dictionary and data["expansion"].is_empty() else LocationCatalog.ALL_IDS
@@ -139,10 +143,13 @@ static func validate(data: Variant) -> String:
 		fields.append_array(FLOAT_FIELDS)
 		if not _exact_keys(actor, fields) or not _integer(actor["id"], index, index) or not _integer(actor["state"], 0, Survivor.TaskState.AWAY):
 			return "角色身份或状态无效"
-		var character_error := CharacterState.validate(actor["person"], ExpeditionState.day_at(data["simulation_time"]), float(data["simulation_time"]))
+		var character_error := CharacterState.validate(actor["person"], ExpeditionState.day_at(data["simulation_time"]), float(data["simulation_time"]),true)
 		if not character_error.is_empty(): return character_error
 		var persona: String = actor["person"]["persona"]
-		if identities.has(persona) or (index < 3 and persona != PeopleCatalog.ORIGINALS[index]) or (index >= 3 and not PeopleCatalog.CANDIDATES.has(persona)): return "队伍身份顺序或唯一性无效"
+		var initial_roster: Array = PeopleCatalog.ORIGINALS
+		if data["chronicle"] is Dictionary and ChronicleCatalog.SCENARIOS.has(data["chronicle"].get("scenario","")): initial_roster = ChronicleCatalog.SCENARIOS[data["chronicle"]["scenario"]]["roster"]
+		if not initial_roster.has(persona) and PeopleCatalog.CANDIDATES.has(persona) and actor["person"]["joined_day"] < PeopleCatalog.DATA[persona]["day"]: return "来访者加入日期早于出现日期"
+		if identities.has(persona) or (index < 3 and persona != initial_roster[index]) or (index >= 3 and not PeopleCatalog.DATA.has(persona)): return "队伍身份顺序或唯一性无效"
 		identities.append(persona)
 		if actor.get("health", 0) is float or actor.get("health", 0) is int:
 			if actor["health"] > 0: living += 1
@@ -255,6 +262,10 @@ static func validate(data: Variant) -> String:
 	if not facilities_error.is_empty(): return facilities_error
 	var district_error := DistrictSystem.validate(data["districts"],data)
 	if not district_error.is_empty(): return district_error
+	var chronicle_error := CampaignChronicle.validate(data["chronicle"],data)
+	if not chronicle_error.is_empty(): return chronicle_error
+	var siege_error := SiegeState.validate(data["siege"],data)
+	if not siege_error.is_empty(): return siege_error
 	var care_error := SelfCareSystem.validate(data["self_care"],data)
 	if not care_error.is_empty(): return care_error
 	var director_error := CampaignDirector.validate(data["director"],data)
@@ -339,6 +350,8 @@ static func apply_state(game: Node2D, data: Dictionary) -> String:
 	if game.has_method("restore_residence"): game.restore_residence(data["residence"])
 	if game.has_method("restore_director"): game.restore_director(data["director"])
 	if game.has_method("restore_districts"): game.restore_districts(data["districts"])
+	if game.has_method("restore_chronicle"): game.restore_chronicle(data["chronicle"])
+	if game.has_method("restore_siege"): game.restore_siege(data["siege"])
 	if game.has_method("restore_self_care"): game.restore_self_care(data["self_care"])
 	game.expedition_view.reset_feedback()
 	game.select_survivor(int(data["selected_id"]))
@@ -403,6 +416,8 @@ func _read_file(filename: String) -> Dictionary:
 		data = migrate_v15(data)
 	if int(envelope["version"]) <= 16:
 		data = migrate_v16(data)
+	if int(envelope["version"]) <= 17:
+		data = migrate_v17(data)
 	var error := validate(data)
 	if not error.is_empty():
 		return {"ok": false, "message": error}
@@ -697,4 +712,26 @@ static func migrate_v16(data: Variant) -> Variant:
 			if not actor is Dictionary or not actor.get("person") is Dictionary or not actor["person"].get("persona") is String or not actor.get("health") is float and not actor.get("health") is int: return null
 			members[actor["person"]["persona"]] = {"enabled":actor["health"]>0,"manual_until":0.0,"action":"","resting":false}
 		upgraded["self_care"] = {"members":members}
+	return upgraded
+
+
+static func migrate_v17(data: Variant) -> Variant:
+	if not data is Dictionary or not data.get("actors") is Array or not data.get("campaign") is Dictionary or not data.get("expedition") is Dictionary or not data.get("other_regions") is Dictionary: return null
+	var upgraded: Dictionary = data.duplicate(true)
+	upgraded["chronicle"] = {};upgraded["siege"] = {}
+	if not upgraded["campaign"].is_empty():
+		var members := {}
+		for actor in upgraded["actors"]:
+			if not actor is Dictionary or not actor.get("person") is Dictionary: return null
+			members[actor["person"]["persona"]] = {"stage":0,"choice":-1,"last_trip":1}
+		upgraded["chronicle"] = {"scenario":"classic","arcs":members,"intel":[],"trip_evidence":[],"work":{},"last_day":0,"meal_day":0,"manual_defense":true}
+		upgraded["siege"] = SiegeState.new().snapshot()
+	var locations: Dictionary = upgraded["other_regions"].duplicate()
+	locations[upgraded["destination"]] = upgraded["expedition"]
+	for id: String in locations:
+		var field: Variant = locations[id]
+		if not field is Dictionary or not field.get("enemies") is Array: return null
+		var interior := InteriorState.new();interior.setup(id,true)
+		field["interior"] = interior.snapshot();field["minds"] = []
+		for index in range(field["enemies"].size()): field["minds"].append(EnemyMind.make(id,index))
 	return upgraded

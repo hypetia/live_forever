@@ -110,7 +110,7 @@ func refresh() -> void:
 	game.clock_label.size = Vector2(280,32)
 	game.clock_label.add_theme_font_size_override("font_size",23)
 	var minute := int(CampaignCycle.minute(game.simulation_time))
-	var current_day: int = game.cycle.night_day if field else ExpeditionState.day_at(game.simulation_time)
+	var current_day: int = game.cycle.night_day if field or game.siege.active else ExpeditionState.day_at(game.simulation_time)
 	game.clock_label.text = "%02d  /  %02d:%02d" % [current_day,minute/60,minute%60]
 	game.clock_label.tooltip_text = "第%d天 · %s\n20:00日落，06:00天亮\n%s" % [current_day,"已暂停" if game.paused else "时间进行中",game.phase_label.text]
 	game.clock_label.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -128,6 +128,7 @@ func refresh() -> void:
 	menu_button.size = Vector2(58,32)
 	menu_button.text = "菜单"
 	menu_button.tooltip_text = "菜单 Esc · 人物 P · 地图 M"
+	menu_button.disabled = game.siege.active
 	game.pause_button.size = Vector2(36,32)
 	game.speed_button.size = Vector2(40,32)
 	menu_button.size = Vector2(58,32)
@@ -149,7 +150,12 @@ func refresh() -> void:
 		card.position = Vector2(32+index*(width+10),790)
 		card.size = Vector2(width,94)
 		card.text = ""
-		card.visible = day or (field and index == game.expedition.actor_id)
+		card.visible = day or (field and index == game.expedition.actor_id) or (game.siege.active and game.siege.participants.has(index))
+		if game.siege.active:
+			var defending: int = maxi(1,game.siege.participants.size())
+			var defense_width: float = minf(216,(690.0-(defending-1)*8)/defending)
+			card.position = Vector2(32+game.siege.participants.find(index)*(defense_width+8),790)
+			card.size = Vector2(defense_width,94)
 		if field:
 			card.position = Vector2(32,790)
 			card.size = Vector2(280,94)

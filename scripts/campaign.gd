@@ -12,6 +12,11 @@ var facilities := FacilitySystem.new()
 var director := CampaignDirector.new()
 var districts := DistrictSystem.new()
 var self_care := SelfCareSystem.new()
+var chronicle := CampaignChronicle.new()
+var siege := SiegeState.new()
+var chronicle_view: ChronicleView
+var siege_view: SiegeView
+var next_scenario := "classic"
 var district_view: DistrictView
 var briefing: CampaignBriefing
 var security_view: SecurityView
@@ -64,6 +69,12 @@ func _region_ids() -> Array:
 func _ready() -> void:
 	expansion.grant("knife", "chen")
 	super._ready()
+	# The superclass captures the pristine reset before campaign field flags.
+	# Normalize that saved reset too, including when startup loaded another game.
+	var reset_fields: Array = [_initial_state["expedition"]] + _initial_state["other_regions"].values()
+	for saved_field in reset_fields:
+		saved_field["stacked"] = true
+		saved_field["manual_loot"] = true
 	get_window().theme = GameUi.theme()
 	director.event_reported.connect(_log)
 	scheduler.external_busy = _external_busy
@@ -71,7 +82,9 @@ func _ready() -> void:
 	scheduler.production_rate = func(id: String): return facilities.rate(id)
 	facilities.sync(self)
 	expansion.sync(self)
-	get_window().title = "Live Forever · 留一盏灯 v1.10"
+	get_window().title = "Live Forever · 留一盏灯 v1.11"
+	chronicle.sync(self)
+	scheduler.task_finished.connect(func(id: int,task: String): chronicle.job(self,id,task))
 	self_care.sync(self)
 	scheduler.task_finished.connect(func(id: int,task: String): self_care.finished(self,id,task))
 	scheduler.tasks_cancelled.connect(func(id: int): self_care.manual(self,id))
@@ -85,6 +98,7 @@ func _ready() -> void:
 		field.environment_active = true
 		field.confirm_exits = true
 		field.exit_requested.connect(_offer_departure)
+		field.site_searched.connect(func(index: int): chronicle.site(self,index))
 		field.combat_resolved.connect(func(kind: String, _point: Vector2, damage: int): director.shot(self,kind,damage); districts.gunfire(self,kind))
 	# Replace the legacy instant water command with a physical action.
 	for connection in water_store.clicked.get_connections(): water_store.clicked.disconnect(connection["callable"])
@@ -139,17 +153,56 @@ func _ready() -> void:
 	briefing.game = self
 	add_child(briefing)
 	district_view = DistrictView.new();district_view.game = self;add_child(district_view)
+	chronicle_view = ChronicleView.new();chronicle_view.game = self;add_child(chronicle_view)
+	siege_view = SiegeView.new();siege_view.game = self;world_root.add_child(siege_view)
 	scheduler.task_finished.connect(func(id: int, task: String):
 		if task in ["craft", "repair", "cook"]: residence.noise = minf(100, residence.noise + (4 if task == "craft" else 2))
 		if task == "cook": director.food_cooked(self,"cook",CharacterAbilities.cooking_output(survivors[id])["meals"])
 	)
 	_configure_manual()
+	if not persistence_enabled or not save_store.has_save(): chronicle.apply_scenario(self,"classic")
 	_log("左键走动，双击奔跑；点床与餐桌直接休息或进食，B选择建设。20:00安排夜间岗位。")
 	_refresh_hud()
 
 
 func districts_snapshot() -> Dictionary:
 	return districts.snapshot()
+
+
+func chronicle_snapshot() -> Dictionary:
+	return chronicle.snapshot(self)
+
+
+func restore_chronicle(data: Dictionary) -> void:
+	chronicle.restore(data)
+	chronicle.sync(self)
+	if is_instance_valid(chronicle_view): chronicle_view.close_loaded()
+
+
+func siege_snapshot() -> Dictionary:
+	return siege.snapshot()
+
+
+func restore_siege(data: Dictionary) -> void:
+	siege.restore(data)
+
+
+func request_new_game() -> void:
+	chronicle_view.show_page("starts")
+
+
+func start_new_game() -> void:
+	var error := SaveSystem.apply_state(self,_initial_state)
+	if not error.is_empty(): _log(error);return
+	chronicle.apply_scenario(self,next_scenario)
+	game_over=false;paused=false;auto_save_allowed=true;_last_auto_attempt=0
+	if persistence_enabled: save_game()
+	_refresh_hud()
+
+
+func select_survivor(index: int) -> void:
+	if siege.active and not siege.participants.has(index): return
+	super.select_survivor(index)
 
 
 func self_care_snapshot() -> Dictionary:
@@ -173,6 +226,7 @@ func restore_districts(data: Dictionary) -> void:
 
 func expedition_drop(resource: String) -> void:
 	super.expedition_drop(resource)
+	if resource == "tools" and not expedition.interior.action.is_empty() and expedition.interior.action.get("quiet",false) and expedition.bag["tools"]<1: expedition.interior.action.clear()
 	if not districts.work.is_empty():
 		var cost: Dictionary = DistrictSystem.COSTS[districts.work["action"]]
 		if cost.has(resource) and expedition.bag[resource] < cost[resource]: districts.work.clear()
@@ -298,7 +352,15 @@ func advance_simulation(delta: float) -> void:
 	var remaining := delta * speed
 	while remaining > 0.0000001 and not paused and not game_over:
 		var step := minf(remaining, 1.0 / 60.0)
-		if cycle.phase == "day":
+		if cycle.phase == "siege":
+			simulation_time += step
+			if _day_keyboard_allowed(): shelter_keyboard.step(self,step,super._expedition_controls())
+			else: shelter_keyboard.stop(self)
+			var before_positions: Array = survivors.map(func(a):return a.position)
+			scheduler.step(step);shelter_keyboard.finish_step(self)
+			siege.constrain(self,before_positions)
+			siege.tick(self,step)
+		elif cycle.phase == "day":
 			var until_sunset := (1200.0 - CampaignCycle.minute(simulation_time)) / 2.0
 			if until_sunset <= 0.00001:
 				enter_night_planning()
@@ -314,6 +376,7 @@ func advance_simulation(delta: float) -> void:
 			# Night personality pressure is settled here; do not run full People.tick twice.
 			if expedition.elapsed > 120:
 				actor.person.stress = minf(100, actor.person.stress + step * (0.01 if actor.person.persona == "chen" else 0.005))
+			if actor.person.persona == "chen" and expedition.noise_burst>75: actor.person.stress=minf(100,actor.person.stress+step*.18)
 			var controls := _expedition_controls()
 			districts.tick_work(self,step,controls)
 			expedition.tick(step, actor, controls)
@@ -361,6 +424,7 @@ func _day_step(step: float) -> void:
 	for id in policies: survivors[int(id)].person.routine = policies[id]
 	_tick_external(step)
 	expansion.tick_day(self, step)
+	chronicle.tick_day(self,step)
 	self_care.sync(self)
 	residence.noise = maxf(0, residence.noise - step * 0.006)
 	for actor in survivors:
@@ -450,7 +514,7 @@ func start_expedition(take_tool: bool = false, take_medicine: bool = false) -> b
 	if id < 0:
 		if not districts.reserve_shift(self): return false
 		expansion.reserve_heat(self)
-		_settle_night([])
+		if not siege.begin(self,[]): _settle_night([])
 		return true
 	var equipment := cycle.loadout.duplicate()
 	if not inventory.try_take(equipment, "夜间出发携带物资"): return false
@@ -558,6 +622,7 @@ func confirm_departure() -> void:
 
 
 func _on_expedition_returned(id: int, cargo: Dictionary, survived: bool) -> void:
+	chronicle.trip_return(self,survived and survivors[id].health > 0,id)
 	districts.trip_return(self,survived and survivors[id].health > 0)
 	director.trip_return(self,survived and survivors[id].health > 0)
 	_departure_side = 0
@@ -570,13 +635,14 @@ func _on_expedition_returned(id: int, cargo: Dictionary, survived: bool) -> void
 	residence.trip_return(self, survived and survivors[id].health > 0)
 	expansion.trip_return(self, id, survived and survivors[id].health > 0)
 	super._on_expedition_returned(id, cargo, survived)
-	_settle_night(["%s已归来；净带回%s。" % [survivors[id].display_name, ShelterInventory.describe(net)] if survived else "%s未能归来；随身物资、零件和装备全部丢失。" % survivors[id].display_name])
+	var return_lines: Array = ["%s已归来；净带回%s。" % [survivors[id].display_name, ShelterInventory.describe(net)] if survived else "%s未能归来；随身物资、零件和装备全部丢失。" % survivors[id].display_name]
+	if not siege.begin(self,return_lines): _settle_night(return_lines)
 
 
 func _settle_night(lines: Array) -> void:
 	if _settling or cycle.last_resolved_day >= cycle.night_day: return
 	_settling = true
-	var minutes := maxf(0, cycle.night_end - cycle.night_start)
+	var minutes := maxf(0, maxf(cycle.night_end,simulation_time) - cycle.night_start)
 	var report: Array[String] = []
 	for line: String in lines: report.append(line)
 	for actor in survivors:
@@ -587,8 +653,8 @@ func _settle_night(lines: Array) -> void:
 		var role := cycle.roles[actor.survivor_id]
 		if not residence.convoy.is_empty(): role = "guard"
 		match role:
-			"bed": actor.fatigue = maxf(0, actor.fatigue - 65 * CharacterAbilities.factor(actor,"sleep")); actor.person.stress = maxf(0, actor.person.stress - 12)
-			"floor": actor.fatigue = maxf(0, actor.fatigue - 35 * CharacterAbilities.factor(actor,"sleep")); actor.person.stress = maxf(0, actor.person.stress - 4)
+			"bed": actor.fatigue = maxf(0, actor.fatigue - 65 * CharacterAbilities.factor(actor,"sleep") * (maxf(0,1-siege.elapsed/maxf(1,minutes)) if siege.resolved_day==cycle.night_day and siege.participants.has(actor.survivor_id) else 1)); actor.person.stress = maxf(0, actor.person.stress - 12)
+			"floor": actor.fatigue = maxf(0, actor.fatigue - 35 * CharacterAbilities.factor(actor,"sleep") * (maxf(0,1-siege.elapsed/maxf(1,minutes)) if siege.resolved_day==cycle.night_day and siege.participants.has(actor.survivor_id) else 1)); actor.person.stress = maxf(0, actor.person.stress - 4)
 			"guard": actor.fatigue = minf(100, actor.fatigue + 28)
 			"scavenge": actor.fatigue = minf(100, actor.fatigue + 35)
 			"outpost": actor.fatigue = minf(100, actor.fatigue + 45)
@@ -640,6 +706,7 @@ func _settle_night(lines: Array) -> void:
 
 
 func _resolve_raid(report: Array[String]) -> void:
+	if siege.resolved_day == cycle.night_day: return
 	if not residence.convoy.is_empty():
 		_resolve_convoy(report)
 		return
@@ -696,6 +763,7 @@ func night_forecast() -> String:
 	var chance := raid_chance(day)
 	var threat := raid_threat(day)
 	var guard := "暂未出现集中袭击" if chance == 0 else "20:00安排守夜" if cycle.phase != "planning" else "预计防守稳固" if raid_defense(true) >= threat else "预计防守吃紧"
+	if chronicle.manual_defense and chance>0: guard="夜袭需亲自参战，备好武器与守夜人手"
 	return "今晚室外%d℃ · 尸群活动%d%% · %s · U查看街区动态" % [expansion.outside(self),chance,guard]
 
 
@@ -736,6 +804,8 @@ func _expedition_controls() -> Dictionary:
 		forced["force_exit"] = true
 		return forced
 	var manual := super._expedition_controls()
+	manual["peek"] = bool(manual.get("peek",false)) or Input.is_physical_key_pressed(KEY_ALT)
+	manual["window"] = bool(manual.get("window",false)) or Input.is_physical_key_pressed(KEY_X)
 	# Direct movement takes priority before any pending mouse attack or search.
 	if absf(float(manual.get("axis",0))) > 0 or int(manual.get("climb",0)) != 0:
 		cycle.return_requested = false
@@ -749,6 +819,9 @@ func _expedition_controls() -> Dictionary:
 	if is_instance_valid(interface) and interface.has_move_target:
 		if interface.target_enemy >= 0:
 			var enemy: Dictionary = expedition.enemies[interface.target_enemy]
+			if not expedition.interior.visible(expedition,float(enemy["x"]),int(enemy["floor"])):
+				interface.target_enemy=-1
+				return _route_controls(interface.target_x,interface.target_floor,false)
 			if enemy["hp"] <= 0:
 				interface.has_move_target = false
 				interface.target_enemy = -1
@@ -765,18 +838,32 @@ func _expedition_controls() -> Dictionary:
 			if expedition.enemy_can_reach(enemy) and not expedition.attack_obstruction(enemy,survivors[expedition.actor_id]).is_empty():
 				interface.target_x = float(enemy["x"])
 			interface.target_floor = int(enemy["climb_target"]) if int(enemy["climb_target"]) != -1 else int(enemy["floor"])
+		if interface.target_site <= -10 and interface.target_door_state==3:
+			var d := -10-interface.target_site
+			var wall_x := float(InteriorState.layout(expedition.location_id)[d]["x"])
+			if (expedition.player_x-wall_x)*interface.target_door_side<0 and expedition.interior.action.is_empty(): interface.has_move_target=false;return {}
+			if expedition.interior.nearby(expedition)==d:
+				return {"window":true} if expedition.interior.action.is_empty() else {}
 		var controls := _route_controls(interface.target_x,interface.target_floor,false)
 		controls["sneak"] = Input.is_physical_key_pressed(KEY_CTRL)
 		controls["sprint"] = interface.target_run and not controls["sneak"]
 		var arrival := 0.5 if interface.target_floor == 0 and (interface.target_x <= 90 or interface.target_x >= expedition.right_edge(0)) else 10.0
 		if absf(expedition.player_x-interface.target_x) < arrival and expedition.floor_level == interface.target_floor and expedition.climb_target == -1:
 			interface.has_move_target = false
-			if interface.target_site >= 0 or interface.target_site == -2: expedition_view.search_held = true
+			if interface.target_site <= -10:
+				interface.has_move_target = true
+				var door_index := -10-interface.target_site
+				if interface.target_door_state==2:
+					if expedition.interior.doors[door_index]["window"]==0:return {"window":true}
+				elif int(expedition.interior.doors[door_index]["open"])!=interface.target_door_state:return {"interact":true}
+				interface.has_move_target = false
+			elif interface.target_site >= 0 or interface.target_site == -2: expedition_view.search_held = true
 		return controls
 	return manual
 
 
 func _day_keyboard_allowed() -> bool:
+	if is_instance_valid(chronicle_view) and chronicle_view.opened: return false
 	if is_instance_valid(district_view) and district_view.opened: return false
 	if is_instance_valid(briefing) and briefing.opened: return false
 	if paused or game_over or center.visible or interface.workshop_open or residence_view.opened: return false
@@ -786,7 +873,11 @@ func _day_keyboard_allowed() -> bool:
 
 
 func _route_controls(x: float, floor_level: int, retreat: bool) -> Dictionary:
+	if not expedition.interior.action.is_empty(): return {}
 	if expedition.climb_target != -1: return {}
+	var destination := expedition.route_ladder(expedition.player_x,x) if expedition.floor_level != floor_level else x
+	var door := expedition.interior.barrier(expedition.location_id,expedition.player_x,destination,expedition.floor_level)
+	if expedition.environment_active and door>=0 and absf(expedition.player_x-float(InteriorState.layout(expedition.location_id)[door]["x"]))<60: return {"interact":true}
 	if expedition.floor_level != floor_level:
 		var access := expedition.route_ladder(expedition.player_x,x)
 		if absf(expedition.player_x - access) > 8: return {"axis": signf(access - expedition.player_x), "sprint": retreat}
@@ -802,6 +893,7 @@ func _process(delta: float) -> void:
 	_updating_frame = false
 	if is_instance_valid(interface):
 		if expedition.active and expedition.loot_site >= 0 and not _loot_open:
+			if expedition.nearby_site()==expedition.loot_site: chronicle.site(self,expedition.loot_site)
 			_loot_pause_before = paused
 			_loot_open = true
 			expedition_view.search_held = false
@@ -901,7 +993,7 @@ func assign_selected() -> void:
 
 
 func move_selected(point: Vector2) -> bool:
-	if cycle.phase != "day": return false
+	if not cycle.phase in ["day","siege"]: return false
 	var target := Vector2(clampf(point.x, 140, 960), ShelterNavigation.UPPER_Y if scheduler.navigation.floor_at(point) == 1 else ShelterNavigation.LOWER_Y)
 	if scheduler.navigation.route_between(survivors[selected_id].position, target).is_empty():
 		_log("位置不可达，保留原行动。")
@@ -911,7 +1003,7 @@ func move_selected(point: Vector2) -> bool:
 
 
 func cancel_selected() -> void:
-	if cycle.phase != "day": return
+	if not cycle.phase in ["day","siege"]: return
 	_cancel_external(selected_id)
 	super.cancel_selected()
 	var actor := survivors[selected_id]
@@ -925,6 +1017,28 @@ func cancel_selected() -> void:
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
+	if is_instance_valid(chronicle_view) and chronicle_view.opened:
+		if event is InputEventKey and event.pressed and not event.echo:
+			if event.physical_keycode in [KEY_ESCAPE,KEY_F2,KEY_F3]: chronicle_view.close()
+			elif event.physical_keycode == KEY_F6: save_game()
+		get_viewport().set_input_as_handled();return
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.physical_keycode in [KEY_F2,KEY_F3]:
+			chronicle_view.show_page("starts" if event.physical_keycode==KEY_F2 else "people");get_viewport().set_input_as_handled();return
+		if cycle.phase == "siege":
+			match event.physical_keycode:
+				KEY_J: siege.attack(self,selected_id)
+				KEY_E: siege.toggle(self,"gate")
+				KEY_X: siege.toggle(self,"window")
+				KEY_V: siege.start_action(self,"repair",selected_id)
+				KEY_F: siege.start_action(self,"heal",selected_id)
+				KEY_R: siege.start_action(self,"self_heal",selected_id)
+				KEY_ESCAPE: toggle_pause()
+				_:
+					if event.physical_keycode in [KEY_SPACE,KEY_F6,KEY_F9,KEY_F11,KEY_TAB,KEY_1,KEY_2,KEY_3,KEY_4,KEY_5,KEY_6]: super._unhandled_key_input(event)
+					else: get_viewport().set_input_as_handled()
+					return
+			get_viewport().set_input_as_handled();return
 	if is_instance_valid(district_view) and district_view.opened:
 		if event is InputEventKey and event.pressed and not event.echo:
 			if event.physical_keycode in [KEY_Y,KEY_ESCAPE]: district_view.close()
@@ -1019,6 +1133,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if is_instance_valid(chronicle_view) and chronicle_view.opened: return
 	if is_instance_valid(district_view) and district_view.opened: return
 	if is_instance_valid(security_view) and security_view.opened: return
 	if is_instance_valid(briefing) and briefing.opened: return
@@ -1044,6 +1159,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		point.x += expedition_view._camera()
 		var floor_level := 1 if point.y < 470 and point.x >= expedition.upper_left() else 0
 		var site := -1
+		var door_hit := expedition.interior.hit(expedition,point) if expedition.environment_active else -1
+		if door_hit>=0:
+			var door_point: Dictionary = InteriorState.layout(expedition.location_id)[door_hit]
+			var side := -1 if expedition.player_x<float(door_point["x"]) else 1
+			var target := float(door_point["x"])+side*42
+			interface.set_target(target,int(door_point["floor"]),false,-10-door_hit)
+			interface.target_door_side = side
+			interface.target_door_state = (2 if expedition.interior.doors[door_hit]["window"]==0 else 3) if point.x>float(door_point["x"])+20 else (0 if expedition.interior.doors[door_hit]["open"] else 1)
+			get_viewport().set_input_as_handled();return
 		for index in range(expedition.site_definitions().size()):
 			var definition: Dictionary = expedition.site_definitions()[index]
 			if expedition.site_hit_rect(index).has_point(point):
@@ -1059,6 +1183,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if site == -1:
 			for index in range(expedition.enemies.size()):
 				var enemy: Dictionary = expedition.enemies[index]
+				if not expedition.interior.visible(expedition,float(enemy["x"]),int(enemy["floor"])): continue
 				if enemy["hp"] > 0 and absf(point.x - float(enemy["x"])) < 34 and Rect2(Vector2(float(enemy["x"])-34,expedition.enemy_y(enemy)-100),Vector2(68,105)).has_point(point):
 					interface.target_enemy = index
 					break
@@ -1128,11 +1253,13 @@ func place_build(type: String, slot: int) -> bool:
 
 
 func _external_busy(id: int) -> bool:
-	return shelter_keyboard.actor_id == id or expansion.jobs.any(func(job): return job["actor"] == id) or cycle.builds.any(func(build): return build["state"] == "blueprint" and build["actor"] == id) or cycle.actions.any(func(action): return action["actor"] == id)
+	return (not chronicle.work.is_empty() and int(chronicle.work["actor"])==id) or shelter_keyboard.actor_id == id or expansion.jobs.any(func(job): return job["actor"] == id) or cycle.builds.any(func(build): return build["state"] == "blueprint" and build["actor"] == id) or cycle.actions.any(func(action): return action["actor"] == id)
 
 
 func _cancel_external(id: int, refund: bool = true) -> void:
 	self_care.manual(self,id)
+	chronicle.cancel(self,id)
+	siege.cancel(id)
 	if shelter_keyboard.actor_id == id: shelter_keyboard.stop(self)
 	expansion.cancel(self, id, refund)
 	for build in cycle.builds.duplicate():

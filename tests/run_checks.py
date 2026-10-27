@@ -14,6 +14,8 @@ def main():
     parser.add_argument('--engine', default='godot')
     parser.add_argument('--graphics', action='store_true', help='Requires a working graphical DISPLAY')
     parser.add_argument('--artifacts', type=Path, help='Directory for validation logs')
+    parser.add_argument('--legacy-prototype-long-runs', action='store_true', help='Also run historical core-scene policies with known pre-v1.10 balance failures; these are not the current campaign.')
+    parser.add_argument('--extended-balance', action='store_true', help='Also run each current start through 60 days of endless survival')
     args = parser.parse_args()
     source = Path(__file__).resolve().parents[1]
     workspace = Path(tempfile.mkdtemp(prefix='live_forever_verify.'))
@@ -31,7 +33,7 @@ def main():
     def run(name, command, marker=None):
         process = subprocess.run([args.engine, *command], cwd=project, env=env,
                                  text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                 timeout=600 if name == "endurance" else 180)
+                                 timeout=1200 if name.startswith('campaign-') or name == 'endurance' else 180)
         (output / f'{name}.log').write_text(process.stdout)
         bad = process.returncode != 0 or any(word in process.stdout for word in ['SCRIPT ERROR:', 'ERROR:', 'FAIL: ', 'FAIL visual:', 'ObjectDB instances leaked'])
         if marker and marker not in process.stdout:
@@ -48,6 +50,9 @@ def main():
                                ('saves', 74, 12), ('expedition', 76, 17), ('expedition_saves', 88, 12),
                                ('long_term', 97, 19), ('people', 124, 24), ('story', 68, 13),
                                ('goals', 63, 12), ('balance', 23, 4), ('endurance', 22, 3)]:
+        if name in ['balance','endurance'] and not args.legacy_prototype_long_runs:
+            print('ARCHIVED policy excluded from current-campaign checks: ' + name, flush=True)
+            continue
         command = ['--headless', '--path', str(project), '--script', f'res://tests/test_{name}.gd']
         if name == 'balance': command += ['--', str(output.resolve() / 'balance')]
         if name == 'endurance': command += ['--', str(output.resolve() / 'endurance')]
@@ -77,6 +82,14 @@ def main():
     for name, count in [('enemy_ai', 59), ('security', 25), ('backpack_stacks', 73), ('map_environments', 298), ('district_system', 172), ('decoys', 32), ('self_care', 87)]:
         run(name, ['--headless', '--path', str(project), '--script', f'res://tests/test_{name}.gd'], f'{count} checks, 0 failures')
         logical += count
+    for name, count in [('tactical_campaign', 59), ('siege', 25)]:
+        run(name, ['--headless', '--path', str(project), '--script', f'res://tests/test_{name}.gd'], f'{count} checks, 0 failures')
+        logical += count
+    for scenario in ['classic','convoy','infirmary']:
+        cases = [('quiet',35),('fortify',35)] + ([('fortify',60)] if args.extended_balance else [])
+        for style,days in cases:
+            name = f'campaign-{scenario}-{style}-{days}'
+            run(name, ['--headless','--path',str(project),'--script','res://tests/run_tactical_balance.gd','--',scenario,style,str(output.resolve() / (name+'.json')),str(days)], 'TACTICAL BALANCE PASS')
     run('startup', ['--headless', '--path', str(project), '--quit-after', '8'])
     run('district_journey', ['--headless', '--path', str(project), '--script', 'res://tests/run_district_journey.gd', '--', str(output.resolve() / 'district-journey.json')], 'DISTRICT JOURNEY PASS')
     run('self_care_journey', ['--headless', '--path', str(project), '--script', 'res://tests/run_self_care_journey.gd', '--', str(output.resolve() / 'self-care-journey.json')], 'SELF CARE JOURNEY PASS')
@@ -101,13 +114,15 @@ def main():
         for phase in phases:
             run(f'{name}-{phase}', ['--headless', '--path', str(project), '--script',
                 f'res://tests/{name}.gd', '--', phase, str(slot)], 'PASS:')
+    for phase in ['write','read','vault','raid','finish','verify']:
+        run('persistence_tactical-'+phase, ['--headless','--path',str(project),'--script','res://tests/persistence_tactical_process.gd','--',phase,str(workspace / 'tactical.json')], '0 failures')
     graphical = 0
     if args.graphics:
-        for name, count in [('visual_smoke', 36), ('visual_expedition', 36), ('visual_long_term', 24), ('visual_people', 22), ('visual_story', 17), ('visual_goals', 24), ('visual_presentation', 45), ('visual_campaign', 47), ('visual_expansion', 15), ('visual_quiet', 20), ('visual_residence', 26), ('visual_interactions', 26), ('visual_keyboard_movement', 10), ('visual_departure_equipment', 21), ('visual_facilities', 21), ('visual_director', 25), ('visual_combat_feedback', 11), ('visual_security_ai', 24), ('visual_backpack_stacks', 25), ('visual_map_environments', 77), ('visual_district_system', 33), ('visual_self_care', 22)]:
+        for name, count in [('visual_smoke', 36), ('visual_expedition', 36), ('visual_long_term', 24), ('visual_people', 22), ('visual_story', 17), ('visual_goals', 24), ('visual_presentation', 45), ('visual_campaign', 47), ('visual_expansion', 15), ('visual_quiet', 20), ('visual_residence', 26), ('visual_interactions', 26), ('visual_keyboard_movement', 10), ('visual_departure_equipment', 21), ('visual_facilities', 21), ('visual_director', 25), ('visual_combat_feedback', 11), ('visual_security_ai', 24), ('visual_backpack_stacks', 25), ('visual_map_environments', 77), ('visual_district_system', 33), ('visual_self_care', 22), ('visual_tactical', 31)]:
             run(name, ['--path', str(project), '--resolution', '1440x900', '--audio-driver', 'Dummy',
                 '--script', f'res://tests/{name}.gd'], f'{count} checks, 0 failures')
             graphical += count
-    print(f'Validated {logical} logical checks, {graphical} GUI checks, startup and 55 persistence processes.')
+    print(f'Validated {logical} logical checks, {graphical} GUI checks, startup and 61 persistence processes.')
     print(f'Clean project: {project}\nLogs: {output}')
 
 

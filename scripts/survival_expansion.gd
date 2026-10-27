@@ -24,7 +24,7 @@ func day(game: Node2D) -> int:
 	return maxi(1, ExpeditionState.day_at(game.simulation_time) - epoch + 1)
 
 func outside(game: Node2D) -> float:
-	return temperature_at(day(game))
+	return temperature_at(day(game))+float(ChronicleCatalog.SCENARIOS[game.chronicle.scenario]["cold"]) if game.has_method("chronicle_snapshot") else temperature_at(day(game))
 
 static func temperature_at(day_number: int) -> float:
 	var d := (day_number - 1) % 35 + 1
@@ -267,7 +267,7 @@ func reserve_heat(game: Node2D) -> void:
 
 func dawn(game: Node2D, duration: float, report: Array[String]) -> void:
 	var night_day: int = game.cycle.night_day - epoch + 1
-	var night_temperature := temperature_at(night_day)
+	var night_temperature := temperature_at(night_day)+(float(ChronicleCatalog.SCENARIOS[game.chronicle.scenario]["cold"]) if game.has_method("chronicle_snapshot") else 0.0)
 	var heat_time := minf(duration, night_heat)
 	var all_warm := true
 	var home := 0

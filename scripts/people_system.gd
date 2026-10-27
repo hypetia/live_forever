@@ -145,8 +145,8 @@ func offers(game: Node2D) -> Array[String]:
 	var available: Array[String] = []
 	var known: Array = game.survivors.map(func(a): return a.person.persona)
 	var day := ExpeditionState.day_at(game.simulation_time)
-	for id in PeopleCatalog.CANDIDATES:
-		if not known.has(id) and day >= int(PeopleCatalog.DATA[id]["day"]): available.append(id)
+	for id in (PeopleCatalog.DATA.keys() if game.has_method("chronicle_snapshot") else PeopleCatalog.CANDIDATES):
+		if not known.has(id) and day >= maxi(3,int(PeopleCatalog.DATA[id]["day"])): available.append(id)
 	return available
 
 
@@ -267,7 +267,7 @@ func aid(game: Node2D, target_id: int) -> bool:
 	if game.simulation_time - medic.person.last_aid < 180 or game.simulation_time - target.person.last_aid < 180: return false
 	if target.health >= 100 and target.injury <= 0 and target.infection <= 0 and target.illness <= 0: return false
 	if not game.inventory.try_take({"medicine": 1}, medic.display_name + "医疗援助" + target.display_name): return false
-	if target.metabolism >= 1 or target.hunger < 80: target.health = minf(100, target.health + 20 + medic.person.level("care") * 2 + (10 if medic.metabolism < 1 and medic.person.persona == "xu" else 0))
+	if target.metabolism >= 1 or target.hunger < 80: target.health = minf(100, target.health + (20 + medic.person.level("care") * 2 + (10 if medic.metabolism < 1 and medic.person.persona == "xu" else 0))*CharacterAbilities.factor(medic,"aid"))
 	target.injury = maxf(0, target.injury - 40)
 	target.infection = maxf(0, target.infection - 35)
 	target.illness = maxf(0, target.illness - 35)
@@ -282,5 +282,6 @@ func aid(game: Node2D, target_id: int) -> bool:
 	medic.person.morale = minf(100, medic.person.morale + 2)
 	var pair := "%d:%d" % [mini(medic.survivor_id, target_id), maxi(medic.survivor_id, target_id)]
 	bonds[pair] = mini(100, int(bonds[pair]) + 5)
+	if game.has_method("chronicle_snapshot"): game.chronicle.aid(game,medic)
 	event_reported.emit("%s用一份药品为%s提供了医疗援助；后续仍要安排休息与照料。" % [medic.display_name, target.display_name])
 	return true

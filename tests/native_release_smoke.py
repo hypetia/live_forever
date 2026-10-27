@@ -288,7 +288,7 @@ def main():
             press('f')
         looted = save()
         assert looted['expedition']['bag']['raw_food'] == 2 and looted['expedition']['bag']['water'] == 1, looted['expedition']
-        assert looted['stock']['raw_food'] == 4, 'Remote cargo credit'
+        assert looted['stock']['raw_food'] == trip['stock']['raw_food'], 'Remote cargo credit'
         # Regression: invoke T inside the loot pane, away from the exit.
         assert looted['expedition']['player_x'] > 145, 'Return regression must start away from extraction'
         press('t')
@@ -312,7 +312,7 @@ def main():
                 raise AssertionError('Queued physical return never reached extraction')
         assert exit_confirmation_sent, 'Physical return skipped explicit exit confirmation'
         assert not returned['expedition']['active'] and returned['paused']
-        assert returned['stock']['raw_food'] == 6 and returned['stock']['water'] == 5 and returned['stock']['medicine'] == 1, returned['stock']
+        assert returned['stock']['raw_food'] == looted['stock']['raw_food']+2 and returned['stock']['water'] == looted['stock']['water']+1 and returned['stock']['medicine'] == looted['stock']['medicine'], returned['stock']
         assert returned['upkeep']['returns']['street'] == 1
         assert returned['actors'][2]['person']['experience']['scout'] == 4
         subprocess.run(['import', '-display', args.display, '-window', str(window), str(output / 'native-return.png')], check=True, timeout=15)

@@ -1,7 +1,7 @@
 extends "res://tests/test_campaign.gd"
 
 func quiet_field() -> ExpeditionState:
-	var f := ExpeditionState.new();f.environment_active = true;f.stacked = true
+	var f := ExpeditionState.new();f.environment_active = true;f.interior.enabled = false;f.stacked = true
 	f.begin(0,{"materials":6,"fuel":6},1)
 	for e in f.enemies: e["hp"] = 0;e["mode"] = "dead"
 	return f

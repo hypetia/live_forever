@@ -3,7 +3,7 @@ extends "res://tests/visual_campaign.gd"
 func _run() -> void:
 	var game: Node2D = load("res://scenes/campaign.tscn").instantiate()
 	game.persistence_enabled = false
-	root.add_child(game)
+	root.add_child(game); ArchiveFixture.campaign(game)
 	game.set_process(false)
 	game.inventory.deposit({"materials":60,"tools":10,"raw_food":10,"water":10,"fuel":10},"isolated GUI construction supplies")
 	await process_frame

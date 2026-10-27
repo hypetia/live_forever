@@ -4,7 +4,7 @@ func _run() -> void:
 	var args := OS.get_cmdline_user_args()
 	if args.size() != 2: quit(2);return
 	var game: Node2D = load("res://scenes/campaign.tscn").instantiate()
-	game.persistence_enabled = false;root.add_child(game);game.set_process(false);game.save_store.path = args[1]
+	game.persistence_enabled = false;root.add_child(game); ArchiveFixture.campaign(game);game.set_process(false);game.save_store.path = args[1]
 	var okay := true
 	if args[0] == "write":
 		game.inventory.deposit({"materials":6,"tools":1,"fuel":2},"declared cross-process district fixture")

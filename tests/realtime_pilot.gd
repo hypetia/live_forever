@@ -15,7 +15,9 @@ var trips := 0
 func setup(scene: Node2D) -> void:
 	game = scene
 	if game.has_method("campaign_snapshot"):
-		campaign_driver = preload("res://tests/campaign_pilot.gd").new()
+		campaign_driver = preload("res://tests/tactical_pilot.gd").new()
+		campaign_driver.style = "fortify"
+		campaign_driver.daytime_seconds = 70.0
 		campaign_driver.setup(game)
 		return
 	policy.game = scene
@@ -26,7 +28,9 @@ func setup(scene: Node2D) -> void:
 
 func tick(delta: float) -> void:
 	if is_instance_valid(campaign_driver):
+		if not game.expansion.outcome.is_empty(): game.expansion.endless = true
 		campaign_driver.tick(delta)
+		game._process(0)
 		trips = campaign_driver.trips
 		return
 	if game.game_over: return

@@ -13,7 +13,7 @@ func shift_click(point: Vector2) -> void:
 func _run() -> void:
 	var game: Node2D = load("res://scenes/campaign.tscn").instantiate()
 	game.persistence_enabled = false
-	root.add_child(game)
+	root.add_child(game); ArchiveFixture.campaign(game)
 	game.set_process(false)
 	await process_frame
 	game.end_day(); game.start_expedition()

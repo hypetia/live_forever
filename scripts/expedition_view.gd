@@ -356,6 +356,7 @@ func _draw() -> void:
 			_text(point+Vector2(-47,27),definition["name"]+(" · 空" if empty else ""),12,MUTED if empty else GOLD)
 	if quiet: _draw_intent(state,camera)
 	combat_effects.draw_marks(self,camera)
+	if state.environment_active: state.interior.draw(self,state,camera)
 	for enemy_index in range(state.enemies.size()):
 		_draw_enemy(state.enemies[enemy_index], camera, state, enemy_index)
 	var actor: Survivor = game.survivors[state.actor_id]
@@ -426,6 +427,7 @@ func _on_player_hurt(point: Vector2, direction: float, damage: int, field: Exped
 
 
 func _draw_enemy(enemy: Dictionary, camera: float, state: ExpeditionState, index: int) -> void:
+	if state.environment_active and not state.interior.visible(state,float(enemy["x"]),int(enemy["floor"])): return
 	var point := Vector2(float(enemy["x"])-camera,state.enemy_y(enemy))
 	if point.x < -100 or point.x > 1160: return
 	combat_effects.draw_enemy(self,enemy,index,point,state.elapsed)
@@ -443,11 +445,21 @@ func _draw_enemy(enemy: Dictionary, camera: float, state: ExpeditionState, index
 		for value in [30.0,60.0]: draw_line(bar+Vector2(width*value/90,0),bar+Vector2(width*value/90,7),Color("283631"),1,true)
 	if enemy["suspicion"] > 0: draw_rect(Rect2(bar+Vector2(0,13),Vector2(width*float(enemy["suspicion"])/100,3)),GOLD)
 	var mouse: Vector2 = (get_viewport().get_mouse_position()-game.world_offset())/game.world_scale()
-	if not quiet or Rect2(point+Vector2(-40,-145),Vector2(80,145)).has_point(mouse): _text(bar+Vector2(0,-8),"%s %d/%d" % [definition["name"],enemy["hp"],definition["health"]],14,GameUi.TEXT)
+	if not quiet or Rect2(point+Vector2(-40,-145),Vector2(80,145)).has_point(mouse): _text(bar+Vector2(0,-8),"%s %d/%d" % [EnemyMind.label(state,index) if state.environment_active and state.interior.enabled else definition["name"],enemy["hp"],definition["health"]],14,GameUi.TEXT)
+	if state.environment_active and state.interior.enabled:
+		var role: int = state.minds[index]["role"]
+		if role == 0: draw_line(point+Vector2(-9,-73)*scale,point+Vector2(10,-73)*scale,Color("32333d"),5,true)
+		elif role == 1:
+			for x in [-11,11]: draw_arc(point+Vector2(x,-67)*scale,4,0,TAU,15,Color("b7b99a"),2,true)
+		elif role == 2:
+			draw_line(point+Vector2(-7,-55)*scale,point+Vector2(8,-55)*scale,Color("a65b4b"),4,true)
+			if state.minds[index]["call"]>12: draw_arc(point+Vector2(0,-60),40+(14-float(state.minds[index]["call"]))*45,0,TAU,40,Color(.8,.5,.3,.4),2,true)
+		else: draw_rect(Rect2(point+Vector2(-22,-58)*scale,Vector2(12,28)*scale),Color("8d7e5d"))
 	if enemy["mode"] == "windup": draw_arc(point+Vector2(0,-35*scale),42*scale,-PI/2,PI/2 if direction > 0 else PI*1.5,30,GameUi.WARNING,3,true)
 
 
 func _draw_player(point: Vector2, actor: Survivor, state: ExpeditionState) -> void:
+	if not state.interior.action.is_empty() and state.interior.action["kind"] == "vault": point.y -= sin(float(state.interior.action["elapsed"])*PI)*27
 	if combat_effects.player_time > 0:
 		var recoil := sin((1-combat_effects.player_time/0.4)*PI)
 		point += Vector2(combat_effects.player_direction*9*recoil,4*recoil)
@@ -474,6 +486,7 @@ func _draw_player(point: Vector2, actor: Survivor, state: ExpeditionState) -> vo
 		draw_rect(Rect2(point+Vector2(-11,-50+crouch),Vector2(22,23-crouch*0.3)),armor_color)
 		for y in [-44,-35]: draw_line(point+Vector2(-9,y+crouch),point+Vector2(9,y+crouch),armor_color.darkened(0.4),2,true)
 	draw_circle(point + Vector2(combat_effects.player_direction*5*sin(combat_effects.player_time/0.4*PI) if combat_effects.player_time > 0 else 0, -65 + crouch), 9, Color("e0b2a1") if combat_effects.player_time > 0.24 else Color("c7b294"))
+	PersonalityArt.face(self,actor.person.persona,point+Vector2(0,-65+crouch),.9)
 	if quiet:
 		var slots := EquipmentArt.slots(actor)
 		var held: Dictionary = slots[0]
@@ -742,6 +755,8 @@ func _refresh_quiet(state: ExpeditionState, actor: Survivor) -> void:
 
 
 func _draw_site(index: int, state: ExpeditionState, camera: float) -> void:
+	var room_site: Dictionary = state.site_definitions()[index]
+	if state.environment_active and not state.interior.visible(state,float(room_site["x"]),int(room_site["floor"])): return
 	var definition: Dictionary = state.site_definitions()[index]
 	var world := Vector2(float(definition["x"]),ExpeditionState.FLOOR_Y[int(definition["floor"])])
 	var point := world-Vector2(camera,0)

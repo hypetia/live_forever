@@ -72,7 +72,7 @@ func _run() -> void:
 	check(scene.center.candidate_picker.get_item_metadata(0) == "he" and not scene.center.recruit_button.disabled, "third-day visitor appears and can be paid with real supplies")
 	var before: Dictionary = scene.inventory.snapshot()
 	await dialog_click(scene.center, scene.center.recruit_button)
-	check(scene.survivors.size() == 4 and scene.cards.size() == 4 and scene.survivors[3].display_name == "沈禾", "actual recruit button creates the distinct fourth survivor and card")
+	check(scene.survivors.size() == 4 and scene.cards.size() == 4 and scene.survivors[3].display_name == "祝九「铁锅女王」", "actual recruit button creates the distinct fourth survivor and card")
 	check(scene.inventory.amount("raw_food") == before["raw_food"] - 2 and scene.inventory.amount("water") == before["water"] - 2 and scene.inventory.amount("medicine") == before["medicine"] - 1, "recruitment spends its complete real survival cost")
 	check(scene.center.roster_picker.item_count == 4 and not scene.survivors[3].person.routine, "new member is selectable without silently enabling resource spending")
 	await picture("res://docs/people-preview.png")

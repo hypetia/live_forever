@@ -8,7 +8,7 @@ func scenario_hold(game: Node2D,key: Key,seconds: float) -> void:
 
 func _run() -> void:
 	var game: Node2D = load("res://scenes/campaign.tscn").instantiate()
-	game.persistence_enabled = false;root.add_child(game);game.set_process(false)
+	game.persistence_enabled = false;root.add_child(game); ArchiveFixture.campaign(game);game.set_process(false)
 	await process_frame
 	await keypress(KEY_Y)
 	check(game.district_view.opened and game.paused,"Y opens the spatial district map and pauses actual day play")
@@ -93,7 +93,7 @@ func _run() -> void:
 	check(game.cycle.roles[0] == "outpost","actual night-role dropdown selects the newly available outpost worker")
 	check(game.interface.plan_capacity.text.contains("轮值预留燃料1"),"night preparation exposes the reserved logistics cost")
 	await keypress(KEY_Y)
-	check(game.district_view.target_button.disabled == false and game.district_view.detail.text.contains("林舟"),"planning chart previews the assigned person's real shift")
+	check(game.district_view.target_button.disabled == false and game.district_view.detail.text.contains("墨衡「钉钟人」"),"planning chart previews the assigned person's real shift")
 	check(game.district_view.detail.get_line_count()*game.district_view.detail.get_line_height() <= game.district_view.detail.size.y,"assigned-person preview remains readable without clipping")
 	await picture("res://docs/v19-outpost-roster.png")
 	await keypress(KEY_ESCAPE)

@@ -12,7 +12,7 @@ func _run() -> void:
 	var path := args[1]
 	var game: Node2D = load("res://scenes/campaign.tscn").instantiate()
 	game.persistence_enabled = false
-	root.add_child(game)
+	root.add_child(game); ArchiveFixture.campaign(game)
 	game.set_process(false)
 	game.save_store.path = path
 	var ok := true

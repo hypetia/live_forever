@@ -4,7 +4,7 @@ extends "res://tests/test_shelter.gd"
 func campaign() -> Node2D:
 	var scene: Node2D = load("res://scenes/campaign.tscn").instantiate()
 	scene.persistence_enabled = false
-	root.add_child(scene)
+	root.add_child(scene); ArchiveFixture.campaign(scene)
 	scene.set_process(false)
 	return scene
 

@@ -3,7 +3,7 @@ extends RefCounted
 ## Persistent daily decisions. The scene advances time; this class validates
 ## transitions and owns night roles, construction and the morning ledger.
 
-const PHASES := ["day", "planning", "scavenge", "returning", "dawn"]
+const PHASES := ["day", "planning", "scavenge", "returning", "siege", "dawn"]
 const ROLES := ["scavenge", "guard", "bed", "floor", "dead", "outpost"]
 const ROLE_NAMES := ["外出搜刮", "留守警戒", "床上睡眠", "地铺睡眠", "已故", "前哨轮值"]
 const BAGS := {"lin": 12, "xu": 10, "chen": 14, "he": 12, "gu": 10, "tang": 14}

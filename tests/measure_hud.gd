@@ -5,7 +5,7 @@ func run() -> void:
 	root.size = Vector2i(1920,1080)
 	var game: Node2D = load("res://scenes/campaign.tscn").instantiate()
 	game.persistence_enabled = false
-	root.add_child(game)
+	root.add_child(game); ArchiveFixture.campaign(game)
 	if OS.get_cmdline_user_args().has("--no-film"):
 		for child in game.get_children():
 			if child is CanvasLayer and child.layer == 2: child.hide()

@@ -79,7 +79,7 @@ func test_shared_bed() -> void:
 	var scene := make_scene()
 	var order: Array[String] = []
 	scene.scheduler.event_reported.connect(func(message: String):
-		if "完成睡觉。" in message: order.append(message.substr(0, 2))
+		if "完成睡觉。" in message: order.append(message.get_slice("完成",0))
 	)
 	scene.scheduler.submit(scene.survivors[0], "sleep")
 	scene.scheduler.submit(scene.survivors[1], "sleep")
@@ -93,7 +93,7 @@ func test_shared_bed() -> void:
 			if actor.state == Survivor.TaskState.WORKING and actor.orders[0] == "sleep": sleepers += 1
 		exclusive = exclusive and sleepers <= 1
 	expect(exclusive and waited, "single shared bed visibly queues without double occupancy")
-	expect(order == ["林舟", "许遥"] and scene.bed.completed_jobs == 2, "sleeping preserves FIFO order")
+	expect(order == ["墨衡「钉钟人」", "闻人灯「白鸦」"] and scene.bed.completed_jobs == 2, "sleeping preserves FIFO order")
 	expect(scene.bed.waiting_ids.is_empty() and scene.bed.occupant_id == -1, "bed is fully released after both rests")
 	scene.free()
 	print("PASS survival: shared bed FIFO")

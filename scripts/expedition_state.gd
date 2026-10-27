@@ -19,6 +19,8 @@ const SITE_DEFS := LocationCatalog.STREET_SITES
 
 const MODES := ["patrol", "investigate", "chase", "windup", "stunned", "dead"]
 
+var interior := InteriorState.new()
+var minds: Array[Dictionary] = []
 var environment_active := false # Derived by the campaign, not trusted from disk.
 var decoys: Array[Dictionary] = []
 var lure_cooldown := 0.0
@@ -73,6 +75,7 @@ var enemies: Array[Dictionary] = []
 
 func _init(id: String = "street") -> void:
 	location_id = id
+	interior.setup(id)
 	_clear_bag()
 	for definition in site_definitions():
 		sites.append({"contents": definition["items"].duplicate(), "locked": definition["locked"]})
@@ -105,6 +108,7 @@ func refresh_for_day(day: int) -> void:
 
 func _spawn_enemies(day: int) -> void:
 	enemies.clear()
+	minds.clear()
 	var definitions: Array = area()["guards"].duplicate(true)
 	if day % 3 == 0:
 		definitions.append(area()["extra"].duplicate())
@@ -112,9 +116,12 @@ func _spawn_enemies(day: int) -> void:
 		var data: Array = definitions[index]
 		enemies.append({"x": data[0], "floor": data[1], "home_floor": data[1], "target_floor": data[1], "memory": 0.0, "climb_target": -1, "climb_progress": 0.0, "min": data[2], "max": data[3], "direction": -1.0 if (day + index) % 2 else 1.0, "mode": "patrol", "suspicion": 0.0, "target": data[0], "timer": 0.0, "cooldown": 0.0, "brace": 0.0, "hp": EnemyCatalog.stats(str(data[4]) if data.size() > 4 else "walker")["health"], "kind": data[4] if data.size() > 4 else "walker"})
 
+		minds.append(EnemyMind.make(location_id,index))
+
 
 func begin(id: int, loadout: Dictionary, previous_speed: float) -> void:
 	_exit_interact_held = false
+	interior.action.clear();interior.held = false
 	_reset_route()
 	decoys.clear()
 	lure_cooldown = 0
@@ -208,7 +215,10 @@ func reload(actor: Survivor) -> bool:
 	return true
 
 
-func tick(delta: float, actor: Survivor, controls: Dictionary) -> void:
+func tick(delta: float, actor: Survivor, raw_controls: Dictionary) -> void:
+	if not active: return
+	var controls := interior.controls(self,actor,delta,raw_controls) if environment_active else raw_controls
+	if environment_active: interior.observe(self)
 	if not active:
 		return
 	if actor.health <= 0:
@@ -258,12 +268,13 @@ func tick(delta: float, actor: Survivor, controls: Dictionary) -> void:
 			facing = signf(axis)
 			var pace := 95.0 if sneaking else 275.0 if sprinting else 190.0
 			var surface := current_surface()
-			player_x = clampf(player_x + axis * pace * float(surface["pace"]) * actor.effort_factor() * delta, 90 if floor_level == 0 else upper_left(), right_edge(floor_level))
+			player_x = clampf(interior.stop_x(location_id,player_x,player_x + axis * pace * float(surface["pace"]) * actor.effort_factor() * delta,floor_level) if environment_active else player_x + axis * pace * float(surface["pace"]) * actor.effort_factor() * delta, 90 if floor_level == 0 else upper_left(), right_edge(floor_level))
 			actor.fatigue = minf(100, actor.fatigue + delta * (0.10 if sprinting else 0.04))
 			_reset_route()
 		var movement_noise := (8.0 if sneaking else 75.0 if sprinting else 30.0) if moving else 0.0
 		movement_noise *= float(current_surface()["quiet" if sneaking else "noise"])
 		movement_noise *= (0.8 if actor.speciality == "搜寻者" else 1.0) * (1.0 - actor.person.level("scout") * 0.05)
+		movement_noise *= CharacterAbilities.factor(actor,"noise")
 		noise = minf(100, maxf(noise_burst, movement_noise))
 		if bool(controls.get("interact", false)) and not moving and climb_target == -1:
 			if exit_side() != 0:
@@ -356,6 +367,7 @@ func attack(actor: Survivor) -> bool:
 		var old_slots := ceili((reserve_ammo + magazine) / 8.0)
 		magazine -= 1
 		extra_slots = maxi(0, extra_slots - old_slots + ceili((reserve_ammo + magazine) / 8.0))
+	interior.cancel(self)
 	_reset_route()
 	actor.fatigue = minf(100, actor.fatigue + (0.6 if not weapon.is_empty() or bag["tools"] > 0 else 1.2))
 	attack_cooldown = float(weapon.get("cooldown", 1.1))
@@ -369,6 +381,9 @@ func attack_obstruction(enemy: Dictionary, actor: Survivor) -> Dictionary:
 	var ranged := actor.weapon().has("magazine")
 	var origin := Vector2(player_x,player_y-((38 if sneaking else 58) if ranged else 35))
 	var end := Vector2(enemy["x"],enemy_y(enemy)-(60*float(EnemyCatalog.stats(enemy["kind"])["scale"]) if ranged else 35))
+	if environment_active:
+		var wall := interior.barrier(location_id,player_x,float(enemy["x"]),floor_level)
+		if wall>=0 and (not ranged or not interior.clear_sight(location_id,player_x,float(enemy["x"]),floor_level)):return {"point":Vector2(InteriorState.layout(location_id)[wall]["x"],player_y-55)}
 	return CombatGeometry.obstruction(area()["covers"],origin,end,floor_level)
 
 
@@ -378,6 +393,17 @@ func _resolve_attack(actor: Survivor) -> void:
 	var weapon := actor.weapon()
 	if not weapon.is_empty() and not weapon.has("magazine"): noise_burst = maxf(noise_burst,65)
 	var closest := float(weapon.get("reach", 75.0))
+	if environment_active:
+		var wall := interior.barrier(location_id,player_x,player_x+facing*closest,floor_level)
+		if wall>=0 and (not weapon.has("magazine") or not interior.clear_sight(location_id,player_x,player_x+facing*closest,floor_level)):
+			var door: Dictionary = interior.doors[wall]
+			var damage := int(weapon.get("damage",3))
+			door["hp"]=maxf(0,float(door["hp"])-damage)
+			if door["hp"]<=0:door["open"]=true
+			if not actor.weapon_item.is_empty():actor.weapon_item["durability"]=maxi(0,int(actor.weapon_item["durability"])-int(weapon.get("wear",1)))
+			noise_burst=100 if weapon.has("magazine") else 80
+			combat_resolved.emit("blocked_shot" if weapon.has("magazine") else "blocked",Vector2(InteriorState.layout(location_id)[wall]["x"],player_y-45),damage)
+			return
 	for index in range(enemies.size()):
 		var enemy: Dictionary = enemies[index]
 		var distance := absf(float(enemy["x"]) - player_x)
@@ -526,6 +552,7 @@ func _finish(survived: bool) -> void:
 	var id := actor_id
 	var cargo := bag.duplicate()
 	active = false
+	interior.action.clear();interior.peeking=false
 	loot_site = -1
 	actor_id = -1
 	decoys.clear()
@@ -558,7 +585,7 @@ func _enemy_route(enemy: Dictionary, destination: float, level: int, speed: floa
 	var difference := x-float(enemy["x"])
 	if absf(difference) > 0.01:
 		enemy["direction"] = signf(difference)
-		enemy["x"] = move_toward(float(enemy["x"]),x,speed*delta)
+		enemy["x"] = interior.enemy_move(self,enemy,move_toward(float(enemy["x"]),x,speed*delta),delta) if environment_active else move_toward(float(enemy["x"]),x,speed*delta)
 	if int(enemy["floor"]) != level and absf(float(enemy["x"])-access) < 0.01:
 		enemy["climb_target"] = level
 		enemy["climb_progress"] = 0.0
@@ -566,6 +593,7 @@ func _enemy_route(enemy: Dictionary, destination: float, level: int, speed: floa
 
 func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 	if enemy["hp"] <= 0: return
+	if environment_active and interior.enabled: EnemyMind.tick(self,enemy,delta)
 	enemy["brace"] = maxf(0,float(enemy["brace"])-delta)
 	enemy["cooldown"] = maxf(0,float(enemy["cooldown"])-delta)
 	enemy["memory"] = maxf(0,float(enemy["memory"])-delta)
@@ -584,7 +612,7 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 			enemy["climb_target"] = -1
 			enemy["climb_progress"] = 0.0
 		return
-	var bite_clear := same_floor and CombatGeometry.obstruction(area()["covers"],Vector2(enemy["x"],enemy_y(enemy)-35),Vector2(player_x,player_y-35),floor_level).is_empty()
+	var bite_clear := same_floor and (not environment_active or interior.barrier(location_id,float(enemy["x"]),player_x,floor_level)<0) and CombatGeometry.obstruction(area()["covers"],Vector2(enemy["x"],enemy_y(enemy)-35),Vector2(player_x,player_y-35),floor_level).is_empty()
 	if enemy["mode"] == "windup":
 		enemy["timer"] = maxf(0,float(enemy["timer"])-delta)
 		if enemy["timer"] == 0:
@@ -611,14 +639,17 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 	var vision := 115.0 if sneaking else 290.0
 	if in_cover(): vision = 52.0
 	vision = maxf(55,vision*float(weather()["vision"]))
-	var sight_clear := same_floor and CombatGeometry.obstruction(area()["covers"],Vector2(enemy["x"],enemy_y(enemy)-60*float(EnemyCatalog.stats(kind)["scale"])),Vector2(player_x,player_y-(40 if sneaking else 65)),floor_level).is_empty()
+	var sight_clear := same_floor and (not environment_active or interior.clear_sight(location_id,float(enemy["x"]),player_x,floor_level)) and CombatGeometry.obstruction(area()["covers"],Vector2(enemy["x"],enemy_y(enemy)-60*float(EnemyCatalog.stats(kind)["scale"])),Vector2(player_x,player_y-(40 if sneaking else 65)),floor_level).is_empty()
+	vision *= EnemyMind.vision(self,enemy) if environment_active and interior.enabled else 1.0
 	var sees := sight_clear and distance < vision and (facing_player or distance < 55)
 	var sound_access := route_ladder(float(enemy["x"]),player_x)
 	var hearing_distance := distance if same_floor else absf(float(enemy["x"])-sound_access)+absf(player_x-sound_access)+absf(enemy_y(enemy)-player_y)*0.45
-	var hears: bool = noise >= 15 and hearing_distance < noise*4*float(weather()["hearing"])*(1 if same_floor else 0.75)
+	var room_muffle := 0.35 if environment_active and same_floor and interior.barrier(location_id,float(enemy["x"]),player_x,floor_level)>=0 else 1.0
+	var hears: bool = noise >= 15 and hearing_distance < room_muffle*noise*4*float(weather()["hearing"])*(EnemyMind.hearing(self,enemy) if environment_active and interior.enabled else 1.0)*(1 if same_floor else 0.75)
+	if environment_active and interior.enabled: EnemyMind.observe(self,enemy,sees,hears,delta)
 	if sees or hears:
 		enemy["suspicion"] = minf(100,float(enemy["suspicion"])+delta*((90 if distance < 100 else 55) if sees else 35))
-		enemy["target"] = player_x
+		enemy["target"] = player_x if sees or not environment_active else clampf(roundf(player_x/100)*100,90 if floor_level==0 else upper_left(),right_edge(floor_level))
 		enemy["target_floor"] = floor_level if climb_target == -1 else climb_target
 		enemy["memory"] = memory_duration(enemy)
 		if enemy["mode"] == "patrol": enemy["mode"] = "investigate"
@@ -640,6 +671,7 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 		if distance > 0.01: enemy["direction"] = signf(player_x-float(enemy["x"]))
 		enemy["timer"] = EnemyCatalog.stats(kind)["windup"]
 		return
+	if environment_active and interior.enabled and EnemyMind.retreat(self,enemy,delta): return
 	if enemy["mode"] in ["chase","investigate"]:
 		if enemy["memory"] <= 0:
 			enemy["mode"] = "patrol"
@@ -653,11 +685,14 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 		return
 	if enemy["x"] <= enemy["min"]: enemy["direction"] = 1.0
 	if enemy["x"] >= enemy["max"]: enemy["direction"] = -1.0
-	enemy["x"] = clampf(float(enemy["x"])+float(enemy["direction"])*36*delta,90 if int(enemy["floor"]) == 0 else upper_left(),right_edge(int(enemy["floor"])))
+	var patrol_to := float(enemy["x"])+float(enemy["direction"])*36*delta
+	if environment_active: patrol_to = EnemyMind.patrol(self,enemy,patrol_to,delta)
+	enemy["x"] = clampf(patrol_to,90 if int(enemy["floor"]) == 0 else upper_left(),right_edge(int(enemy["floor"])))
 
 
 func snapshot() -> Dictionary:
 	return {
+		"interior":interior.snapshot(),"minds":minds.duplicate(true),
 		"decoys":decoys.duplicate(true),"lure_cooldown":lure_cooldown,
 		"condition":condition,"route_open":route_open,"route_progress":route_progress,"route_tool":route_tool,
 		"stacked": stacked, "extra_slots": extra_slots, "reserve_ammo": reserve_ammo, "magazine": magazine, "reload_remaining": reload_remaining, "discovered": discovered.duplicate(), "capacity": capacity, "manual_loot": manual_loot, "loot_site": loot_site,
@@ -676,6 +711,9 @@ func restore_validated(data: Dictionary) -> void:
 	_exit_interact_held = false
 	for property in ["lure_cooldown", "condition", "route_open", "route_progress", "route_tool", "stacked", "extra_slots", "reserve_ammo", "magazine", "reload_remaining", "capacity", "manual_loot", "loot_site", "active", "facing", "sneaking", "sprinting", "moving", "return_speed", "player_x", "player_y", "noise", "noise_burst", "elapsed", "invulnerable", "attack_cooldown", "attack_windup", "medicine_cooldown", "climb_progress", "search_progress", "search_duration", "search_tool", "feedback"]:
 		set(property, data[property])
+	interior.restore(data["interior"])
+	minds.clear()
+	for m: Dictionary in data["minds"]: minds.append(m.duplicate(true))
 	decoys.clear()
 	for d: Dictionary in data["decoys"]: decoys.append(d.duplicate())
 	discovered.clear()
@@ -722,8 +760,12 @@ static func validate_snapshot(data: Variant, actors: Array, id: String = "street
 	var site_defs: Array = definition["sites"]
 	var upper: float = definition["upper_left"]
 	var width: float = definition["width"]
-	var fields := ["decoys", "lure_cooldown", "condition", "route_open", "route_progress", "route_tool", "stacked", "extra_slots", "reserve_ammo", "magazine", "reload_remaining", "discovered", "capacity", "manual_loot", "loot_site", "active", "actor_id", "attempts", "last_refresh_day", "return_speed", "player_x", "player_y", "floor", "facing", "sneaking", "sprinting", "moving", "noise", "noise_burst", "elapsed", "invulnerable", "attack_cooldown", "attack_windup", "medicine_cooldown", "climb_target", "climb_progress", "search_index", "search_progress", "search_duration", "search_tool", "feedback", "bag", "sites", "enemies"]
+	var fields := ["interior", "minds", "decoys", "lure_cooldown", "condition", "route_open", "route_progress", "route_tool", "stacked", "extra_slots", "reserve_ammo", "magazine", "reload_remaining", "discovered", "capacity", "manual_loot", "loot_site", "active", "actor_id", "attempts", "last_refresh_day", "return_speed", "player_x", "player_y", "floor", "facing", "sneaking", "sprinting", "moving", "noise", "noise_burst", "elapsed", "invulnerable", "attack_cooldown", "attack_windup", "medicine_cooldown", "climb_target", "climb_progress", "search_index", "search_progress", "search_duration", "search_tool", "feedback", "bag", "sites", "enemies"]
 	if not _keys(data, fields): return "探索字段不完整"
+	var room_error := InteriorState.validate(data["interior"],id,data)
+	if not room_error.is_empty(): return room_error
+	var mind_error := EnemyMind.validate(data["minds"],data["enemies"])
+	if not mind_error.is_empty(): return mind_error
 	if not _n(data["lure_cooldown"],0,3) or not data["decoys"] is Array or data["decoys"].size() > 3: return "诱饵记录无效"
 	if not data["active"] and (not data["decoys"].is_empty() or data["lure_cooldown"] != 0): return "未外出却保留声源"
 	for d in data["decoys"]:
@@ -865,7 +907,13 @@ func condition_name() -> String:
 
 func current_surface() -> Dictionary:
 	if not environment_active: return {"pace":1.0,"noise":1.0,"quiet":1.0}
-	return LocationEnvironment.surface(location_id,condition,player_x,floor_level)
+	var surface := LocationEnvironment.surface(location_id,condition,player_x,floor_level).duplicate()
+	if interior.enabled:
+		var points := InteriorState.layout(location_id)
+		for n in range(interior.doors.size()):
+			if interior.doors[n]["window"]==2 and points[n]["floor"]==floor_level and absf(player_x-float(points[n]["x"]))<75:
+				surface["noise"]*=1.35;surface["quiet"]*=2.0
+	return surface
 
 
 func route_x() -> float:
@@ -949,6 +997,7 @@ func heard_decoy(enemy: Dictionary) -> Dictionary:
 	for d: Dictionary in decoys:
 		var same: bool = int(enemy["floor"]) == int(d["floor"])
 		var ladder := route_ladder(float(enemy["x"]),float(d["x"]))
+		if environment_active and interior.enabled and EnemyMind.ignores(self,enemy,d): continue
 		var distance := absf(float(enemy["x"])-float(d["x"])) if same else absf(float(enemy["x"])-ladder)+absf(float(d["x"])-ladder)+99
 		if distance < 68*4*float(weather()["hearing"])*(1.0 if same else .75) and distance < nearest:
 			nearest = distance;result = d

@@ -46,6 +46,8 @@ var target_x := 110.0
 var target_floor := 0
 var target_site := -1
 var target_enemy := -1
+var target_door_state := -1
+var target_door_side := 0
 var target_run := false
 var build_open := false
 
@@ -415,6 +417,8 @@ func _take_all() -> void:
 
 func set_target(x: float, floor_level: int, run: bool, site: int) -> void:
 	has_move_target = true
+	target_door_state = -1
+	target_door_side = 0
 	target_x = x
 	target_floor = floor_level
 	target_site = site

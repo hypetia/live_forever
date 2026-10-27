@@ -69,7 +69,7 @@ static func keys(value: Variant, expected: Array) -> bool:
 	return true
 
 
-static func validate(data: Variant, day: int, seconds: float) -> String:
+static func validate(data: Variant, day: int, seconds: float, allow_early: bool = false) -> String:
 	if not keys(data, ["persona", "morale", "stress", "trauma", "thirst", "experience", "joined_day", "routine", "last_support", "last_aid", "warned", "warned_thirst"]): return "人物档案字段无效"
 	if not data["persona"] is String or not PeopleCatalog.DATA.has(data["persona"]): return "人物身份无效"
 	for field in ["morale", "stress", "trauma", "thirst"]:
@@ -78,5 +78,5 @@ static func validate(data: Variant, day: int, seconds: float) -> String:
 	for amount in data["experience"].values():
 		if not number(amount, 0, 180): return "技能经验无效"
 	if not integer(data["joined_day"], 1, day) or not data["routine"] is bool or not data["warned"] is bool or not data["warned_thirst"] is bool or not number(data["last_support"], -180, seconds) or not number(data["last_aid"], -180, seconds): return "人物日期或照料设置无效"
-	if PeopleCatalog.CANDIDATES.has(data["persona"]) and data["joined_day"] < PeopleCatalog.DATA[data["persona"]]["day"]: return "来访者加入日期早于出现日期"
+	if not allow_early and PeopleCatalog.CANDIDATES.has(data["persona"]) and data["joined_day"] < PeopleCatalog.DATA[data["persona"]]["day"]: return "来访者加入日期早于出现日期"
 	return ""

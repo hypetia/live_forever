@@ -12,7 +12,7 @@ const PROJECTS := {
 	"alarm": {"name": "拉线预警铃", "cost": {"materials": 2, "tools": 1}, "seconds": 22.0, "hint": "放大守夜者的防守贡献30%；不能代替守夜。"},
 	"stakes": {"name": "外围拒马", "cost": {"materials": 5}, "seconds": 36.0, "hint": "防守+0.45，每次袭击额外磨损；需维护。"},
 	"maintain": {"name": "维护门窗与拒马", "cost": {"materials": 2}, "seconds": 18.0, "hint": "恢复45安防耐久，不能恢复房屋结构。"},
-	"guitar": {"name": "修好旧吉他", "cost": {"materials": 3, "tools": 1}, "seconds": 28.0, "hint": "可安排演奏；许遥安抚效果更好，会制造少量噪声。"},
+	"guitar": {"name": "修好旧吉他", "cost": {"materials": 3, "tools": 1}, "seconds": 28.0, "hint": "可安排演奏；闻人灯「白鸦」安抚效果更好，会制造少量噪声。"},
 	"music": {"name": "为同伴弹奏", "cost": {}, "seconds": 20.0, "hint": "每人每天一次；在场同伴恢复心境、减轻压力，不代替睡眠。"},
 	"clear_row": {"name": "准备内巷清理工具", "cost": {"materials": 5, "tools": 2}, "seconds": 48.0, "hint": "勘察返回后准备工具，再赴新址清除附近感染者并确认清理。"},
 	"clear_depot": {"name": "准备货场清理工具", "cost": {"materials": 7, "tools": 2}, "seconds": 54.0, "hint": "勘察返回后准备工具，再赴新址清除附近感染者并确认清理。"},

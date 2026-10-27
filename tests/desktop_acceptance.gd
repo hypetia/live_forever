@@ -65,6 +65,10 @@ func _run() -> void:
 		record(game.cards.all(func(card): return design.encloses(card.get_global_rect())), "complete roster cards fit at %dx%d" % [size.x, size.y])
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png(output.path_join("shelter_%dx%d.png" % [size.x, size.y]))
+		for page in ["starts","people"]:
+			game.chronicle_view.show_page(page)
+			record(game.paused and game.chronicle_view.opened and design.encloses(game.chronicle_view.window.get_global_rect()),"new scenario / personal history page fits at %dx%d: %s" % [size.x,size.y,page])
+			game.chronicle_view.close()
 		game.district_view.toggle()
 		record(game.district_view.opened and game.paused and design.encloses(game.district_view.window.get_global_rect()) and game.district_view.map_buttons.size() == 9,"spatial district chart fits and pauses at %dx%d" % [size.x,size.y])
 		await RenderingServer.frame_post_draw
@@ -95,15 +99,15 @@ func _run() -> void:
 		game.center.close()
 		game.survivors[0].person.thirst = 85
 		game.paused = false;game.advance_simulation(.1)
-		record(game.survivors[0].self_care_kind == "drink" and game.survivors[0].route.size()>1 and game.inventory.amount("water")==4,"autonomous water use begins with actual travel at %dx%d" % [size.x,size.y])
+		record(game.survivors[0].self_care_kind == "drink" and game.survivors[0].route.size()>1 and game.inventory.amount("water")==int(initial_campaign["stock"]["water"]),"autonomous water use begins with actual travel at %dx%d" % [size.x,size.y])
 		var care_save_path: String = game.save_store.path
 		game.save_store.path = output.path_join("care_preflight_%dx%d.json" % [size.x,size.y])
 		var care_saved: bool = game.save_store.write_state(game)["ok"]
 		var care_loaded: bool = game.load_game()
 		game.save_store.path = care_save_path
-		record(care_saved and care_loaded and game.paused and game.survivors[0].self_care_kind == "drink" and game.inventory.amount("water")==4,"unfinished autonomous travel restores without duplicate payment at %dx%d" % [size.x,size.y])
+		record(care_saved and care_loaded and game.paused and game.survivors[0].self_care_kind == "drink" and game.inventory.amount("water")==int(initial_campaign["stock"]["water"]),"unfinished autonomous travel restores without duplicate payment at %dx%d" % [size.x,size.y])
 		game.paused = false;game.advance_simulation(22)
-		var drank_once: bool = game.people.drinks == 1 and game.inventory.amount("water") == 3 and game.survivors[0].person.thirst < 30 and SaveSystem.validate(SaveSystem.capture(game)).is_empty()
+		var drank_once: bool = game.people.drinks == 1 and game.inventory.amount("water") == int(initial_campaign["stock"]["water"])-1 and game.survivors[0].person.thirst < 30 and SaveSystem.validate(SaveSystem.capture(game)).is_empty()
 		var care_restored: bool = SaveSystem.apply_state(game,initial_campaign).is_empty()
 		record(drank_once and care_restored,"physical self-care consumes one water and cleanly restores the test fixture at %dx%d" % [size.x,size.y])
 		game.open_station("heal")
@@ -158,7 +162,7 @@ func _run() -> void:
 		record(work_started and timed and game.districts.regions["street"]["built"] and field.bag["materials"] == 1 and field.bag["tools"] == 0,"field outpost work shows progress and pays only on completion at %dx%d" % [size.x,size.y])
 		game.expedition_decoy();field.noise = 0
 		var observer: Dictionary = field.enemies[2]
-		observer["hp"] = 40;observer["mode"] = "patrol";observer["x"] = 1840;observer["direction"] = 1.0
+		observer["hp"] = 40;observer["mode"] = "patrol";observer["x"] = 1970;observer["direction"] = 1.0
 		field._tick_enemy(observer,game.survivors[field.actor_id],.1)
 		var heard: bool = field.decoys.size() == 1 and observer["target"] == field.decoys[0]["x"] and field.bag["materials"] == 0 and field.bag["fuel"] == 0
 		var district_snapshot := SaveSystem.capture(game)

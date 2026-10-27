@@ -30,7 +30,7 @@ func click_button(parent: Node, prefix: String) -> void:
 func _run() -> void:
 	var scene: Node2D = load("res://scenes/campaign.tscn").instantiate()
 	scene.persistence_enabled = false
-	root.add_child(scene)
+	root.add_child(scene); ArchiveFixture.campaign(scene)
 	scene.set_process(false)
 	await process_frame
 	check(scene.cycle.phase == "day" and scene.interface.shown.is_empty(), "campaign opens onto direct shelter play")
@@ -137,7 +137,7 @@ func _run() -> void:
 	# Another fresh run verifies unarmed mouse combat without position or damage fixtures.
 	scene = load("res://scenes/campaign.tscn").instantiate()
 	scene.persistence_enabled = false
-	root.add_child(scene)
+	root.add_child(scene); ArchiveFixture.campaign(scene)
 	scene.set_process(false)
 	await process_frame
 	scene.expansion.equip(scene, 1, 2) # Deliberately test unarmed push.

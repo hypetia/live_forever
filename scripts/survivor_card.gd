@@ -34,6 +34,7 @@ func _draw() -> void:
 	draw_line(Vector2(26,30),Vector2(31,30),Color("55554b"),1,true)
 	draw_string(font,Vector2(61,24),actor.display_name,HORIZONTAL_ALIGNMENT_LEFT,-1,15,Color("ded9c9"))
 	draw_string(font,Vector2(size.x-18,20),str(member_id+1),HORIZONTAL_ALIGNMENT_LEFT,-1,10,Color("7e887b"))
+	PersonalityArt.face(self,actor.person.persona,Vector2(28,29),1.05)
 	var col_width := (size.x - 70) / 2
 	for index in range(Vitals.KEYS.size()):
 		var key: String = Vitals.KEYS[index]

@@ -2,6 +2,7 @@ extends "res://tests/campaign_pilot.gd"
 ## Integration pilot: no inventory, health, position or progress injection.
 var part_target := ""
 var phase_started := 0.0
+var daytime_seconds := 190.0
 
 func setup(scene: Node2D) -> void:
 	super.setup(scene)
@@ -36,7 +37,7 @@ func tick(delta: float) -> void:
 				if actor.health <= 0 or game._external_busy(actor.survivor_id) or not actor.orders.is_empty(): continue
 				if actor.hunger >= 55 and game.inventory.amount("meals") > 0: game.scheduler.submit(actor, "eat")
 				elif actor.illness >= 30 and game.inventory.amount("medicine") > 0: game.scheduler.submit(actor, "heal")
-		if game.simulation_time - phase_started >= 190 and game.expansion.jobs.is_empty() and not game.cycle.builds.any(func(build): return build["state"] == "blueprint"):
+		if game.simulation_time - phase_started >= daytime_seconds and game.expansion.jobs.is_empty() and not game.cycle.builds.any(func(build): return build["state"] == "blueprint"):
 			game.end_day()
 			return
 		game.advance_simulation(delta)

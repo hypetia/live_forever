@@ -82,7 +82,7 @@ func test_three_survivors_and_fairness() -> void:
 	var completion_order: Array[String] = []
 	scene.scheduler.event_reported.connect(func(message: String):
 		if "完成修缮避难所。" in message:
-			completion_order.append(message.substr(0, 2))
+			completion_order.append(message.get_slice("完成",0))
 	)
 	for index in range(3):
 		scene.select_survivor(index)
@@ -101,7 +101,7 @@ func test_three_survivors_and_fairness() -> void:
 		valid_occupancy = valid_occupancy and workers <= 1
 	expect(observed_waiting, "competing survivors visibly wait")
 	expect(valid_occupancy, "at most one worker occupies the facility throughout the run")
-	expect(completion_order == ["林舟", "许遥", "陈野"], "submission order is fair despite different arrival times")
+	expect(completion_order == ["墨衡「钉钟人」", "闻人灯「白鸦」", "祁烬「灰犬」"], "submission order is fair despite different arrival times")
 	expect(scene.facility.completed_jobs == 3, "all three survivors finish independently")
 	expect(scene.facility.waiting_ids.is_empty(), "no stale waiters remain after completion")
 	scene.free()

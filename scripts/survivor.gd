@@ -173,6 +173,7 @@ func _draw() -> void:
 	draw_rect(Rect2(-3, -61, 7, 9), Color("ad987e"))
 	draw_circle(Vector2(0, -66), 9, Color("c7b294"))
 	draw_arc(Vector2(0, -68), 9, PI, TAU, 16, Color("333b3b"), 5, true)
+	PersonalityArt.face(self,person.persona,Vector2(0,-66),.9)
 	draw_line(Vector2(-8, -59), Vector2(8, -56), tint.darkened(0.35), 4, true)
 	draw_set_transform(Vector2.ZERO)
 	if selected or health < 60:
