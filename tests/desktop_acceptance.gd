@@ -65,6 +65,11 @@ func _run() -> void:
 		record(game.cards.all(func(card): return design.encloses(card.get_global_rect())), "complete roster cards fit at %dx%d" % [size.x, size.y])
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png(output.path_join("shelter_%dx%d.png" % [size.x, size.y]))
+		game.district_view.toggle()
+		record(game.district_view.opened and game.paused and design.encloses(game.district_view.window.get_global_rect()) and game.district_view.map_buttons.size() == 9,"spatial district chart fits and pauses at %dx%d" % [size.x,size.y])
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png(output.path_join("district_%dx%d.png" % [size.x,size.y]))
+		game.district_view.close()
 		game.residence_view.toggle()
 		record(game.residence_view.opened and design.encloses(game.residence_view.window.get_global_rect()) and game.paused, "home and relocation drawer fits at %dx%d" % [size.x,size.y])
 		game.residence_view.close()
@@ -92,6 +97,7 @@ func _run() -> void:
 		game.interface._page_maps(1)
 		record(game.interface.map_buttons.has("waterworks") and game.interface.map_buttons["waterworks"].disabled, "additional maps and campaign gates appear at %dx%d" % [size.x, size.y])
 		game.interface._page_maps(-1)
+		record(game.interface.role_options[0].item_count == 6 and game.interface.role_options[0].is_item_disabled(5),"outpost duty is visible and gated until actual construction at %dx%d" % [size.x,size.y])
 		record(game.cycle.phase == "planning" and design.encloses(game.interface.depart_button.get_global_rect()) and game.interface.role_options.size() == 3, "night assignment fits and names all roles at %dx%d" % [size.x, size.y])
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png(output.path_join("night_%dx%d.png" % [size.x, size.y]))
@@ -119,6 +125,26 @@ func _run() -> void:
 		record(field.route_open and field.bag["tools"] == 0 and game._route_controls(field.route_x(),1,false).get("climb") == 1,"cleared access consumes one tool and enters real routing at %dx%d" % [size.x,size.y])
 		var route_snapshot := SaveSystem.capture(game)
 		record(SaveSystem.apply_state(game,route_snapshot).is_empty() and game.expedition.route_open,"opened map access survives actual restore at %dx%d" % [size.x,size.y])
+		# Explicit field-work fixture. The separate two-night journey uses no grants.
+		game.paused = false
+		field.player_x = 1620;field.floor_level = 1;field.player_y = 400
+		field.bag["materials"] = 6;field.bag["tools"] = 1;field.bag["fuel"] = 1
+		for e in field.enemies: e["hp"] = 0;e["mode"] = "dead"
+		field._search(10,game.survivors[field.actor_id]);game._process(0)
+		var work_started: bool = game.districts.begin_work(game,"build")
+		game.districts.tick_work(game,.5,{});game._process(0)
+		var timed: bool = game.expedition_view.search_bar.visible and field.bag["materials"] == 6
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png(output.path_join("outpost_%dx%d.png" % [size.x,size.y]))
+		game.districts.tick_work(game,9,{})
+		record(work_started and timed and game.districts.regions["street"]["built"] and field.bag["materials"] == 1 and field.bag["tools"] == 0,"field outpost work shows progress and pays only on completion at %dx%d" % [size.x,size.y])
+		game.expedition_decoy();field.noise = 0
+		var observer: Dictionary = field.enemies[2]
+		observer["hp"] = 40;observer["mode"] = "patrol";observer["x"] = 1840;observer["direction"] = 1.0
+		field._tick_enemy(observer,game.survivors[field.actor_id],.1)
+		var heard: bool = field.decoys.size() == 1 and observer["target"] == field.decoys[0]["x"] and field.bag["materials"] == 0 and field.bag["fuel"] == 0
+		var district_snapshot := SaveSystem.capture(game)
+		record(heard and SaveSystem.apply_state(game,district_snapshot).is_empty() and game.expedition.decoys.size() == 1,"paid lure, separate enemy target and district state restore at %dx%d" % [size.x,size.y])
 		record(SaveSystem.apply_state(game, initial_campaign).is_empty(), "preflight restores untouched campaign at %dx%d" % [size.x, size.y])
 		game.center.open(7)
 		for frame in range(3): await get_tree().process_frame

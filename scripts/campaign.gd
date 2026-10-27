@@ -10,6 +10,8 @@ var cycle := CampaignCycle.new()
 var expansion := SurvivalExpansion.new()
 var facilities := FacilitySystem.new()
 var director := CampaignDirector.new()
+var districts := DistrictSystem.new()
+var district_view: DistrictView
 var briefing: CampaignBriefing
 var security_view: SecurityView
 var residence := ResidenceSystem.new()
@@ -68,7 +70,7 @@ func _ready() -> void:
 	scheduler.production_rate = func(id: String): return facilities.rate(id)
 	facilities.sync(self)
 	expansion.sync(self)
-	get_window().title = "Live Forever · 留一盏灯 v1.8"
+	get_window().title = "Live Forever · 留一盏灯 v1.9"
 	for actor in survivors: actor.metabolism = 0.4
 	for field: ExpeditionState in regions.values():
 		field.manual_loot = true
@@ -76,7 +78,7 @@ func _ready() -> void:
 		field.environment_active = true
 		field.confirm_exits = true
 		field.exit_requested.connect(_offer_departure)
-		field.combat_resolved.connect(func(kind: String, _point: Vector2, damage: int): director.shot(self,kind,damage))
+		field.combat_resolved.connect(func(kind: String, _point: Vector2, damage: int): director.shot(self,kind,damage); districts.gunfire(self,kind))
 	# Replace the legacy instant water command with a physical action.
 	for connection in water_store.clicked.get_connections(): water_store.clicked.disconnect(connection["callable"])
 	water_store.clicked.connect(begin_drink)
@@ -129,6 +131,7 @@ func _ready() -> void:
 	briefing = CampaignBriefing.new()
 	briefing.game = self
 	add_child(briefing)
+	district_view = DistrictView.new();district_view.game = self;add_child(district_view)
 	scheduler.task_finished.connect(func(id: int, task: String):
 		if task in ["craft", "repair", "cook"]: residence.noise = minf(100, residence.noise + (4 if task == "craft" else 2))
 		if task == "cook": director.food_cooked(self,"cook",CharacterAbilities.cooking_output(survivors[id])["meals"])
@@ -136,6 +139,28 @@ func _ready() -> void:
 	_configure_manual()
 	_log("左键走动，双击奔跑；点床与餐桌直接休息或进食，B选择建设。20:00安排夜间岗位。")
 	_refresh_hud()
+
+
+func districts_snapshot() -> Dictionary:
+	return districts.snapshot()
+
+
+func restore_districts(data: Dictionary) -> void:
+	districts.restore(data,self)
+	if is_instance_valid(district_view): district_view.dismiss_loaded()
+	if is_instance_valid(interface): interface.refresh(true)
+
+
+func expedition_drop(resource: String) -> void:
+	super.expedition_drop(resource)
+	if not districts.work.is_empty():
+		var cost: Dictionary = DistrictSystem.COSTS[districts.work["action"]]
+		if cost.has(resource) and expedition.bag[resource] < cost[resource]: districts.work.clear()
+
+
+func expedition_decoy() -> void:
+	if not expedition.active or paused or game_over or _loot_open or center.visible or departure_dialog.visible or expedition_view.equipment_dialog.visible: return
+	if expedition.deploy_decoy(survivors[expedition.actor_id]): districts.work.clear()
 
 
 func residence_snapshot() -> Dictionary:
@@ -268,7 +293,10 @@ func advance_simulation(delta: float) -> void:
 			# Night personality pressure is settled here; do not run full People.tick twice.
 			if expedition.elapsed > 120:
 				actor.person.stress = minf(100, actor.person.stress + step * (0.01 if actor.person.persona == "chen" else 0.005))
-			expedition.tick(step, actor, _expedition_controls())
+			var controls := _expedition_controls()
+			districts.tick_work(self,step,controls)
+			expedition.tick(step, actor, controls)
+			districts.tick(self,step)
 			director.observe_trip(self)
 			if expedition.active: expansion.refresh_slots(expedition, actor)
 			_check_departure_edge()
@@ -395,11 +423,15 @@ func start_expedition(take_tool: bool = false, take_medicine: bool = false) -> b
 	if cycle.phase != "planning" or not cycle.plan_error(self).is_empty() or game_over: return false
 	var id := cycle.scavenger()
 	if id < 0:
+		if not districts.reserve_shift(self): return false
 		expansion.reserve_heat(self)
 		_settle_night([])
 		return true
 	var equipment := cycle.loadout.duplicate()
 	if not inventory.try_take(equipment, "夜间出发携带物资"): return false
+	if not districts.reserve_shift(self):
+		inventory.deposit(equipment,"未能预留前哨轮值，撤销出发物资")
+		return false
 	expansion.reserve_heat(self)
 	select_survivor(id)
 	expedition.refresh_for_day(cycle.night_day)
@@ -419,6 +451,7 @@ func start_expedition(take_tool: bool = false, take_medicine: bool = false) -> b
 	expedition.reserve_ammo -= expedition.magazine
 	expedition.reload_remaining = 0
 	expansion.refresh_slots(expedition, survivors[id])
+	districts.begin_trip(self)
 	director.begin_trip(self)
 	cycle.phase = "scavenge"
 	context_open = false
@@ -500,6 +533,7 @@ func confirm_departure() -> void:
 
 
 func _on_expedition_returned(id: int, cargo: Dictionary, survived: bool) -> void:
+	districts.trip_return(self,survived and survivors[id].health > 0)
 	director.trip_return(self,survived and survivors[id].health > 0)
 	_departure_side = 0
 	_edge_latched = 0
@@ -532,6 +566,7 @@ func _settle_night(lines: Array) -> void:
 			"floor": actor.fatigue = maxf(0, actor.fatigue - 35 * CharacterAbilities.factor(actor,"sleep")); actor.person.stress = maxf(0, actor.person.stress - 4)
 			"guard": actor.fatigue = minf(100, actor.fatigue + 28)
 			"scavenge": actor.fatigue = minf(100, actor.fatigue + 35)
+			"outpost": actor.fatigue = minf(100, actor.fatigue + 45)
 		actor.infection = minf(100, actor.infection + (minutes * 0.006 if actor.infection > 0 else 0))
 		if actor.hunger >= 95: actor.health = maxf(0, actor.health - 8)
 		if actor.person.thirst >= 95: actor.health = maxf(0, actor.health - 6)
@@ -541,9 +576,11 @@ func _settle_night(lines: Array) -> void:
 			actor.injury = maxf(0, actor.injury - 8 * CharacterAbilities.factor(actor,"recovery"))
 		report.append("%s · %s：精神%d → %d，饱腹%d，水分%d。" % [actor.display_name, "迁居行军" if not residence.convoy.is_empty() else CampaignCycle.ROLE_NAMES[CampaignCycle.ROLES.find(role)], roundi(100-before), Vitals.value(actor,"vigor"), Vitals.value(actor,"fullness"), Vitals.value(actor,"hydration")])
 	_resolve_raid(report)
+	districts.alert *= .5
 	simulation_time = maxf(simulation_time, cycle.night_end)
 	upkeep.tick(minutes, simulation_time)
 	expansion.dawn(self, minutes, report)
+	districts.dawn(self,report)
 	residence.finish_move(self, report)
 	residence.noise *= 0.4
 	# Morning boundaries are processed once; disable routine orders in the report.
@@ -582,11 +619,11 @@ func _resolve_raid(report: Array[String]) -> void:
 		_resolve_convoy(report)
 		return
 	var roll: int = (cycle.seed + cycle.night_day * 7919) % 100
-	if cycle.night_day < 3 or roll >= residence.attack_chance(55 if cycle.night_day < 8 else 70):
+	if roll >= raid_chance(cycle.night_day):
 		report.append("【安防】这一夜没有尸群袭击；没有物资损失，也未损耗安防耐久。")
 		return
 	var defense := raid_defense()
-	var threat := minf(2.0, 1.0 + cycle.night_day * 0.035)
+	var threat := raid_threat(cycle.night_day)
 	var contributions := DefenseAssessment.components(self)
 	var condition_before := residence.condition
 	residence.wear(threat)
@@ -616,6 +653,14 @@ func _resolve_raid(report: Array[String]) -> void:
 			break
 
 
+func raid_chance(day: int) -> int:
+	return 0 if day < 3 else mini(95,residence.attack_chance(55 if day < 8 else 70)+roundi(districts.alert))
+
+
+func raid_threat(day: int) -> float:
+	return minf(2.0,1.0+day*.035)+districts.alert/40.0
+
+
 func raid_defense(preview: bool = false) -> float:
 	return DefenseAssessment.total(DefenseAssessment.components(self,preview))
 
@@ -623,8 +668,8 @@ func raid_defense(preview: bool = false) -> float:
 func night_forecast() -> String:
 	if not residence.convoy.is_empty(): return "整夜迁居 · 室外%d℃ · 全员护送，不能留守或搜刮；注意保暖与护送装备" % expansion.outside(self)
 	var day := cycle.night_day if cycle.phase == "planning" else ExpeditionState.day_at(simulation_time)
-	var chance: int = 0 if day < 3 else residence.attack_chance(55 if day < 8 else 70)
-	var threat := minf(2.0,1.0+day*0.035)
+	var chance := raid_chance(day)
+	var threat := raid_threat(day)
 	var guard := "暂未出现集中袭击" if chance == 0 else "20:00安排守夜" if cycle.phase != "planning" else "预计防守稳固" if raid_defense(true) >= threat else "预计防守吃紧"
 	return "今晚室外%d℃ · 尸群活动%d%% · %s · U查看街区动态" % [expansion.outside(self),chance,guard]
 
@@ -707,6 +752,7 @@ func _expedition_controls() -> Dictionary:
 
 
 func _day_keyboard_allowed() -> bool:
+	if is_instance_valid(district_view) and district_view.opened: return false
 	if is_instance_valid(briefing) and briefing.opened: return false
 	if paused or game_over or center.visible or interface.workshop_open or residence_view.opened: return false
 	if load_dialog.visible or new_dialog.visible or exit_dialog.visible or prep_dialog.visible or end_day_dialog.visible: return false
@@ -854,6 +900,13 @@ func cancel_selected() -> void:
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
+	if is_instance_valid(district_view) and district_view.opened:
+		if event is InputEventKey and event.pressed and not event.echo:
+			if event.physical_keycode in [KEY_Y,KEY_ESCAPE]: district_view.close()
+			elif event.physical_keycode == KEY_F6: save_game()
+			elif event.physical_keycode == KEY_F11: center._set_fullscreen(not game_audio.fullscreen)
+		get_viewport().set_input_as_handled()
+		return
 	if is_instance_valid(security_view) and security_view.opened:
 		if event is InputEventKey and event.pressed and not event.echo:
 			if event.physical_keycode in [KEY_ESCAPE,KEY_Z]: security_view.close()
@@ -877,6 +930,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
+		if event.physical_keycode == KEY_Y and not _loot_open:
+			district_view.toggle();get_viewport().set_input_as_handled();return
+		if event.physical_keycode == KEY_G and expedition.active:
+			expedition_decoy();get_viewport().set_input_as_handled();return
 		if event.physical_keycode == KEY_U and cycle.phase in ["day","planning","scavenge","returning"]:
 			briefing.toggle()
 			get_viewport().set_input_as_handled()
@@ -937,6 +994,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if is_instance_valid(district_view) and district_view.opened: return
 	if is_instance_valid(security_view) and security_view.opened: return
 	if is_instance_valid(briefing) and briefing.opened: return
 	if (is_instance_valid(departure_dialog) and departure_dialog.visible) or (is_instance_valid(expedition_view.equipment_dialog) and expedition_view.equipment_dialog.visible): return
@@ -945,6 +1003,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.button_index == MOUSE_BUTTON_RIGHT:
 		if expedition.active:
 			cycle.return_requested = false
+			districts.work.clear()
 			interface.has_move_target = false
 			expedition_view.search_held = false
 		else:

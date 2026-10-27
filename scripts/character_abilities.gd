@@ -14,7 +14,8 @@ static func factor(actor: Survivor, key: String) -> float:
 	return float(PROFILES[actor.person.persona].get(key, 1.0)) if actor.metabolism < 1 else 1.0
 
 static func description(persona: String) -> String:
-	return PROFILES[persona]["hint"]
+	var field: String = {"lin":"前哨施工快20%；机修厂、货运站轮值多回收材料1。","xu":"诊所轮值多回收药品1。","chen":"前哨轮值引起的街区压力较低。","he":"旧街、集市、住宅轮值多回收生食1。","gu":"诊所轮值多回收药品1。","tang":"前哨轮值多带回水1。"}[persona]
+	return PROFILES[persona]["hint"]+"\n"+field
 
 static func cooking_output(actor: Survivor) -> Dictionary:
 	return {"meals": 3 if actor.metabolism < 1 and actor.person.persona == "he" else 2}

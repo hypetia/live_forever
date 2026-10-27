@@ -1,0 +1,2396 @@
+{
+  "no_health_or_enemy_overrides": true,
+  "no_inventory_grants": true,
+  "no_teleports": true,
+  "passed": true,
+  "problem": "",
+  "snapshot": {
+    "actors": [
+      {
+        "cold_exposure": 0.0,
+        "completed_by_task": {
+          "cook": 0,
+          "craft": 2,
+          "eat": 1,
+          "heal": 0,
+          "repair": 0,
+          "sleep": 0
+        },
+        "completed_jobs": 3,
+        "facing": -1.0,
+        "fatigue": 100.0,
+        "feedback": "吃饭完成 · 等待安排",
+        "health": 100.0,
+        "held_cost": {
+
+        },
+        "hunger": 53.4660000000066,
+        "id": 0,
+        "illness": 0.0,
+        "infection": 0.0,
+        "injury": 0.0,
+        "legacy_repair": false,
+        "movement_clock": 111.450000000001,
+        "orders": [],
+        "person": {
+          "experience": {
+            "care": 0.0,
+            "craft": 19.2,
+            "scout": 10.0
+          },
+          "joined_day": 1,
+          "last_aid": -180.0,
+          "last_support": -180.0,
+          "morale": 61.4167499999986,
+          "persona": "lin",
+          "routine": false,
+          "stress": 3.0,
+          "thirst": 44.8400000000082,
+          "trauma": 0.0,
+          "warned": false,
+          "warned_thirst": false
+        },
+        "position": [
+          395.0,
+          430.0
+        ],
+        "route": [],
+        "state": 0,
+        "warned": {
+          "fatigue": false,
+          "health": false,
+          "hunger": false,
+          "infection": false
+        },
+        "work_duration": 4.0,
+        "work_elapsed": 0.0
+      },
+      {
+        "cold_exposure": 0.0,
+        "completed_by_task": {
+          "cook": 2,
+          "craft": 0,
+          "eat": 1,
+          "heal": 0,
+          "repair": 0,
+          "sleep": 0
+        },
+        "completed_jobs": 3,
+        "facing": -1.0,
+        "fatigue": 0.0,
+        "feedback": "做饭完成 · 等待安排",
+        "health": 100.0,
+        "held_cost": {
+
+        },
+        "hunger": 58.2000000000096,
+        "id": 1,
+        "illness": 0.0,
+        "infection": 0.0,
+        "injury": 0.0,
+        "legacy_repair": false,
+        "movement_clock": 93.3000000000007,
+        "orders": [],
+        "person": {
+          "experience": {
+            "care": 0.0,
+            "craft": 8.0,
+            "scout": 0.0
+          },
+          "joined_day": 1,
+          "last_aid": -180.0,
+          "last_support": -180.0,
+          "morale": 60.8999999999913,
+          "persona": "xu",
+          "routine": false,
+          "stress": 0.0,
+          "thirst": 44.8400000000082,
+          "trauma": 0.0,
+          "warned": false,
+          "warned_thirst": false
+        },
+        "position": [
+          816.0,
+          430.0
+        ],
+        "route": [],
+        "state": 0,
+        "warned": {
+          "fatigue": false,
+          "health": false,
+          "hunger": false,
+          "infection": false
+        },
+        "work_duration": 6.0,
+        "work_elapsed": 0.0
+      },
+      {
+        "cold_exposure": 0.0,
+        "completed_by_task": {
+          "cook": 0,
+          "craft": 0,
+          "eat": 0,
+          "heal": 0,
+          "repair": 0,
+          "sleep": 1
+        },
+        "completed_jobs": 1,
+        "facing": -1.0,
+        "fatigue": 69.196533333332,
+        "feedback": "睡觉完成 · 等待安排",
+        "health": 100.0,
+        "held_cost": {
+
+        },
+        "hunger": 90.2000000000074,
+        "id": 2,
+        "illness": 0.0,
+        "infection": 0.0,
+        "injury": 0.0,
+        "legacy_repair": false,
+        "movement_clock": 105.600000000001,
+        "orders": [],
+        "person": {
+          "experience": {
+            "care": 0.0,
+            "craft": 10.0,
+            "scout": 4.0
+          },
+          "joined_day": 1,
+          "last_aid": -180.0,
+          "last_support": -180.0,
+          "morale": 61.1081666666628,
+          "persona": "chen",
+          "routine": false,
+          "stress": 0.0,
+          "thirst": 44.8400000000082,
+          "trauma": 1.09974999999985,
+          "warned": false,
+          "warned_thirst": false
+        },
+        "position": [
+          217.0,
+          430.0
+        ],
+        "route": [],
+        "state": 0,
+        "warned": {
+          "fatigue": false,
+          "health": false,
+          "hunger": false,
+          "infection": false
+        },
+        "work_duration": 20.0,
+        "work_elapsed": 0.0
+      }
+    ],
+    "campaign": {
+      "actions": [],
+      "builds": [],
+      "last_resolved_day": 2,
+      "late_warned": false,
+      "loadout": {
+
+      },
+      "night_day": 2,
+      "night_end": 1380.0,
+      "night_start": 1079.99999999994,
+      "phase": "dawn",
+      "report": [
+        "林舟 · 前哨轮值：精神23 → 0，饱腹47，水分55。",
+        "许遥 · 床上睡眠：精神81 → 100，饱腹42，水分55。",
+        "陈野 · 留守警戒：精神59 → 31，饱腹10，水分55。",
+        "【安防】这一夜没有尸群袭击；没有物资损失，也未损耗安防耐久。",
+        "林舟 · 疾病0，寒冷0，衣物保暖+0℃。",
+        "许遥 · 疾病0，寒冷0，衣物保暖+0℃。",
+        "陈野 · 疾病0，寒冷0，衣物保暖+0℃。",
+        "战役第3/35天 · 修复电台：机修厂二楼工具台取回继电器，回基地工作台修复电台。",
+        "【前哨】林舟在河湾旧街完成轮值，回收生食×2、水×1；随后两夜保留巡查清理效果。"
+      ],
+      "return_requested": false,
+      "roles": [
+        "outpost",
+        "bed",
+        "guard"
+      ],
+      "seed": 71413
+    },
+    "destination": "street",
+    "director": {
+      "accepted_window": -1,
+      "contract": "",
+      "deadline": 0,
+      "progress": 0,
+      "rewards_received": 0,
+      "status": "",
+      "trip_progress": 0,
+      "trip_start_dead": 0
+    },
+    "districts": {
+      "alert": 0.0,
+      "last_day": 2,
+      "regions": {
+        "broadcast": {
+          "built": false,
+          "condition": 0.0,
+          "heat": 0.0,
+          "secured_until": 0,
+          "shifts": 0
+        },
+        "clinic": {
+          "built": false,
+          "condition": 0.0,
+          "heat": 0.0,
+          "secured_until": 0,
+          "shifts": 0
+        },
+        "depot": {
+          "built": false,
+          "condition": 0.0,
+          "heat": 0.0,
+          "secured_until": 0,
+          "shifts": 0
+        },
+        "evac": {
+          "built": false,
+          "condition": 0.0,
+          "heat": 0.0,
+          "secured_until": 0,
+          "shifts": 0
+        },
+        "market": {
+          "built": false,
+          "condition": 0.0,
+          "heat": 0.0,
+          "secured_until": 0,
+          "shifts": 0
+        },
+        "residential": {
+          "built": false,
+          "condition": 0.0,
+          "heat": 0.0,
+          "secured_until": 0,
+          "shifts": 0
+        },
+        "street": {
+          "built": true,
+          "condition": 82.0,
+          "heat": 7.0,
+          "secured_until": 4,
+          "shifts": 1
+        },
+        "waterworks": {
+          "built": false,
+          "condition": 0.0,
+          "heat": 0.0,
+          "secured_until": 0,
+          "shifts": 0
+        },
+        "works": {
+          "built": false,
+          "condition": 0.0,
+          "heat": 0.0,
+          "secured_until": 0,
+          "shifts": 0
+        }
+      },
+      "shift": {
+
+      },
+      "target": "street",
+      "trip_dead": 0,
+      "trip_map": "",
+      "work": {
+
+      }
+    },
+    "expansion": {
+      "ammo": 0,
+      "ammo_loadout": 0,
+      "carried": [],
+      "collected": [],
+      "endless": false,
+      "epoch": 1,
+      "gear": [
+        {
+          "durability": 56,
+          "id": 1,
+          "kind": "knife",
+          "owner": "chen"
+        }
+      ],
+      "heater_remaining": 0.0,
+      "jobs": [],
+      "next_id": 2,
+      "night_heat": 0.0,
+      "outcome": "",
+      "parts": [],
+      "pump_on": false,
+      "stage": 0,
+      "use_night_heat": false,
+      "warm_nights": 0
+    },
+    "expedition": {
+      "active": false,
+      "actor_id": -1,
+      "attack_cooldown": 0.0,
+      "attack_windup": 0.0,
+      "attempts": 1,
+      "bag": {
+        "fuel": 0,
+        "materials": 0,
+        "meals": 0,
+        "medicine": 0,
+        "raw_food": 0,
+        "tools": 0,
+        "water": 0
+      },
+      "capacity": 14,
+      "climb_progress": 0.0,
+      "climb_target": -1,
+      "condition": 0,
+      "decoys": [],
+      "discovered": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "elapsed": 53.0499999999983,
+      "enemies": [
+        {
+          "brace": 0.0,
+          "climb_progress": 0.0,
+          "climb_target": -1,
+          "cooldown": 0.0,
+          "direction": -1.0,
+          "floor": 0,
+          "home_floor": 0,
+          "hp": 0,
+          "kind": "walker",
+          "max": 1080.0,
+          "memory": 6.0,
+          "min": 650.0,
+          "mode": "dead",
+          "suspicion": 100.0,
+          "target": 553.45,
+          "target_floor": 0,
+          "timer": 0.0,
+          "x": 603.549999999992
+        },
+        {
+          "brace": 0.0,
+          "climb_progress": 0.0,
+          "climb_target": -1,
+          "cooldown": 0.0,
+          "direction": 1.0,
+          "floor": 0,
+          "home_floor": 0,
+          "hp": 40,
+          "kind": "walker",
+          "max": 2190.0,
+          "memory": 0.0,
+          "min": 1690.0,
+          "mode": "patrol",
+          "suspicion": 0.0,
+          "target": 1900.0,
+          "target_floor": 0,
+          "timer": 0.0,
+          "x": 1805.20000000001
+        },
+        {
+          "brace": 0.0,
+          "climb_progress": 0.0,
+          "climb_target": -1,
+          "cooldown": 0.0,
+          "direction": 1.0,
+          "floor": 1,
+          "home_floor": 1,
+          "hp": 40,
+          "kind": "walker",
+          "max": 2370.0,
+          "memory": 0.0,
+          "min": 1720.0,
+          "mode": "patrol",
+          "suspicion": 0.0,
+          "target": 1852.99999999999,
+          "target_floor": 1,
+          "timer": 0.0,
+          "x": 1853.59999999999
+        }
+      ],
+      "extra_slots": 0,
+      "facing": -1.0,
+      "feedback": "已打开楼梯间药箱，选择要拿走的物资；没有自动装包。",
+      "floor": 0,
+      "invulnerable": 0.0,
+      "last_refresh_day": 1,
+      "loot_site": -1,
+      "lure_cooldown": 0.0,
+      "magazine": 0,
+      "manual_loot": true,
+      "medicine_cooldown": 0.0,
+      "moving": false,
+      "noise": 0.0,
+      "noise_burst": 0.0,
+      "player_x": 116.433333333322,
+      "player_y": 620.0,
+      "reload_remaining": 0.0,
+      "reserve_ammo": 0,
+      "return_speed": 1.0,
+      "route_open": false,
+      "route_progress": 0.0,
+      "route_tool": false,
+      "search_duration": 0.0,
+      "search_index": -1,
+      "search_progress": 0.0,
+      "search_tool": false,
+      "sites": [
+        {
+          "contents": {
+            "raw_food": 0,
+            "water": 0
+          },
+          "locked": false
+        },
+        {
+          "contents": {
+            "raw_food": 0,
+            "water": 0
+          },
+          "locked": false
+        },
+        {
+          "contents": {
+            "fuel": 0,
+            "materials": 0
+          },
+          "locked": false
+        },
+        {
+          "contents": {
+            "medicine": 0
+          },
+          "locked": false
+        },
+        {
+          "contents": {
+            "fuel": 2,
+            "materials": 4
+          },
+          "locked": true
+        },
+        {
+          "contents": {
+            "medicine": 3,
+            "raw_food": 1
+          },
+          "locked": false
+        }
+      ],
+      "sneaking": false,
+      "sprinting": false,
+      "stacked": true
+    },
+    "facilities": {
+      "stove": 1,
+      "workbench": 1
+    },
+    "goals": {
+      "field_notes": [],
+      "next_trade_day": 4,
+      "notes": [],
+      "spent": {
+        "fuel": 0,
+        "materials": 0,
+        "medicine": 0,
+        "raw_food": 0,
+        "tools": 0,
+        "water": 0
+      },
+      "stages": {
+        "clinic": 0,
+        "network": 0,
+        "radio": 0
+      },
+      "tracked": "radio",
+      "trades": {
+        "convoy": 0,
+        "materials": 0,
+        "medicine": 0
+      }
+    },
+    "history": [
+      {
+        "items": {
+          "fuel": 1,
+          "raw_food": 1,
+          "water": 1
+        },
+        "kind": "debit",
+        "reason": "许遥开始做饭"
+      },
+      {
+        "items": {
+          "materials": 2
+        },
+        "kind": "debit",
+        "reason": "林舟开始制作工具"
+      },
+      {
+        "items": {
+          "meals": 2
+        },
+        "kind": "credit",
+        "reason": "许遥完成做饭"
+      },
+      {
+        "items": {
+          "tools": 1
+        },
+        "kind": "credit",
+        "reason": "林舟完成制作工具"
+      },
+      {
+        "items": {
+          "materials": 2
+        },
+        "kind": "debit",
+        "reason": "林舟开始制作工具"
+      },
+      {
+        "items": {
+          "tools": 1
+        },
+        "kind": "credit",
+        "reason": "林舟完成制作工具"
+      },
+      {
+        "items": {
+          "meals": 1
+        },
+        "kind": "debit",
+        "reason": "林舟开始吃饭"
+      },
+      {
+        "items": {
+          "meals": 1
+        },
+        "kind": "debit",
+        "reason": "许遥开始吃饭"
+      },
+      {
+        "items": {
+          "fuel": 1,
+          "materials": 4,
+          "medicine": 1,
+          "tools": 2
+        },
+        "kind": "debit",
+        "reason": "夜间出发携带物资"
+      },
+      {
+        "items": {
+          "fuel": 3,
+          "medicine": 2,
+          "raw_food": 5,
+          "water": 3
+        },
+        "kind": "credit",
+        "reason": "陈野探索归来"
+      },
+      {
+        "items": {
+          "fuel": 1,
+          "raw_food": 1,
+          "water": 1
+        },
+        "kind": "debit",
+        "reason": "许遥开始做饭"
+      },
+      {
+        "items": {
+          "meals": 2
+        },
+        "kind": "credit",
+        "reason": "许遥完成做饭"
+      },
+      {
+        "items": {
+          "meals": 1
+        },
+        "kind": "debit",
+        "reason": "陈野开始吃饭"
+      },
+      {
+        "items": {
+          "meals": 1
+        },
+        "kind": "credit",
+        "reason": "陈野取消任务，退回用料"
+      },
+      {
+        "items": {
+          "fuel": 1
+        },
+        "kind": "debit",
+        "reason": "前哨轮值预留燃料"
+      },
+      {
+        "items": {
+          "raw_food": 2,
+          "water": 1
+        },
+        "kind": "credit",
+        "reason": "前哨轮值回收：河湾旧街"
+      }
+    ],
+    "logs": [
+      "19:59   白天结束。选择一名搜刮者，安排守夜与睡眠，再决定带什么出门。也可以全员留守。",
+      "07:37   陈野完成睡觉。可以安排下一项工作了。",
+      "06:57   陈野开始睡觉床位。",
+      "06:53   已为陈野安排睡觉。"
+    ],
+    "other_regions": {
+      "broadcast": {
+        "active": false,
+        "actor_id": -1,
+        "attack_cooldown": 0.0,
+        "attack_windup": 0.0,
+        "attempts": 0,
+        "bag": {
+          "fuel": 0,
+          "materials": 0,
+          "meals": 0,
+          "medicine": 0,
+          "raw_food": 0,
+          "tools": 0,
+          "water": 0
+        },
+        "capacity": 10,
+        "climb_progress": 0.0,
+        "climb_target": -1,
+        "condition": 0,
+        "decoys": [],
+        "discovered": [],
+        "elapsed": 0.0,
+        "enemies": [
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": -1.0,
+            "floor": 0,
+            "home_floor": 0,
+            "hp": 30,
+            "kind": "runner",
+            "max": 1110,
+            "memory": 0.0,
+            "min": 650,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 800,
+            "target_floor": 0,
+            "timer": 0.0,
+            "x": 800
+          },
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": 1.0,
+            "floor": 1,
+            "home_floor": 1,
+            "hp": 30,
+            "kind": "runner",
+            "max": 2200,
+            "memory": 0.0,
+            "min": 1700,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 1900,
+            "target_floor": 1,
+            "timer": 0.0,
+            "x": 1900
+          },
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": -1.0,
+            "floor": 1,
+            "home_floor": 1,
+            "hp": 90,
+            "kind": "brute",
+            "max": 3180,
+            "memory": 0.0,
+            "min": 2460,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 2760,
+            "target_floor": 1,
+            "timer": 0.0,
+            "x": 2760
+          },
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": 1.0,
+            "floor": 0,
+            "home_floor": 0,
+            "hp": 40,
+            "kind": "walker",
+            "max": 3170,
+            "memory": 0.0,
+            "min": 2400,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 2850,
+            "target_floor": 0,
+            "timer": 0.0,
+            "x": 2850
+          }
+        ],
+        "extra_slots": 0,
+        "facing": 1.0,
+        "feedback": "A/D 移动，按住 E 搜索；回到左侧入口撤退。",
+        "floor": 0,
+        "invulnerable": 0.0,
+        "last_refresh_day": 1,
+        "loot_site": -1,
+        "lure_cooldown": 0.0,
+        "magazine": 0,
+        "manual_loot": true,
+        "medicine_cooldown": 0.0,
+        "moving": false,
+        "noise": 0.0,
+        "noise_burst": 0.0,
+        "player_x": 110.0,
+        "player_y": 620.0,
+        "reload_remaining": 0.0,
+        "reserve_ammo": 0,
+        "return_speed": 1.0,
+        "route_open": false,
+        "route_progress": 0.0,
+        "route_tool": false,
+        "search_duration": 0.0,
+        "search_index": -1,
+        "search_progress": 0.0,
+        "search_tool": false,
+        "sites": [
+          {
+            "contents": {
+              "fuel": 3,
+              "water": 4
+            },
+            "locked": false
+          },
+          {
+            "contents": {
+              "medicine": 3,
+              "raw_food": 4
+            },
+            "locked": false
+          },
+          {
+            "contents": {
+              "materials": 7,
+              "tools": 2
+            },
+            "locked": false
+          },
+          {
+            "contents": {
+              "fuel": 7
+            },
+            "locked": true
+          },
+          {
+            "contents": {
+              "materials": 5,
+              "tools": 2
+            },
+            "locked": true
+          }
+        ],
+        "sneaking": false,
+        "sprinting": false,
+        "stacked": true
+      },
+      "clinic": {
+        "active": false,
+        "actor_id": -1,
+        "attack_cooldown": 0.0,
+        "attack_windup": 0.0,
+        "attempts": 0,
+        "bag": {
+          "fuel": 0,
+          "materials": 0,
+          "meals": 0,
+          "medicine": 0,
+          "raw_food": 0,
+          "tools": 0,
+          "water": 0
+        },
+        "capacity": 10,
+        "climb_progress": 0.0,
+        "climb_target": -1,
+        "condition": 0,
+        "decoys": [],
+        "discovered": [],
+        "elapsed": 0.0,
+        "enemies": [
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": -1.0,
+            "floor": 0,
+            "home_floor": 0,
+            "hp": 40,
+            "kind": "walker",
+            "max": 1500.0,
+            "memory": 0.0,
+            "min": 690.0,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 990.0,
+            "target_floor": 0,
+            "timer": 0.0,
+            "x": 990.0
+          },
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": 1.0,
+            "floor": 1,
+            "home_floor": 1,
+            "hp": 40,
+            "kind": "walker",
+            "max": 1980.0,
+            "memory": 0.0,
+            "min": 1420.0,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 1750.0,
+            "target_floor": 1,
+            "timer": 0.0,
+            "x": 1750.0
+          },
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": -1.0,
+            "floor": 1,
+            "home_floor": 1,
+            "hp": 40,
+            "kind": "walker",
+            "max": 2430.0,
+            "memory": 0.0,
+            "min": 2070.0,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 2300.0,
+            "target_floor": 1,
+            "timer": 0.0,
+            "x": 2300.0
+          }
+        ],
+        "extra_slots": 0,
+        "facing": 1.0,
+        "feedback": "A/D 移动，按住 E 搜索；回到左侧入口撤退。",
+        "floor": 0,
+        "invulnerable": 0.0,
+        "last_refresh_day": 1,
+        "loot_site": -1,
+        "lure_cooldown": 0.0,
+        "magazine": 0,
+        "manual_loot": true,
+        "medicine_cooldown": 0.0,
+        "moving": false,
+        "noise": 0.0,
+        "noise_burst": 0.0,
+        "player_x": 110.0,
+        "player_y": 620.0,
+        "reload_remaining": 0.0,
+        "reserve_ammo": 0,
+        "return_speed": 1.0,
+        "route_open": false,
+        "route_progress": 0.0,
+        "route_tool": false,
+        "search_duration": 0.0,
+        "search_index": -1,
+        "search_progress": 0.0,
+        "search_tool": false,
+        "sites": [
+          {
+            "contents": {
+              "water": 3
+            },
+            "locked": false
+          },
+          {
+            "contents": {
+              "materials": 2,
+              "medicine": 1
+            },
+            "locked": false
+          },
+          {
+            "contents": {
+              "medicine": 3
+            },
+            "locked": false
+          },
+          {
+            "contents": {
+              "medicine": 4,
+              "tools": 1
+            },
+            "locked": true
+          },
+          {
+            "contents": {
+              "fuel": 2,
+              "raw_food": 2
+            },
+            "locked": false
+          },
+          {
+            "contents": {
+              "materials": 3,
+              "water": 2
+            },
+            "locked": false
+          }
+        ],
+        "sneaking": false,
+        "sprinting": false,
+        "stacked": true
+      },
+      "depot": {
+        "active": false,
+        "actor_id": -1,
+        "attack_cooldown": 0.0,
+        "attack_windup": 0.0,
+        "attempts": 0,
+        "bag": {
+          "fuel": 0,
+          "materials": 0,
+          "meals": 0,
+          "medicine": 0,
+          "raw_food": 0,
+          "tools": 0,
+          "water": 0
+        },
+        "capacity": 10,
+        "climb_progress": 0.0,
+        "climb_target": -1,
+        "condition": 0,
+        "decoys": [],
+        "discovered": [],
+        "elapsed": 0.0,
+        "enemies": [
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": -1.0,
+            "floor": 0,
+            "home_floor": 0,
+            "hp": 30,
+            "kind": "runner",
+            "max": 1330,
+            "memory": 0.0,
+            "min": 650,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 900,
+            "target_floor": 0,
+            "timer": 0.0,
+            "x": 900
+          },
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": 1.0,
+            "floor": 0,
+            "home_floor": 0,
+            "hp": 90,
+            "kind": "brute",
+            "max": 2300,
+            "memory": 0.0,
+            "min": 1680,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 1950,
+            "target_floor": 0,
+            "timer": 0.0,
+            "x": 1950
+          },
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": -1.0,
+            "floor": 0,
+            "home_floor": 0,
+            "hp": 90,
+            "kind": "brute",
+            "max": 3550,
+            "memory": 0.0,
+            "min": 2810,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 3150,
+            "target_floor": 0,
+            "timer": 0.0,
+            "x": 3150
+          },
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": 1.0,
+            "floor": 1,
+            "home_floor": 1,
+            "hp": 40,
+            "kind": "walker",
+            "max": 3550,
+            "memory": 0.0,
+            "min": 2450,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 2860,
+            "target_floor": 1,
+            "timer": 0.0,
+            "x": 2860
+          }
+        ],
+        "extra_slots": 0,
+        "facing": 1.0,
+        "feedback": "A/D 移动，按住 E 搜索；回到左侧入口撤退。",
+        "floor": 0,
+        "invulnerable": 0.0,
+        "last_refresh_day": 1,
+        "loot_site": -1,
+        "lure_cooldown": 0.0,
+        "magazine": 0,
+        "manual_loot": true,
+        "medicine_cooldown": 0.0,
+        "moving": false,
+        "noise": 0.0,
+        "noise_burst": 0.0,
+        "player_x": 110.0,
+        "player_y": 620.0,
+        "reload_remaining": 0.0,
+        "reserve_ammo": 0,
+        "return_speed": 1.0,
+        "route_open": false,
+        "route_progress": 0.0,
+        "route_tool": false,
+        "search_duration": 0.0,
+        "search_index": -1,
+        "search_progress": 0.0,
+        "search_tool": false,
+        "sites": [
+          {
+            "contents": {
+              "fuel": 3,
+              "materials": 5
+            },
+            "locked": false
+          },
+          {
+            "contents": {
+              "fuel": 8
+            },
+            "locked": false
+          },
+          {
+            "contents": {
+              "materials": 3,
+              "tools": 3
+            },
+            "locked": false
+          },
+          {
+            "contents": {
+              "materials": 5,
+              "medicine": 2
+            },
+            "locked": true
+          },
+          {
+            "contents": {
+              "raw_food": 6,
+              "water": 5
+            },
+            "locked": true
+          }
+        ],
+        "sneaking": false,
+        "sprinting": false,
+        "stacked": true
+      },
+      "evac": {
+        "active": false,
+        "actor_id": -1,
+        "attack_cooldown": 0.0,
+        "attack_windup": 0.0,
+        "attempts": 0,
+        "bag": {
+          "fuel": 0,
+          "materials": 0,
+          "meals": 0,
+          "medicine": 0,
+          "raw_food": 0,
+          "tools": 0,
+          "water": 0
+        },
+        "capacity": 10,
+        "climb_progress": 0.0,
+        "climb_target": -1,
+        "condition": 0,
+        "decoys": [],
+        "discovered": [],
+        "elapsed": 0.0,
+        "enemies": [
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": -1.0,
+            "floor": 0,
+            "home_floor": 0,
+            "hp": 30,
+            "kind": "runner",
+            "max": 1400,
+            "memory": 0.0,
+            "min": 700,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 900,
+            "target_floor": 0,
+            "timer": 0.0,
+            "x": 900
+          },
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": 1.0,
+            "floor": 0,
+            "home_floor": 0,
+            "hp": 90,
+            "kind": "brute",
+            "max": 2340,
+            "memory": 0.0,
+            "min": 1640,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 1900,
+            "target_floor": 0,
+            "timer": 0.0,
+            "x": 1900
+          },
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": -1.0,
+            "floor": 0,
+            "home_floor": 0,
+            "hp": 30,
+            "kind": "runner",
+            "max": 3400,
+            "memory": 0.0,
+            "min": 2680,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 2910,
+            "target_floor": 0,
+            "timer": 0.0,
+            "x": 2910
+          },
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": 1.0,
+            "floor": 1,
+            "home_floor": 1,
+            "hp": 90,
+            "kind": "brute",
+            "max": 3990,
+            "memory": 0.0,
+            "min": 3200,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 3500,
+            "target_floor": 1,
+            "timer": 0.0,
+            "x": 3500
+          }
+        ],
+        "extra_slots": 0,
+        "facing": 1.0,
+        "feedback": "A/D 移动，按住 E 搜索；回到左侧入口撤退。",
+        "floor": 0,
+        "invulnerable": 0.0,
+        "last_refresh_day": 1,
+        "loot_site": -1,
+        "lure_cooldown": 0.0,
+        "magazine": 0,
+        "manual_loot": true,
+        "medicine_cooldown": 0.0,
+        "moving": false,
+        "noise": 0.0,
+        "noise_burst": 0.0,
+        "player_x": 110.0,
+        "player_y": 620.0,
+        "reload_remaining": 0.0,
+        "reserve_ammo": 0,
+        "return_speed": 1.0,
+        "route_open": false,
+        "route_progress": 0.0,
+        "route_tool": false,
+        "search_duration": 0.0,
+        "search_index": -1,
+        "search_progress": 0.0,
+        "search_tool": false,
+        "sites": [
+          {
+            "contents": {
+              "raw_food": 4,
+              "water": 5
+            },
+            "locked": false
+          },
+          {
+            "contents": {
+              "fuel": 7,
+              "materials": 4
+            },
+            "locked": false
+          },
+          {
+            "contents": {
+              "medicine": 4,
+              "water": 5
+            },
+            "locked": false
+          },
+          {
+            "contents": {
+              "fuel": 4,
+              "tools": 2
+            },
+            "locked": true
+          },
+          {
+            "contents": {
+              "medicine": 3,
+              "raw_food": 4
+            },
+            "locked": true
+          }
+        ],
+        "sneaking": false,
+        "sprinting": false,
+        "stacked": true
+      },
+      "market": {
+        "active": false,
+        "actor_id": -1,
+        "attack_cooldown": 0.0,
+        "attack_windup": 0.0,
+        "attempts": 0,
+        "bag": {
+          "fuel": 0,
+          "materials": 0,
+          "meals": 0,
+          "medicine": 0,
+          "raw_food": 0,
+          "tools": 0,
+          "water": 0
+        },
+        "capacity": 10,
+        "climb_progress": 0.0,
+        "climb_target": -1,
+        "condition": 0,
+        "decoys": [],
+        "discovered": [],
+        "elapsed": 0.0,
+        "enemies": [
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": -1.0,
+            "floor": 0,
+            "home_floor": 0,
+            "hp": 30,
+            "kind": "runner",
+            "max": 1100,
+            "memory": 0.0,
+            "min": 550,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 690,
+            "target_floor": 0,
+            "timer": 0.0,
+            "x": 690
+          },
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": 1.0,
+            "floor": 0,
+            "home_floor": 0,
+            "hp": 90,
+            "kind": "brute",
+            "max": 2400,
+            "memory": 0.0,
+            "min": 1700,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 2000,
+            "target_floor": 0,
+            "timer": 0.0,
+            "x": 2000
+          },
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": -1.0,
+            "floor": 1,
+            "home_floor": 1,
+            "hp": 40,
+            "kind": "walker",
+            "max": 2750,
+            "memory": 0.0,
+            "min": 1950,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 2300,
+            "target_floor": 1,
+            "timer": 0.0,
+            "x": 2300
+          }
+        ],
+        "extra_slots": 0,
+        "facing": 1.0,
+        "feedback": "A/D 移动，按住 E 搜索；回到左侧入口撤退。",
+        "floor": 0,
+        "invulnerable": 0.0,
+        "last_refresh_day": 1,
+        "loot_site": -1,
+        "lure_cooldown": 0.0,
+        "magazine": 0,
+        "manual_loot": true,
+        "medicine_cooldown": 0.0,
+        "moving": false,
+        "noise": 0.0,
+        "noise_burst": 0.0,
+        "player_x": 110.0,
+        "player_y": 620.0,
+        "reload_remaining": 0.0,
+        "reserve_ammo": 0,
+        "return_speed": 1.0,
+        "route_open": false,
+        "route_progress": 0.0,
+        "route_tool": false,
+        "search_duration": 0.0,
+        "search_index": -1,
+        "search_progress": 0.0,
+        "search_tool": false,
+        "sites": [
+          {
+            "contents": {
+              "raw_food": 5,
+              "water": 2
+            },
+            "locked": false
+          },
+          {
+            "contents": {
+              "materials": 2,
+              "raw_food": 6
+            },
+            "locked": false
+          },
+          {
+            "contents": {
+              "fuel": 5
+            },
+            "locked": false
+          },
+          {
+            "contents": {
+              "medicine": 2,
+              "water": 5
+            },
+            "locked": true
+          },
+          {
+            "contents": {
+              "raw_food": 7,
+              "tools": 1
+            },
+            "locked": true
+          }
+        ],
+        "sneaking": false,
+        "sprinting": false,
+        "stacked": true
+      },
+      "residential": {
+        "active": false,
+        "actor_id": -1,
+        "attack_cooldown": 0.0,
+        "attack_windup": 0.0,
+        "attempts": 0,
+        "bag": {
+          "fuel": 0,
+          "materials": 0,
+          "meals": 0,
+          "medicine": 0,
+          "raw_food": 0,
+          "tools": 0,
+          "water": 0
+        },
+        "capacity": 10,
+        "climb_progress": 0.0,
+        "climb_target": -1,
+        "condition": 0,
+        "decoys": [],
+        "discovered": [],
+        "elapsed": 0.0,
+        "enemies": [
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": -1.0,
+            "floor": 0,
+            "home_floor": 0,
+            "hp": 40,
+            "kind": "walker",
+            "max": 740,
+            "memory": 0.0,
+            "min": 480,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 620,
+            "target_floor": 0,
+            "timer": 0.0,
+            "x": 620
+          },
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": 1.0,
+            "floor": 1,
+            "home_floor": 1,
+            "hp": 30,
+            "kind": "runner",
+            "max": 1700,
+            "memory": 0.0,
+            "min": 1100,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 1420,
+            "target_floor": 1,
+            "timer": 0.0,
+            "x": 1420
+          },
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": -1.0,
+            "floor": 0,
+            "home_floor": 0,
+            "hp": 40,
+            "kind": "walker",
+            "max": 2140,
+            "memory": 0.0,
+            "min": 1740,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 1920,
+            "target_floor": 0,
+            "timer": 0.0,
+            "x": 1920
+          }
+        ],
+        "extra_slots": 0,
+        "facing": 1.0,
+        "feedback": "A/D 移动，按住 E 搜索；回到左侧入口撤退。",
+        "floor": 0,
+        "invulnerable": 0.0,
+        "last_refresh_day": 1,
+        "loot_site": -1,
+        "lure_cooldown": 0.0,
+        "magazine": 0,
+        "manual_loot": true,
+        "medicine_cooldown": 0.0,
+        "moving": false,
+        "noise": 0.0,
+        "noise_burst": 0.0,
+        "player_x": 110.0,
+        "player_y": 620.0,
+        "reload_remaining": 0.0,
+        "reserve_ammo": 0,
+        "return_speed": 1.0,
+        "route_open": false,
+        "route_progress": 0.0,
+        "route_tool": false,
+        "search_duration": 0.0,
+        "search_index": -1,
+        "search_progress": 0.0,
+        "search_tool": false,
+        "sites": [
+          {
+            "contents": {
+              "materials": 2,
+              "water": 3
+            },
+            "locked": false
+          },
+          {
+            "contents": {
+              "fuel": 2,
+              "raw_food": 5
+            },
+            "locked": false
+          },
+          {
+            "contents": {
+              "materials": 6
+            },
+            "locked": false
+          },
+          {
+            "contents": {
+              "raw_food": 3,
+              "water": 4
+            },
+            "locked": true
+          },
+          {
+            "contents": {
+              "medicine": 2,
+              "tools": 1
+            },
+            "locked": true
+          }
+        ],
+        "sneaking": false,
+        "sprinting": false,
+        "stacked": true
+      },
+      "waterworks": {
+        "active": false,
+        "actor_id": -1,
+        "attack_cooldown": 0.0,
+        "attack_windup": 0.0,
+        "attempts": 0,
+        "bag": {
+          "fuel": 0,
+          "materials": 0,
+          "meals": 0,
+          "medicine": 0,
+          "raw_food": 0,
+          "tools": 0,
+          "water": 0
+        },
+        "capacity": 10,
+        "climb_progress": 0.0,
+        "climb_target": -1,
+        "condition": 0,
+        "decoys": [],
+        "discovered": [],
+        "elapsed": 0.0,
+        "enemies": [
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": -1.0,
+            "floor": 0,
+            "home_floor": 0,
+            "hp": 40,
+            "kind": "walker",
+            "max": 1130,
+            "memory": 0.0,
+            "min": 650,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 840,
+            "target_floor": 0,
+            "timer": 0.0,
+            "x": 840
+          },
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": 1.0,
+            "floor": 0,
+            "home_floor": 0,
+            "hp": 90,
+            "kind": "brute",
+            "max": 2250,
+            "memory": 0.0,
+            "min": 1730,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 1990,
+            "target_floor": 0,
+            "timer": 0.0,
+            "x": 1990
+          },
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": -1.0,
+            "floor": 1,
+            "home_floor": 1,
+            "hp": 30,
+            "kind": "runner",
+            "max": 3000,
+            "memory": 0.0,
+            "min": 2100,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 2570,
+            "target_floor": 1,
+            "timer": 0.0,
+            "x": 2570
+          }
+        ],
+        "extra_slots": 0,
+        "facing": 1.0,
+        "feedback": "A/D 移动，按住 E 搜索；回到左侧入口撤退。",
+        "floor": 0,
+        "invulnerable": 0.0,
+        "last_refresh_day": 1,
+        "loot_site": -1,
+        "lure_cooldown": 0.0,
+        "magazine": 0,
+        "manual_loot": true,
+        "medicine_cooldown": 0.0,
+        "moving": false,
+        "noise": 0.0,
+        "noise_burst": 0.0,
+        "player_x": 110.0,
+        "player_y": 620.0,
+        "reload_remaining": 0.0,
+        "reserve_ammo": 0,
+        "return_speed": 1.0,
+        "route_open": false,
+        "route_progress": 0.0,
+        "route_tool": false,
+        "search_duration": 0.0,
+        "search_index": -1,
+        "search_progress": 0.0,
+        "search_tool": false,
+        "sites": [
+          {
+            "contents": {
+              "water": 6
+            },
+            "locked": false
+          },
+          {
+            "contents": {
+              "fuel": 3,
+              "medicine": 3
+            },
+            "locked": false
+          },
+          {
+            "contents": {
+              "materials": 4,
+              "tools": 2
+            },
+            "locked": false
+          },
+          {
+            "contents": {
+              "materials": 3,
+              "water": 5
+            },
+            "locked": true
+          },
+          {
+            "contents": {
+              "fuel": 2,
+              "water": 8
+            },
+            "locked": true
+          }
+        ],
+        "sneaking": false,
+        "sprinting": false,
+        "stacked": true
+      },
+      "works": {
+        "active": false,
+        "actor_id": -1,
+        "attack_cooldown": 0.0,
+        "attack_windup": 0.0,
+        "attempts": 0,
+        "bag": {
+          "fuel": 0,
+          "materials": 0,
+          "meals": 0,
+          "medicine": 0,
+          "raw_food": 0,
+          "tools": 0,
+          "water": 0
+        },
+        "capacity": 10,
+        "climb_progress": 0.0,
+        "climb_target": -1,
+        "condition": 0,
+        "decoys": [],
+        "discovered": [],
+        "elapsed": 0.0,
+        "enemies": [
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": -1.0,
+            "floor": 0,
+            "home_floor": 0,
+            "hp": 40,
+            "kind": "walker",
+            "max": 1060.0,
+            "memory": 0.0,
+            "min": 660.0,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 850.0,
+            "target_floor": 0,
+            "timer": 0.0,
+            "x": 850.0
+          },
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": 1.0,
+            "floor": 0,
+            "home_floor": 0,
+            "hp": 40,
+            "kind": "walker",
+            "max": 2220.0,
+            "memory": 0.0,
+            "min": 1620.0,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 1940.0,
+            "target_floor": 0,
+            "timer": 0.0,
+            "x": 1940.0
+          },
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": -1.0,
+            "floor": 0,
+            "home_floor": 0,
+            "hp": 40,
+            "kind": "walker",
+            "max": 2880.0,
+            "memory": 0.0,
+            "min": 2370.0,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 2650.0,
+            "target_floor": 0,
+            "timer": 0.0,
+            "x": 2650.0
+          },
+          {
+            "brace": 0.0,
+            "climb_progress": 0.0,
+            "climb_target": -1,
+            "cooldown": 0.0,
+            "direction": 1.0,
+            "floor": 1,
+            "home_floor": 1,
+            "hp": 40,
+            "kind": "walker",
+            "max": 2760.0,
+            "memory": 0.0,
+            "min": 1750.0,
+            "mode": "patrol",
+            "suspicion": 0.0,
+            "target": 2200.0,
+            "target_floor": 1,
+            "timer": 0.0,
+            "x": 2200.0
+          }
+        ],
+        "extra_slots": 0,
+        "facing": 1.0,
+        "feedback": "A/D 移动，按住 E 搜索；回到左侧入口撤退。",
+        "floor": 0,
+        "invulnerable": 0.0,
+        "last_refresh_day": 1,
+        "loot_site": -1,
+        "lure_cooldown": 0.0,
+        "magazine": 0,
+        "manual_loot": true,
+        "medicine_cooldown": 0.0,
+        "moving": false,
+        "noise": 0.0,
+        "noise_burst": 0.0,
+        "player_x": 110.0,
+        "player_y": 620.0,
+        "reload_remaining": 0.0,
+        "reserve_ammo": 0,
+        "return_speed": 1.0,
+        "route_open": false,
+        "route_progress": 0.0,
+        "route_tool": false,
+        "search_duration": 0.0,
+        "search_index": -1,
+        "search_progress": 0.0,
+        "search_tool": false,
+        "sites": [
+          {
+            "contents": {
+              "fuel": 1,
+              "materials": 3
+            },
+            "locked": false
+          },
+          {
+            "contents": {
+              "materials": 2,
+              "tools": 2
+            },
+            "locked": false
+          },
+          {
+            "contents": {
+              "fuel": 5,
+              "materials": 2
+            },
+            "locked": true
+          },
+          {
+            "contents": {
+              "raw_food": 2,
+              "water": 3
+            },
+            "locked": false
+          },
+          {
+            "contents": {
+              "materials": 6,
+              "tools": 1
+            },
+            "locked": true
+          },
+          {
+            "contents": {
+              "fuel": 2,
+              "medicine": 2
+            },
+            "locked": false
+          }
+        ],
+        "sneaking": false,
+        "sprinting": false,
+        "stacked": true
+      }
+    },
+    "paused": true,
+    "people": {
+      "bonds": {
+        "0:1": 25,
+        "0:2": 25,
+        "1:2": 25
+      },
+      "daily": [
+        {
+          "alive": 3,
+          "day": 1,
+          "hunger": 38.488666666669,
+          "integrity": 74.0799999999759,
+          "morale": 61.8055833333329,
+          "stock": {
+            "fuel": 4,
+            "materials": 0,
+            "meals": 0,
+            "medicine": 2,
+            "raw_food": 8,
+            "tools": 0,
+            "water": 6
+          }
+        },
+        {
+          "alive": 3,
+          "day": 2,
+          "hunger": 67.2886666666745,
+          "integrity": 65.4399999999504,
+          "morale": 61.1416388888842,
+          "stock": {
+            "fuel": 2,
+            "materials": 0,
+            "meals": 2,
+            "medicine": 2,
+            "raw_food": 9,
+            "tools": 0,
+            "water": 6
+          }
+        }
+      ],
+      "deaths": [],
+      "drinks": 0,
+      "last_day": 3,
+      "next_routine": 1381.0,
+      "spoiled": {
+        "meals": 0,
+        "raw_food": 0
+      }
+    },
+    "residence": {
+      "carried": "",
+      "carried_clear": false,
+      "cleared": [
+        "shelter"
+      ],
+      "condition": 100.0,
+      "convoy": "",
+      "current": "shelter",
+      "guitar": false,
+      "last_move_day": 0,
+      "moves": [],
+      "music_days": {
+
+      },
+      "noise": 1.05432000000031,
+      "prepared": [],
+      "security": {
+        "alarm": 0,
+        "gate": 0,
+        "mesh": 0,
+        "stakes": 0
+      },
+      "surveyed": [
+        "shelter"
+      ]
+    },
+    "selected_id": 2,
+    "selected_task": "sleep",
+    "simulation_time": 1380.0,
+    "speed": 1.0,
+    "stairs_open": true,
+    "stations": {
+      "bed": {
+        "completed": 1,
+        "occupant": -1,
+        "waiters": []
+      },
+      "stove": {
+        "completed": 2,
+        "occupant": -1,
+        "waiters": []
+      },
+      "table": {
+        "completed": 2,
+        "occupant": -1,
+        "waiters": []
+      },
+      "workbench": {
+        "completed": 2,
+        "occupant": -1,
+        "waiters": []
+      }
+    },
+    "stock": {
+      "fuel": 2,
+      "materials": 0,
+      "meals": 2,
+      "medicine": 2,
+      "raw_food": 9,
+      "tools": 0,
+      "water": 6
+    },
+    "story": {
+      "guide": [
+        "eat",
+        "supplies",
+        "sleep"
+      ],
+      "guide_hidden": false,
+      "history": [],
+      "next_offer_day": 4,
+      "next_poll": 1080.99999999994,
+      "pending": {
+        "actor": 0,
+        "day": 2,
+        "id": "lin_radio",
+        "target": 1
+      }
+    },
+    "upkeep": {
+      "event_day": 2,
+      "integrity": 65.4399999999504,
+      "journal": [
+        "第2天：雨水与容器，按M查看并选择。",
+        "从河湾旧街带回11份净补给。"
+      ],
+      "last_day": 3,
+      "level": 0,
+      "pending_event": 0,
+      "recovered": {
+        "fuel": 2,
+        "materials": 0,
+        "meals": 0,
+        "medicine": 1,
+        "raw_food": 5,
+        "tools": 0,
+        "water": 3
+      },
+      "repairs": 0,
+      "resolved_events": 0,
+      "returns": {
+        "broadcast": 0,
+        "clinic": 0,
+        "depot": 0,
+        "evac": 0,
+        "market": 0,
+        "residential": 0,
+        "street": 1,
+        "waterworks": 0,
+        "works": 0
+      },
+      "trip_loadout": {
+
+      }
+    }
+  },
+  "trace": [
+    {
+      "bag": {
+        "fuel": 0,
+        "materials": 0,
+        "meals": 0,
+        "medicine": 0,
+        "raw_food": 0,
+        "tools": 0,
+        "water": 0
+      },
+      "enemies": [
+        {
+          "floor": 0,
+          "hp": 40,
+          "x": 900.0
+        },
+        {
+          "floor": 0,
+          "hp": 40,
+          "x": 1900.0
+        },
+        {
+          "floor": 1,
+          "hp": 40,
+          "x": 1840.0
+        }
+      ],
+      "event": "fresh campaign",
+      "floor": 0,
+      "health": [
+        100.0,
+        100.0,
+        100.0
+      ],
+      "seconds": 0.0,
+      "stock": {
+        "fuel": 3,
+        "materials": 8,
+        "meals": 0,
+        "medicine": 1,
+        "raw_food": 4,
+        "tools": 0,
+        "water": 4
+      },
+      "x": 110.0
+    },
+    {
+      "bag": {
+        "fuel": 0,
+        "materials": 0,
+        "meals": 0,
+        "medicine": 0,
+        "raw_food": 0,
+        "tools": 0,
+        "water": 0
+      },
+      "enemies": [
+        {
+          "floor": 0,
+          "hp": 40,
+          "x": 900.0
+        },
+        {
+          "floor": 0,
+          "hp": 40,
+          "x": 1900.0
+        },
+        {
+          "floor": 1,
+          "hp": 40,
+          "x": 1840.0
+        }
+      ],
+      "event": "real tool crafting and food preparation",
+      "floor": 0,
+      "health": [
+        100.0,
+        100.0,
+        100.0
+      ],
+      "seconds": 59.9999999999979,
+      "stock": {
+        "fuel": 2,
+        "materials": 4,
+        "meals": 0,
+        "medicine": 1,
+        "raw_food": 3,
+        "tools": 2,
+        "water": 3
+      },
+      "x": 110.0
+    },
+    {
+      "bag": {
+        "fuel": 4,
+        "materials": 6,
+        "meals": 0,
+        "medicine": 0,
+        "raw_food": 5,
+        "tools": 1,
+        "water": 3
+      },
+      "enemies": [
+        {
+          "floor": 0,
+          "hp": 0,
+          "x": 603.549999999992
+        },
+        {
+          "floor": 0,
+          "hp": 40,
+          "x": 1943.19999999999
+        },
+        {
+          "floor": 1,
+          "hp": 40,
+          "x": 2096.79999999996
+        }
+      ],
+      "event": "reached the physical site",
+      "floor": 1,
+      "health": [
+        100.0,
+        100.0,
+        100.0
+      ],
+      "seconds": 389.033333333305,
+      "stock": {
+        "fuel": 1,
+        "materials": 0,
+        "meals": 0,
+        "medicine": 0,
+        "raw_food": 3,
+        "tools": 0,
+        "water": 3
+      },
+      "x": 1612.99999999999
+    },
+    {
+      "bag": {
+        "fuel": 3,
+        "materials": 0,
+        "meals": 0,
+        "medicine": 2,
+        "raw_food": 5,
+        "tools": 0,
+        "water": 3
+      },
+      "enemies": [
+        {
+          "floor": 0,
+          "hp": 0,
+          "x": 603.549999999992
+        },
+        {
+          "floor": 0,
+          "hp": 40,
+          "x": 1946.79999999999
+        },
+        {
+          "floor": 1,
+          "hp": 40,
+          "x": 1852.99999999999
+        }
+      ],
+      "event": "actual outpost construction",
+      "floor": 1,
+      "health": [
+        100.0,
+        100.0,
+        100.0
+      ],
+      "seconds": 402.666666666626,
+      "stock": {
+        "fuel": 1,
+        "materials": 0,
+        "meals": 0,
+        "medicine": 0,
+        "raw_food": 3,
+        "tools": 0,
+        "water": 3
+      },
+      "x": 1612.99999999999
+    },
+    {
+      "bag": {
+        "fuel": 0,
+        "materials": 0,
+        "meals": 0,
+        "medicine": 0,
+        "raw_food": 0,
+        "tools": 0,
+        "water": 0
+      },
+      "enemies": [
+        {
+          "floor": 0,
+          "hp": 0,
+          "x": 603.549999999992
+        },
+        {
+          "floor": 0,
+          "hp": 40,
+          "x": 1805.20000000001
+        },
+        {
+          "floor": 1,
+          "hp": 40,
+          "x": 1853.59999999999
+        }
+      ],
+      "event": "returned with real supplies",
+      "floor": 0,
+      "health": [
+        100.0,
+        100.0,
+        100.0
+      ],
+      "seconds": 660.0,
+      "stock": {
+        "fuel": 4,
+        "materials": 0,
+        "meals": 0,
+        "medicine": 2,
+        "raw_food": 8,
+        "tools": 0,
+        "water": 6
+      },
+      "x": 116.433333333322
+    },
+    {
+      "bag": {
+        "fuel": 0,
+        "materials": 0,
+        "meals": 0,
+        "medicine": 0,
+        "raw_food": 0,
+        "tools": 0,
+        "water": 0
+      },
+      "enemies": [
+        {
+          "floor": 0,
+          "hp": 0,
+          "x": 603.549999999992
+        },
+        {
+          "floor": 0,
+          "hp": 40,
+          "x": 1805.20000000001
+        },
+        {
+          "floor": 1,
+          "hp": 40,
+          "x": 1853.59999999999
+        }
+      ],
+      "event": "next-night crew assignment and funded shift",
+      "floor": 0,
+      "health": [
+        100.0,
+        100.0,
+        100.0
+      ],
+      "seconds": 1380.0,
+      "stock": {
+        "fuel": 2,
+        "materials": 0,
+        "meals": 2,
+        "medicine": 2,
+        "raw_food": 9,
+        "tools": 0,
+        "water": 6
+      },
+      "x": 116.433333333322
+    }
+  ]
+}

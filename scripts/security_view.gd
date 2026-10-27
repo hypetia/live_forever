@@ -68,12 +68,12 @@ func render() -> void:
 		return
 	var convoy: bool = not game.residence.convoy.is_empty()
 	var night: int = game.cycle.night_day if game.cycle.phase != "day" else ExpeditionState.day_at(game.simulation_time)
-	var threat := 1.5+minf(1,night*0.025) if convoy else minf(2,1+night*0.035)
+	var threat: float = 1.5+minf(1,night*0.025) if convoy else game.raid_threat(night)
 	rows = DefenseAssessment.components(game,true)
 	total_value = DefenseAssessment.total(rows)
 	var heading := "护送力量 %.2f / 路线威胁 %.2f" if convoy else "防守力量 %.2f / 袭击强度 %.2f"
 	ui.label(body,heading % [total_value,threat],Vector2(10,0),Vector2(1180,36),25,GameUi.SUCCESS if total_value >= threat else GameUi.WARNING)
-	var chance: int = 0 if night < 3 else game.residence.attack_chance(55 if night < 8 else 70)
+	var chance: int = game.raid_chance(night)
 	var hint := "全员随车队行军；营地隔断、安防不参与护送。" if convoy else "第%d夜 · 遇袭概率%d%% · 耐久%d%% · 暴露噪声%d" % [night,chance,roundi(game.residence.condition),roundi(game.residence.noise)]
 	ui.label(body,hint,Vector2(10,49),Vector2(1180,36),18,GameUi.SECONDARY)
 	ui.label(body,"白天先检查设施，20:00再安排守夜；此处不提前结算夜袭。" if game.cycle.phase == "day" else "天亮后的设施现状；守夜按上次岗位估算，下次黄昏需重新安排。" if game.cycle.phase == "dawn" else "守夜已计入精神、健康、战斗专长和完好武器；遇袭后设施会损耗。",Vector2(10,91),Vector2(1180,32),18,GameUi.SECONDARY)

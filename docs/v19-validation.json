@@ -1,0 +1,957 @@
+{
+  "version": "1.9.0",
+  "date": "2026-10-27",
+  "timezone": "Asia/Shanghai",
+  "save_schema": 16,
+  "logical_checks": 1546,
+  "gui_checks": 561,
+  "persistence_processes": 52,
+  "logical_suites": {
+    "cooking": 57,
+    "expedition": 76,
+    "saves": 74,
+    "expedition_saves": 88,
+    "campaign": 85,
+    "expansion": 103,
+    "vitals": 30,
+    "residence": 90,
+    "interactions": 89,
+    "keyboard_movement": 27,
+    "departure_equipment": 36,
+    "facilities": 62,
+    "director": 52,
+    "combat_feedback": 18,
+    "enemy_ai": 59,
+    "security": 25,
+    "backpack_stacks": 73,
+    "map_environments": 298,
+    "district_system": 172,
+    "decoys": 32
+  },
+  "gui_suites": {
+    "visual_smoke": 36,
+    "visual_expedition": 36,
+    "visual_presentation": 45,
+    "visual_people": 22,
+    "visual_story": 17,
+    "visual_goals": 24,
+    "visual_campaign": 47,
+    "visual_expansion": 15,
+    "visual_quiet": 20,
+    "visual_residence": 26,
+    "visual_interactions": 26,
+    "visual_keyboard_movement": 10,
+    "visual_departure_equipment": 21,
+    "visual_facilities": 21,
+    "visual_director": 25,
+    "visual_combat_feedback": 11,
+    "visual_security_ai": 24,
+    "visual_backpack_stacks": 25,
+    "visual_map_environments": 77,
+    "visual_district_system": 33
+  },
+  "scope": "Clean focused related regression through campaign, migrations, inventory, people persistence, residence, controls, equipment, facilities, director, combat, enemy AI, security and maps, plus districts and decoys. Twenty graphical suites and all registered persistence groups. Final visual-only flag placement was followed by repeat interaction, nine-map and district graphical suites; logical and settlement code were unchanged. This is not a run of every endurance suite or a new natural 35-day campaign.",
+  "districts": {
+    "separate_persistent_pressure_for_nine_regions": true,
+    "gunfire_including_misses_has_world_cost": true,
+    "next_trip_population_composition_uses_fixed_archetypes": true,
+    "field_building_has_range_time_cost_and_interruption": true,
+    "crew_duty_competes_with_guard_and_rest": true,
+    "fuel_ammunition_and_heating_budgets_checked_before_departure": true,
+    "weapon_wear_and_outdoor_climate": true,
+    "person_health_vigor_injury_illness_and_skill_affect_risk": true,
+    "district_and_character_specific_yields": true,
+    "no_reward_and_actual_gear_loss_on_failed_return": true,
+    "no_duplicate_dawn_production": true,
+    "actual_flag_click_targets_the_searchable_point": true
+  },
+  "decoys": {
+    "cost": {
+      "materials": 1,
+      "fuel": 1
+    },
+    "seconds": 18,
+    "maximum_live": 3,
+    "cooldown_seconds": 3,
+    "enemy_uses_device_position_not_hidden_player_position": true,
+    "player_sight_and_sound_override_distraction": true,
+    "actual_ladder_path_for_cross_floor_sound": true,
+    "remaining_lifetime_memory_and_paid_units_survive_load": true
+  },
+  "natural_journey": {
+    "passed": true,
+    "nights": 2,
+    "no_inventory_grants": true,
+    "no_teleports": true,
+    "no_health_or_enemy_overrides": true,
+    "report": "v19-outpost-journey.json",
+    "scope": "Starting stock -> actual crafting and meals -> physical field navigation/combat/looting -> paid lure -> timed outpost -> physical return -> actual day care/rest -> funded next-night duty and one-time yield."
+  },
+  "desktop": {
+    "checks": [
+      {
+        "message": "actual native window size 1024x768",
+        "passed": true
+      },
+      {
+        "message": "fixed design viewport and preserved aspect at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "day clock and dusk progress are visible at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "complete roster cards fit at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "spatial district chart fits and pauses at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "home and relocation drawer fits at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "opportunity briefing fits at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "security inspection fits and pauses at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "equipment workshop fits and explicitly pauses at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "named treatment confirmation fits at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "additional maps and campaign gates appear at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "outpost duty is visible and gated until actual construction at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "night assignment fits and names all roles at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "actual units are grouped into stacks at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "both physical stack grids fit at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "field stack drawer fits at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "timed map clearance is visible before payment at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "cleared access consumes one tool and enters real routing at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "opened map access survives actual restore at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "field outpost work shows progress and pays only on completion at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "paid lure, separate enemy target and district state restore at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "preflight restores untouched campaign at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "handbook fits complete logical viewport at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "actual native window size 1280x720",
+        "passed": true
+      },
+      {
+        "message": "fixed design viewport and preserved aspect at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "day clock and dusk progress are visible at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "complete roster cards fit at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "spatial district chart fits and pauses at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "home and relocation drawer fits at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "opportunity briefing fits at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "security inspection fits and pauses at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "equipment workshop fits and explicitly pauses at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "named treatment confirmation fits at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "additional maps and campaign gates appear at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "outpost duty is visible and gated until actual construction at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "night assignment fits and names all roles at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "actual units are grouped into stacks at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "both physical stack grids fit at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "field stack drawer fits at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "timed map clearance is visible before payment at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "cleared access consumes one tool and enters real routing at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "opened map access survives actual restore at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "field outpost work shows progress and pays only on completion at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "paid lure, separate enemy target and district state restore at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "preflight restores untouched campaign at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "handbook fits complete logical viewport at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "actual native window size 1440x900",
+        "passed": true
+      },
+      {
+        "message": "fixed design viewport and preserved aspect at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "day clock and dusk progress are visible at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "complete roster cards fit at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "spatial district chart fits and pauses at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "home and relocation drawer fits at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "opportunity briefing fits at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "security inspection fits and pauses at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "equipment workshop fits and explicitly pauses at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "named treatment confirmation fits at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "additional maps and campaign gates appear at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "outpost duty is visible and gated until actual construction at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "night assignment fits and names all roles at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "actual units are grouped into stacks at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "both physical stack grids fit at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "field stack drawer fits at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "timed map clearance is visible before payment at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "cleared access consumes one tool and enters real routing at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "opened map access survives actual restore at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "field outpost work shows progress and pays only on completion at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "paid lure, separate enemy target and district state restore at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "preflight restores untouched campaign at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "handbook fits complete logical viewport at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "actual native window size 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "fixed design viewport and preserved aspect at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "day clock and dusk progress are visible at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "complete roster cards fit at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "spatial district chart fits and pauses at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "home and relocation drawer fits at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "opportunity briefing fits at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "security inspection fits and pauses at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "equipment workshop fits and explicitly pauses at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "named treatment confirmation fits at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "additional maps and campaign gates appear at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "outpost duty is visible and gated until actual construction at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "night assignment fits and names all roles at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "actual units are grouped into stacks at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "both physical stack grids fit at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "field stack drawer fits at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "timed map clearance is visible before payment at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "cleared access consumes one tool and enters real routing at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "opened map access survives actual restore at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "field outpost work shows progress and pays only on completion at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "paid lure, separate enemy target and district state restore at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "preflight restores untouched campaign at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "handbook fits complete logical viewport at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "actual fullscreen mode enabled",
+        "passed": true
+      },
+      {
+        "message": "actual fullscreen returns to a movable window",
+        "passed": true
+      },
+      {
+        "message": "three original members survive continuous actual gameplay",
+        "passed": true
+      },
+      {
+        "message": "continuous test advances real gameplay time rather than leaving a paused window",
+        "passed": true
+      },
+      {
+        "message": "actual continuous searching and physical return completed",
+        "passed": true
+      },
+      {
+        "message": "continuous session saves a fully valid world",
+        "passed": true
+      }
+    ],
+    "elapsed_seconds": 120.012,
+    "engine": "4.6.3-stable (official)",
+    "frames": 2443,
+    "platform": "Linux",
+    "requested_minutes": 2.0,
+    "resolutions": [
+      {
+        "actual": [
+          1024,
+          768
+        ],
+        "requested": [
+          1024,
+          768
+        ],
+        "status": "checked"
+      },
+      {
+        "actual": [
+          1280,
+          720
+        ],
+        "requested": [
+          1280,
+          720
+        ],
+        "status": "checked"
+      },
+      {
+        "actual": [
+          1440,
+          900
+        ],
+        "requested": [
+          1440,
+          900
+        ],
+        "status": "checked"
+      },
+      {
+        "actual": [
+          1920,
+          1080
+        ],
+        "requested": [
+          1920,
+          1080
+        ],
+        "status": "checked"
+      }
+    ],
+    "samples": [
+      {
+        "alive": 3,
+        "fps": 13.0,
+        "frames": 1,
+        "simulation_seconds": 0.0743196666666667,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 3,
+          "materials": 8,
+          "meals": 0,
+          "medicine": 1,
+          "raw_food": 4,
+          "tools": 0,
+          "water": 4
+        },
+        "trips": 0,
+        "wall_seconds": 0.008
+      },
+      {
+        "alive": 3,
+        "fps": 16.0,
+        "frames": 171,
+        "simulation_seconds": 9.73720455555562,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 3,
+          "materials": 6,
+          "meals": 0,
+          "medicine": 1,
+          "raw_food": 4,
+          "tools": 0,
+          "water": 4
+        },
+        "trips": 0,
+        "wall_seconds": 10.044
+      },
+      {
+        "alive": 3,
+        "fps": 10.0,
+        "frames": 297,
+        "simulation_seconds": 19.4287736666668,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 3,
+          "materials": 4,
+          "meals": 0,
+          "medicine": 1,
+          "raw_food": 4,
+          "tools": 1,
+          "water": 4
+        },
+        "trips": 0,
+        "wall_seconds": 20.13
+      },
+      {
+        "alive": 3,
+        "fps": 17.0,
+        "frames": 429,
+        "simulation_seconds": 28.478370333333,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 3,
+          "materials": 4,
+          "meals": 0,
+          "medicine": 1,
+          "raw_food": 4,
+          "tools": 2,
+          "water": 4
+        },
+        "trips": 0,
+        "wall_seconds": 30.157
+      },
+      {
+        "alive": 3,
+        "fps": 26.0,
+        "frames": 624,
+        "simulation_seconds": 362.91194838095,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 3,
+          "materials": 4,
+          "meals": 0,
+          "medicine": 0,
+          "raw_food": 4,
+          "tools": 1,
+          "water": 4
+        },
+        "trips": 0,
+        "wall_seconds": 40.18
+      },
+      {
+        "alive": 3,
+        "fps": 24.0,
+        "frames": 890,
+        "simulation_seconds": 372.782845643568,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 3,
+          "materials": 4,
+          "meals": 0,
+          "medicine": 0,
+          "raw_food": 4,
+          "tools": 1,
+          "water": 4
+        },
+        "trips": 0,
+        "wall_seconds": 50.198
+      },
+      {
+        "alive": 3,
+        "fps": 27.0,
+        "frames": 1143,
+        "simulation_seconds": 382.709123310228,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 3,
+          "materials": 4,
+          "meals": 0,
+          "medicine": 0,
+          "raw_food": 4,
+          "tools": 1,
+          "water": 4
+        },
+        "trips": 0,
+        "wall_seconds": 60.229
+      },
+      {
+        "alive": 3,
+        "fps": 27.0,
+        "frames": 1375,
+        "simulation_seconds": 392.600044215944,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 3,
+          "materials": 4,
+          "meals": 0,
+          "medicine": 0,
+          "raw_food": 4,
+          "tools": 1,
+          "water": 4
+        },
+        "trips": 0,
+        "wall_seconds": 70.237
+      },
+      {
+        "alive": 3,
+        "fps": 18.0,
+        "frames": 1602,
+        "simulation_seconds": 402.436572549268,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 3,
+          "materials": 4,
+          "meals": 0,
+          "medicine": 0,
+          "raw_food": 4,
+          "tools": 1,
+          "water": 4
+        },
+        "trips": 0,
+        "wall_seconds": 80.238
+      },
+      {
+        "alive": 3,
+        "fps": 29.0,
+        "frames": 1849,
+        "simulation_seconds": 412.346206215927,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 3,
+          "materials": 4,
+          "meals": 0,
+          "medicine": 0,
+          "raw_food": 4,
+          "tools": 1,
+          "water": 4
+        },
+        "trips": 0,
+        "wall_seconds": 90.266
+      },
+      {
+        "alive": 3,
+        "fps": 18.0,
+        "frames": 2087,
+        "simulation_seconds": 664.655783111107,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 7,
+          "materials": 4,
+          "meals": 0,
+          "medicine": 3,
+          "raw_food": 6,
+          "tools": 3,
+          "water": 13
+        },
+        "trips": 1,
+        "wall_seconds": 100.268
+      },
+      {
+        "alive": 3,
+        "fps": 18.0,
+        "frames": 2273,
+        "simulation_seconds": 674.665734571415,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 4,
+          "meals": 1,
+          "medicine": 3,
+          "raw_food": 4,
+          "tools": 3,
+          "water": 11
+        },
+        "trips": 1,
+        "wall_seconds": 110.317
+      }
+    ],
+    "save_path": "/workspace/artifacts/v19-desktop-final-2/session.json",
+    "screens": 1,
+    "status": "ready_to_close",
+    "stock": {
+      "fuel": 4,
+      "materials": 4,
+      "meals": 2,
+      "medicine": 3,
+      "raw_food": 3,
+      "tools": 3,
+      "water": 10
+    },
+    "worst_frame_seconds": 0.15,
+    "native_close_and_restart": "passed",
+    "executable_sha256": "5be8abd9ef8669c8ad266fd3c65a31246df4032784437d4f6c9d1585a2fc0ad9",
+    "acceptance_binary_sha256": "f62bad321d6a1e0790e690ad33a400c8a119b6ed87d036f70f28a1466f75766c",
+    "continuous_30_minutes_complete": false,
+    "process_memory_samples": [
+      {
+        "monotonic_seconds": 235672.921370375,
+        "resident_bytes": 90112
+      },
+      {
+        "monotonic_seconds": 235682.946804553,
+        "resident_bytes": 89378816
+      },
+      {
+        "monotonic_seconds": 235692.979105401,
+        "resident_bytes": 316571648
+      },
+      {
+        "monotonic_seconds": 235703.002299989,
+        "resident_bytes": 351076352
+      },
+      {
+        "monotonic_seconds": 235713.025016017,
+        "resident_bytes": 375382016
+      },
+      {
+        "monotonic_seconds": 235723.047027251,
+        "resident_bytes": 382316544
+      },
+      {
+        "monotonic_seconds": 235733.089003636,
+        "resident_bytes": 381808640
+      },
+      {
+        "monotonic_seconds": 235743.12644647,
+        "resident_bytes": 381808640
+      },
+      {
+        "monotonic_seconds": 235753.164657975,
+        "resident_bytes": 385024000
+      },
+      {
+        "monotonic_seconds": 235763.219585803,
+        "resident_bytes": 385024000
+      },
+      {
+        "monotonic_seconds": 235773.244026841,
+        "resident_bytes": 385024000
+      },
+      {
+        "monotonic_seconds": 235783.293024741,
+        "resident_bytes": 385024000
+      },
+      {
+        "monotonic_seconds": 235793.320703285,
+        "resident_bytes": 385024000
+      },
+      {
+        "monotonic_seconds": 235803.361290155,
+        "resident_bytes": 385024000
+      },
+      {
+        "monotonic_seconds": 235813.371107017,
+        "resident_bytes": 385032192
+      },
+      {
+        "monotonic_seconds": 235823.403537924,
+        "resident_bytes": 385032192
+      },
+      {
+        "monotonic_seconds": 235833.424967201,
+        "resident_bytes": 384917504
+      }
+    ]
+  },
+  "cold_start": {
+    "rounds": [
+      {
+        "round": 1,
+        "cold_wm_delete_atom": 0,
+        "close_and_restart": "passed"
+      }
+    ],
+    "game_runtime_patched_for_probe": false,
+    "binary_sha256": "5be8abd9ef8669c8ad266fd3c65a31246df4032784437d4f6c9d1585a2fc0ad9"
+  },
+  "native_probe_sha256": "190df1f0a8ee78b58c0af3fbdc1d55cbca7c1692a8a669b2a3b515e7b3f1ffaf",
+  "builds": {
+    "binaries": {
+      "windows": {
+        "bytes": 105602824,
+        "sha256": "f284e3c2d30afe476e76fdc5792756c413f886c39d5fcca5e1e8bf621836d2db"
+      },
+      "linux": {
+        "bytes": 72019224,
+        "sha256": "5be8abd9ef8669c8ad266fd3c65a31246df4032784437d4f6c9d1585a2fc0ad9"
+      }
+    },
+    "acceptance": {
+      "windows": {
+        "bytes": 106316680,
+        "sha256": "c74492b6db6fcaeb4a49208f2e9d344caaaa10e88793f44509da83864c0510aa"
+      },
+      "linux": {
+        "bytes": 72733080,
+        "sha256": "f62bad321d6a1e0790e690ad33a400c8a119b6ed87d036f70f28a1466f75766c"
+      }
+    },
+    "runtime_sha256": {
+      "scripts/campaign_interface.gd": "697731a54c7a98cc967c8c5aca14fe7d0dc06c525a3ec30aaa865e7cfa6e930f",
+      "scripts/combat_geometry.gd": "f52e5697d1022c98c167cb3cfdb6ea9c319f389ebfa84d084e29806b2d0eb310",
+      "scripts/campaign_director.gd": "ae539159e404b3f3ba9230eba3124a0a2800e5ebdc1eb09f870fc705466e9d9c",
+      "scripts/residence_system.gd": "89d42f820f42f761278649a19439cb7c9b8b6c109fd266fb4cd501335a73594f",
+      "scripts/map_scenery.gd": "686da47eb8bfe4153632c61556bd02447a39d01d9bd47ecc999945082f261dbc",
+      "scripts/scene_art.gd": "b001662dc2382940594d9d800ca44c557b4921bb8f814aa63ffd0f53daf8a4bf",
+      "scripts/combat_effects.gd": "824acba7854e82f521e5c2dbb093993da3a721e019ea22ba51a21f0417dd530e",
+      "scripts/backpack_grid.gd": "b1de339aed864a9ef64cc2aef472df7e43b26a64cf655b72a2a4dd583cadd9d5",
+      "scripts/location_environment.gd": "d39a1065b51ad03c1a41609ed7875d31758da466804f853509f2b06d7fd49203",
+      "scripts/survivor_card.gd": "a3a363844a46426a94549360d0f806ef0fba2f34883e2e46d52adfed335468bf",
+      "scripts/shelter_keyboard.gd": "efc97f98c6e77481ab853f90301838c6f593ea01dd1ea287f7e3451ebc88d849",
+      "scripts/equipment_art.gd": "647d4acf1beb36b5f09977b340653c703ac1b03cac083caa47824b5d8c3009d8",
+      "scripts/save_system.gd": "90cda06f66ea02814e2e3678156087fe679b56212d0aa1f3e2174a4d1feb9732",
+      "scripts/shelter_navigation.gd": "6544dac50875336672d1f4e9a98f6d618a921ec43399a8d0137d809e45b95ba4",
+      "scripts/workstation.gd": "5fce83f45b7a88bb4bea4482f96c0d67792dd9c2389aa4b98dd67626c45684e6",
+      "scripts/character_state.gd": "ee791bb8a76ffd6b7a4de7a09ab3f0fedff69b3483f6d36bebc1f1e8c0861c18",
+      "scripts/survival_rules.gd": "df99c7811d874226dccc785c25f1ff205faf2a08c74b243a659a5ea90cc03934",
+      "scripts/vitals.gd": "93c5927c6ed1028e0cf58fa20ebc9215c08ae73df544e8416202af55f3c52281",
+      "scripts/game_audio.gd": "d7d2030467fb34aff5310544324dbc75a6c126b52511424c635698b98bab77a1",
+      "scripts/command_center.gd": "0fa66768234d58c8cbfadc0d482733d48244e09c28e469c987e1c6c534c162aa",
+      "scripts/interaction_feedback.gd": "cc720325f71f01f1b5bd13e6f41908fb52e4c4646f34f9abad6993f2da0ab781",
+      "scripts/story_catalog.gd": "e754458db0a1d3009267cfa0f418e9c4f7cf84451df110e93e23a6dfe9f7d79c",
+      "scripts/survival_expansion.gd": "2cd876d81d1054016d4b37d02c36974a04abae67e492665e7dd1612bcb112c95",
+      "scripts/campaign_cycle.gd": "24c0fa84ae4c05bdbf96bd2e4d81bb403f868c293544fe64273011aac203689f",
+      "scripts/people_catalog.gd": "0d4b789a1fddba0743bcf2066e0aa9c2af62506dfd5f03c961ee3f086e5feee5",
+      "scripts/story_system.gd": "d159b7a803f7ff9599bce0cfaa0a6d6daccc0f61c4532c62eb91d0a5b0c93943",
+      "scripts/task_catalog.gd": "00ccd040ac0fcdfdc050853b2358bdc4c9e2c4dcdcc1ffda64e760a0d4c2b18f",
+      "scripts/compact_hud.gd": "c6c8cfbc45b949607abd28d3aefaef52cb3e32d883cbbaac6f400b5f769b68fc",
+      "scripts/hud_icons.gd": "3139b9a836f4a36290b2502830027d3365ca8e2a37e08f1c6fae6ede7cb304bd",
+      "scripts/residence_interface.gd": "09d725fc27120c5b4a9d21763f4a174d121b8ca156d14c1545fa3df1c75342fe",
+      "scripts/enemy_catalog.gd": "c6b29ad8075223e9973031596318d5bfe77cc6676fd00c7cee3438f02eac6d49",
+      "scripts/campaign.gd": "b2d4af411081662c012d54d990ba11b3f6260af82c7c87f79a5170e1e01defca",
+      "scripts/defense_assessment.gd": "8b5ff9fe8f9e6b697885758abc427e79b78430dd557c6a8afd7087adc314cc03",
+      "scripts/task_scheduler.gd": "69acfbd8e1283251992bb65866aa5bf388a18dc74d16e142e56cfdf5a565971c",
+      "scripts/goal_system.gd": "b0b8d54402d9a452623e13780965c3f8c928cd4e1fb5613beffaf38df16c34bf",
+      "scripts/location_catalog.gd": "c22386c043cdeeed53cfcaecf74c7d3504565b64d56469269bfaa50e3d1470a3",
+      "scripts/district_view.gd": "9a29a4555670f6398ac5b15cd6ccf9ee28589c4507f5414fd1db7be35f00e694",
+      "scripts/expedition_state.gd": "f70af6628fd333fa28b1fdcaa71df2fc013875c4f031f0147c075618cbe3bf0d",
+      "scripts/facility_system.gd": "23f4d614a1e45d2001f101cc01af442a7f9b13df11348edfac4117ded11e4aa8",
+      "scripts/campaign_briefing.gd": "2e048b380a693623a4fb31565b32ab45f8193295c209757035ee80f615aab5f7",
+      "scripts/survivor.gd": "e994fa586ab3f2bdc3509db82f898f8dd28682c404a87ef545e17a16208e4398",
+      "scripts/security_view.gd": "c64b60405c688494a50afba5ebacc4d1cfec6bfd484a210992232df915ee7ed8",
+      "scripts/character_abilities.gd": "89e6ea170fe59d9f4adc44e20f37c2b3b127af5d416b08a3edf2309a481e7ea7",
+      "scripts/workshop_view.gd": "4e1f7de980e5b119f3801c6ea630abf543693686cbefc0c81c464e33d1199a05",
+      "scripts/expedition_view.gd": "88639c2efc48c4b4919a653fcae3858933b22f018111552bb83b4d942ec43b90",
+      "scripts/shelter.gd": "ef6bddde0d8c07aba1690fd7a139f9ee6747dfc2db91abef61d67802793c665b",
+      "scripts/district_system.gd": "9533522ec71c48fa05cd91a28cb9833eec6eadd6e8b53aa02bfc199fbc331816",
+      "scripts/gear_catalog.gd": "205f247928602f61125f973d77d5ae8ae744440957c40ea0924f62103524a6e5",
+      "scripts/inventory.gd": "bc82eb405e8e9de12654f480defecb12a4897f1358f632b7065ef6504c148df1",
+      "scripts/goal_catalog.gd": "a922be1d6c79b529bd4ad2ae006c46e02dc9ed07a8ad3140ceb8133886e561a4",
+      "scripts/shelter_progress.gd": "a22d582570639df0cf7ec29dc2179e9a032d7b42ec5835171bc493ce72f57121",
+      "scripts/people_system.gd": "cd2bb1e9b644f3096fd835a00222d7532779105f2440d16a446ffdd7b34c8b0c",
+      "scripts/game_ui.gd": "5f45ed27ab0c154bd4f86084e96b3f197561c1b6153f7d4b7167df299d861a89",
+      "scripts/backpack_stacks.gd": "6db0767804a247bd41a11b181dac51bdee75a1e510c06f8eda091f5014b68d0c",
+      "scenes/shelter.tscn": "402acad6eddb9c656e4263c1db0eb584a9a8c37e1fb1966fa3eb51ffe638219c",
+      "scenes/campaign.tscn": "f5e756e67450b7ba0e4fd36febb671bdcf4945f7e50fd3c01710186c4db52b0c",
+      "project.godot": "5824e81523aab9729a29565ddfad2047ada6315b32957e9519b9d9c9140b3877",
+      "assets/fonts/interface.otf": "26c87b41adc406def95ea616e78f10fed7532ac40dd0526f800550b9d2947d92",
+      "assets/icon.svg": "e7259fb42ad26708d3e3f9587c6da2b98cd6b07736e55915c5dd8f30810f3027",
+      "export_presets.cfg": "caff0157126dfe56ff90e2a7a91ef5e9ea48eb07234d48c5f8ca340ed28f586c"
+    }
+  },
+  "verification_notes": [
+    "UI screenshots use declared construction supplies, standing positions and cleared or revived enemy fixtures; the separate natural journey does not.",
+    "The district GUI suite operates real map buttons, clicks the visible world flag, starts and interrupts timed work, deploys G, observes a distinct enemy target, selects an outpost night role using the real dropdown, and checks four resolutions/fullscreen and unclipped detail text.",
+    "Five new real processes preserve unfinished construction, complete it with one payment, restore active decoy and enemy memory, physically return, reserve crew resources, and prevent duplicate settlement.",
+    "Targeted rule cases cover no-ammunition guns, double-booked ammo, heating/fuel contention, weapon wear, outdoor exposure, failed duty and fatal gear loss.",
+    "Authentic schema15 fixture retains original envelope/hash and opened-route state; migration preserves stock, route and enemy records and grants no outposts or lures.",
+    "A previous world-icon transform reset is fixed and verified against the actual rendered player pixel. The route intent also follows the actual selected ladder.",
+    "All 60 final runtime hashes match source, clean verification copy and export inputs. Final graphical repeats cover the visual-only flag placement change.",
+    "The exported acceptance additionally verifies map/role UI, timed paid construction and a saved lure with a separate enemy target at four native resolutions; normal exported game is tested separately with genuine OS input and close/restart."
+  ],
+  "limitations": [
+    "Windows packages are exported using official Godot 4.6.3 templates; Windows hardware and PowerShell acceptance remain unverified.",
+    "Audio audibility requires a real device.",
+    "Continuous exported Linux desktop test ran two minutes, not thirty; software rendering is not a hardware performance benchmark.",
+    "The unassisted new-feature journey spans two nights, not a full multi-strategy 35-day balance proof.",
+    "Outpost duty and home raids are night settlements, not new real-time companion or siege scenes.",
+    "Maps remain two horizontal floors; full room/door/visibility systems and varied campaign starts remain future work.",
+    "These independently implemented mechanics are not a claim of matching or surpassing the overall maturity of This War of Mine."
+  ]
+}

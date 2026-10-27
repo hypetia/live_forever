@@ -4,8 +4,8 @@ extends RefCounted
 ## transitions and owns night roles, construction and the morning ledger.
 
 const PHASES := ["day", "planning", "scavenge", "returning", "dawn"]
-const ROLES := ["scavenge", "guard", "bed", "floor", "dead"]
-const ROLE_NAMES := ["外出搜刮", "留守警戒", "床上睡眠", "地铺睡眠", "已故"]
+const ROLES := ["scavenge", "guard", "bed", "floor", "dead", "outpost"]
+const ROLE_NAMES := ["外出搜刮", "留守警戒", "床上睡眠", "地铺睡眠", "已故", "前哨轮值"]
 const BAGS := {"lin": 12, "xu": 10, "chen": 14, "he": 12, "gu": 10, "tang": 14}
 const SLOTS := [Vector2(330, 640), Vector2(650, 640), Vector2(190, 430), Vector2(755, 430), Vector2(905, 640)]
 const RECIPES := {
@@ -64,6 +64,9 @@ func plan_error(game: Node2D) -> String:
 		var error: String = game.residence.plan_error(game)
 		if not error.is_empty(): return error
 	if roles.size() != game.survivors.size(): return "请为所有成员选择夜间岗位。"
+	if game.has_method("districts_snapshot"):
+		var district_error: String = game.districts.plan_error(game)
+		if not district_error.is_empty(): return district_error
 	if roles.count("scavenge") > 1: return "每晚只能有一名搜刮者。"
 	if roles.count("bed") > bed_count(): return "床位不足：改为地铺或白天建造简易床。"
 	var total := BackpackStacks.slots(loadout)
@@ -119,6 +122,7 @@ static func validate(data: Variant, world: Dictionary) -> String:
 	for role in data["roles"]:
 		if not role in ROLES: return "未知夜间岗位"
 	if data["phase"] != "planning" and data["roles"].count("scavenge") > 1: return "每晚只能派出一人"
+	if data["phase"] != "planning" and data["roles"].count("outpost") > 1: return "每晚只能安排一名前哨轮值者"
 	if active and data["roles"].find("scavenge") != world["expedition"]["actor_id"]: return "搜刮岗位与外出者不一致"
 	if not data["loadout"] is Dictionary: return "携带物资无效"
 	var total := 0

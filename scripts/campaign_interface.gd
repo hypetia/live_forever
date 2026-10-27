@@ -7,6 +7,8 @@ var overlay: Panel
 var build_panel: Panel
 var build_button: Button
 var placement_hint: Label
+var district_button: Button
+var outpost_buttons: Dictionary = {}
 var role_options: Array[OptionButton] = []
 var role_stats: Array[Label] = []
 var supply_buttons: Dictionary = {}
@@ -59,6 +61,7 @@ func _ready() -> void:
 	workshop_button = button(root, "装备 / 战役 K", Vector2(1212, 150), Vector2(200, 42), toggle_workshop)
 	climate_label = label(root, "", Vector2(32, 151), Vector2(990, 62), 15)
 	briefing_button = button(root,"街区动态 U",Vector2(1218,748),Vector2(190,36),func(): game.briefing.toggle())
+	district_button = button(root,"街区 Y",Vector2(32,90),Vector2(134,34),func(): game.district_view.toggle())
 	refresh(true)
 
 
@@ -104,6 +107,7 @@ func panel(parent: Node, point: Vector2, size: Vector2, color: Color = GameUi.PA
 
 func refresh(force: bool = false) -> void:
 	if not is_instance_valid(root): return
+	district_button.visible = game.cycle.phase in ["day","scavenge","returning"]
 	briefing_button.visible = game.cycle.phase == "day" and game.placement.is_empty() and not game.context_open
 	briefing_button.text = "补给待领取 U" if game.director.status == "ready" else "街区动态 U"
 	workshop_button.visible = game.cycle.phase == "day"
@@ -186,21 +190,22 @@ func _create_plan() -> void:
 		var plus := button(overlay, "+", Vector2(1290, y - 2), Vector2(100, 34), _change_loadout.bind(key, 1))
 		supply_buttons[key] = [minus, plus]
 		row += 1
-	label(overlay, "精神：床眠+65，地铺+35；守夜−28，搜刮−35。\n武器、护甲各占1格；弹药每8发占1格。冬衣穿在身上。", Vector2(746, 757), Vector2(650, 44), 13)
+	label(overlay, "精神：床眠+65，地铺+35；守夜−28，搜刮−35，轮值−45。\n武器、护甲各占1格；弹药每8发占1格。冬衣穿在身上。", Vector2(746, 757), Vector2(650, 44), 13)
 	ammo_label = label(overlay, "", Vector2(746, 714), Vector2(430, 30), 15)
 	button(overlay, "−8发", Vector2(1195, 714), Vector2(90, 32), _ammo.bind(-8))
 	button(overlay, "+8发", Vector2(1300, 714), Vector2(90, 32), _ammo.bind(8))
 	plan_error = label(overlay, "", Vector2(38, 786), Vector2(1100, 28), 15, Color("dca184"))
 	button(overlay, "全员留守 · 不携带物资", Vector2(38, 829), Vector2(320, 44), _stay_home)
 	button(overlay,"检查安防 Z",Vector2(380,829),Vector2(220,44),func(): game.security_view.toggle())
+	button(overlay,"街区 / 轮值 Y",Vector2(620,829),Vector2(240,44),func(): game.district_view.toggle())
 	depart_button = button(overlay, "开始这一夜 →", Vector2(1035, 829), Vector2(360, 44), func(): game.start_expedition())
 
 
 func _set_role(index: int, role: String) -> void:
 	if role == "dead" and game.survivors[index].health > 0: return
-	if role == "scavenge":
+	if role in ["scavenge","outpost"]:
 		for other in range(game.cycle.roles.size()):
-			if game.cycle.roles[other] == "scavenge": game.cycle.roles[other] = "floor"
+			if game.cycle.roles[other] == role: game.cycle.roles[other] = "floor"
 	game.cycle.roles[index] = role
 	refresh()
 
@@ -213,11 +218,13 @@ func _refresh_plan() -> void:
 		role_options[index].select(CampaignCycle.ROLES.find(game.cycle.roles[index]))
 		role_options[index].disabled = actor.health <= 0 or not game.residence.convoy.is_empty()
 		role_options[index].set_item_disabled(4, actor.health > 0)
+		role_options[index].set_item_disabled(5,not game.districts.regions[game.districts.target]["built"])
+		role_options[index].get_popup().set_item_tooltip(5,"先在现场建立前哨，Y选择轮值目标。每夜预留燃料1，轮值者不能同时守夜或睡眠。")
 		role_stats[index].text = "生命%d 精神%d 饱腹%d · %s%d · %d格" % [Vitals.value(actor,"health"), Vitals.value(actor,"vigor"), Vitals.value(actor,"fullness"), actor.weapon().get("name", "徒手"), actor.weapon_item.get("durability", 0), CampaignCycle.BAGS[actor.person.persona]]
 	var total := BackpackStacks.slots(game.cycle.loadout)
 	total += game.expansion.reserved_slots(game)
 	ammo_label.text = "弹药库存%d / 携带%d；取暖：%s" % [game.expansion.ammo, game.expansion.ammo_loadout, "预留燃料" if game.expansion.use_night_heat else "关闭（K调整）"]
-	plan_capacity.text = "随身 %d / %d格  ·  据点库存不会在此刻扣除" % [total, game.cycle.capacity(game)]
+	plan_capacity.text = "随身 %d / %d格 · %s" % [total,game.cycle.capacity(game),"轮值预留燃料1："+LocationCatalog.area(game.districts.target)["name"] if game.districts.operator(game) >= 0 else "据点库存确认出发才扣除"]
 	for key in supply_labels:
 		var amount := int(game.cycle.loadout.get(key, 0))
 		supply_labels[key].text = "%s    库存%d    携带%d" % [ShelterInventory.NAMES[key], game.inventory.amount(key), amount]
@@ -318,6 +325,10 @@ func _create_loot() -> void:
 	overlay.add_child(cargo_grid)
 	part_button = button(overlay, "", Vector2(150,607), Vector2(1108,38), func(): game.expansion.take_part(game); refresh())
 	survey_button = button(overlay,"勘察新住处",Vector2(150,650),Vector2(1108,34),func(): game.residence.survey(game); refresh())
+	outpost_buttons.clear()
+	for index in range(3):
+		var action: String = ["build","repair","suppress"][index]
+		outpost_buttons[action] = button(overlay,"",Vector2(150+index*371,650),Vector2(357,34),func(): game.districts.begin_work(game,action))
 	label(overlay, "点击转移1份 · Shift点击本格 · 空格暂停", Vector2(150,689), Vector2(1108,28), 13)
 	button(overlay, "尽量全部拿走 F", Vector2(150,731), Vector2(300,36), _take_all)
 	button(overlay, "返程 T", Vector2(470,731),Vector2(280,36), game.expedition_retreat)
@@ -338,6 +349,15 @@ func _refresh_loot() -> void:
 	part_button.text = "战役零件：%s（占1格，须活着带回）" % part_name if not part_name.is_empty() else "此处没有未收集的战役零件 · 随身%d件" % game.expansion.carried.size()
 	part_button.visible = not part_name.is_empty()
 	part_button.disabled = part_name.is_empty() or (field.used_capacity() >= field.capacity and not part_name.begins_with("放回"))
+	var at_outpost: bool = field.loot_site == DistrictSystem.POINTS[field.location_id]
+	for action in outpost_buttons:
+		var node: Button = outpost_buttons[action]
+		node.visible = at_outpost
+		node.text = {"build":"建立前哨 · 材料5 工具1","repair":"修整前哨 · 材料2","suppress":"清理街区 · 材料1 燃料1"}[action]
+		node.add_theme_font_size_override("font_size",17)
+		var action_error: String = game.districts.action_error(game,action)
+		node.disabled = not action_error.is_empty()
+		node.tooltip_text = action_error if node.disabled else DistrictSystem.ACTION_NAMES[action]+" · %.0f秒，完成时扣除背包用料。" % DistrictSystem.SECONDS[action]
 	var site: Dictionary = field.sites[field.loot_site]
 	loot_title.text = field.site_definitions()[field.loot_site]["name"]
 	loot_counts.text = "背包 %d / %d格%s" % [field.used_capacity(), field.capacity, " · 已暂停" if game.paused else ""]

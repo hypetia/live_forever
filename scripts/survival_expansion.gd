@@ -51,6 +51,8 @@ func sync(game: Node2D) -> void:
 			if item["owner"] == actor.person.persona:
 				actor.set(str(GearCatalog.ITEMS[item["kind"]]["slot"]) + "_item", item)
 
+	if game.has_method("districts_snapshot"): game.districts.sync(game)
+
 func grant(kind: String, owner: String = "") -> void:
 	gear.append({"id": next_id, "kind": kind, "durability": GearCatalog.ITEMS[kind]["durability"], "owner": owner})
 	next_id += 1
@@ -273,12 +275,12 @@ func dawn(game: Node2D, duration: float, report: Array[String]) -> void:
 		if actor.health <= 0: continue
 		var role: String = game.cycle.roles[actor.survivor_id]
 		var absence := minf(duration, game.expedition.elapsed) if role == "scavenge" else 0.0
-		if role != "scavenge" and game.residence.convoy.is_empty(): home += 1
-		var temperature: float = night_temperature + (game.residence.indoor_bonus() if game.residence.convoy.is_empty() else 0)
-		var actor_heat := maxf(0, heat_time - absence)
+		if role not in ["scavenge","outpost"] and game.residence.convoy.is_empty(): home += 1
+		var temperature: float = night_temperature + (game.residence.indoor_bonus() if game.residence.convoy.is_empty() and role != "outpost" else 0)
+		var actor_heat := maxf(0, heat_time - absence) if role != "outpost" else 0.0
 		climate(actor, actor_heat, temperature + 18, role == "bed")
 		climate(actor, maxf(0, duration - absence - actor_heat), temperature, role == "bed")
-		if role != "scavenge" and temperature + actor.warmth() + (18 if heat_time >= duration else 0) < 6: all_warm = false
+		if role not in ["scavenge","outpost"] and temperature + actor.warmth() + (18 if heat_time >= duration else 0) < 6: all_warm = false
 		if not actor.coat_item.is_empty(): actor.coat_item["durability"] = maxi(0, int(actor.coat_item["durability"]) - 1)
 		report.append("%s · 疾病%d，寒冷%d，衣物保暖+%d℃。" % [actor.display_name, roundi(actor.illness), roundi(actor.cold_exposure), actor.warmth()])
 	heater_remaining = maxf(0, night_heat - duration)

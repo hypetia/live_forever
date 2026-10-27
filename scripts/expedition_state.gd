@@ -20,6 +20,8 @@ const SITE_DEFS := LocationCatalog.STREET_SITES
 const MODES := ["patrol", "investigate", "chase", "windup", "stunned", "dead"]
 
 var environment_active := false # Derived by the campaign, not trusted from disk.
+var decoys: Array[Dictionary] = []
+var lure_cooldown := 0.0
 var condition := 0
 var route_open := false
 var route_progress := 0.0
@@ -114,6 +116,8 @@ func _spawn_enemies(day: int) -> void:
 func begin(id: int, loadout: Dictionary, previous_speed: float) -> void:
 	_exit_interact_held = false
 	_reset_route()
+	decoys.clear()
+	lure_cooldown = 0
 	active = true
 	loot_site = -1
 	actor_id = id
@@ -217,6 +221,9 @@ func tick(delta: float, actor: Survivor, controls: Dictionary) -> void:
 			magazine += rounds
 			reserve_ammo -= rounds
 			feedback = "换弹完成 · 弹匣%d / 备用%d" % [magazine, reserve_ammo]
+	lure_cooldown = maxf(0,lure_cooldown-delta)
+	for decoy in decoys: decoy["remaining"] = maxf(0,float(decoy["remaining"])-delta)
+	decoys = decoys.filter(func(d: Dictionary): return d["remaining"] > 0)
 	elapsed += delta
 	invulnerable = maxf(0, invulnerable - delta)
 	attack_cooldown = maxf(0, attack_cooldown - delta)
@@ -521,6 +528,8 @@ func _finish(survived: bool) -> void:
 	active = false
 	loot_site = -1
 	actor_id = -1
+	decoys.clear()
+	lure_cooldown = 0
 	_clear_bag()
 	_reset_search()
 	_reset_route()
@@ -614,7 +623,15 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 		enemy["memory"] = memory_duration(enemy)
 		if enemy["mode"] == "patrol": enemy["mode"] = "investigate"
 	else:
-		enemy["suspicion"] = maxf(0,float(enemy["suspicion"])-delta*18)
+		var distraction := heard_decoy(enemy)
+		if not distraction.is_empty():
+			enemy["target"] = distraction["x"]
+			enemy["target_floor"] = distraction["floor"]
+			enemy["memory"] = memory_duration(enemy)
+			enemy["suspicion"] = minf(75,float(enemy["suspicion"])+delta*30)
+			enemy["mode"] = "investigate"
+		else:
+			enemy["suspicion"] = maxf(0,float(enemy["suspicion"])-delta*18)
 	if enemy["suspicion"] >= 100:
 		if enemy["mode"] != "chase": event_reported.emit("感染者发现了你！留意蓄力，后退或打断。")
 		enemy["mode"] = "chase"
@@ -641,6 +658,7 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 
 func snapshot() -> Dictionary:
 	return {
+		"decoys":decoys.duplicate(true),"lure_cooldown":lure_cooldown,
 		"condition":condition,"route_open":route_open,"route_progress":route_progress,"route_tool":route_tool,
 		"stacked": stacked, "extra_slots": extra_slots, "reserve_ammo": reserve_ammo, "magazine": magazine, "reload_remaining": reload_remaining, "discovered": discovered.duplicate(), "capacity": capacity, "manual_loot": manual_loot, "loot_site": loot_site,
 		"active": active, "actor_id": actor_id, "attempts": attempts, "last_refresh_day": last_refresh_day,
@@ -656,8 +674,10 @@ func snapshot() -> Dictionary:
 
 func restore_validated(data: Dictionary) -> void:
 	_exit_interact_held = false
-	for property in ["condition", "route_open", "route_progress", "route_tool", "stacked", "extra_slots", "reserve_ammo", "magazine", "reload_remaining", "capacity", "manual_loot", "loot_site", "active", "facing", "sneaking", "sprinting", "moving", "return_speed", "player_x", "player_y", "noise", "noise_burst", "elapsed", "invulnerable", "attack_cooldown", "attack_windup", "medicine_cooldown", "climb_progress", "search_progress", "search_duration", "search_tool", "feedback"]:
+	for property in ["lure_cooldown", "condition", "route_open", "route_progress", "route_tool", "stacked", "extra_slots", "reserve_ammo", "magazine", "reload_remaining", "capacity", "manual_loot", "loot_site", "active", "facing", "sneaking", "sprinting", "moving", "return_speed", "player_x", "player_y", "noise", "noise_burst", "elapsed", "invulnerable", "attack_cooldown", "attack_windup", "medicine_cooldown", "climb_progress", "search_progress", "search_duration", "search_tool", "feedback"]:
 		set(property, data[property])
+	decoys.clear()
+	for d: Dictionary in data["decoys"]: decoys.append(d.duplicate())
 	discovered.clear()
 	for index in data["discovered"]: discovered.append(int(index))
 	actor_id = int(data["actor_id"])
@@ -702,8 +722,13 @@ static func validate_snapshot(data: Variant, actors: Array, id: String = "street
 	var site_defs: Array = definition["sites"]
 	var upper: float = definition["upper_left"]
 	var width: float = definition["width"]
-	var fields := ["condition", "route_open", "route_progress", "route_tool", "stacked", "extra_slots", "reserve_ammo", "magazine", "reload_remaining", "discovered", "capacity", "manual_loot", "loot_site", "active", "actor_id", "attempts", "last_refresh_day", "return_speed", "player_x", "player_y", "floor", "facing", "sneaking", "sprinting", "moving", "noise", "noise_burst", "elapsed", "invulnerable", "attack_cooldown", "attack_windup", "medicine_cooldown", "climb_target", "climb_progress", "search_index", "search_progress", "search_duration", "search_tool", "feedback", "bag", "sites", "enemies"]
+	var fields := ["decoys", "lure_cooldown", "condition", "route_open", "route_progress", "route_tool", "stacked", "extra_slots", "reserve_ammo", "magazine", "reload_remaining", "discovered", "capacity", "manual_loot", "loot_site", "active", "actor_id", "attempts", "last_refresh_day", "return_speed", "player_x", "player_y", "floor", "facing", "sneaking", "sprinting", "moving", "noise", "noise_burst", "elapsed", "invulnerable", "attack_cooldown", "attack_windup", "medicine_cooldown", "climb_target", "climb_progress", "search_index", "search_progress", "search_duration", "search_tool", "feedback", "bag", "sites", "enemies"]
 	if not _keys(data, fields): return "探索字段不完整"
+	if not _n(data["lure_cooldown"],0,3) or not data["decoys"] is Array or data["decoys"].size() > 3: return "诱饵记录无效"
+	if not data["active"] and (not data["decoys"].is_empty() or data["lure_cooldown"] != 0): return "未外出却保留声源"
+	for d in data["decoys"]:
+		if not _keys(d,["x","floor","remaining"]) or not _i(d["floor"],0,1) or not _n(d["remaining"],0,18) or d["remaining"] <= 0: return "诱饵声源无效"
+		if not _n(d["x"],90 if d["floor"] == 0 else upper,width-100 if d["floor"] == 0 else width-150): return "诱饵位置越界"
 	if not _keys(data["bag"], ShelterInventory.NAMES.keys()): return "探索背包种类无效"
 	if not _i(data["condition"],0,1) or not data["route_open"] is bool or not data["route_tool"] is bool: return "地图状态无效"
 	var route_seconds := LocationEnvironment.route_seconds(id,data["route_tool"])
@@ -900,3 +925,31 @@ func _clear_route(delta: float) -> void:
 	_reset_route()
 	feedback = "%s已打通；感染者也能使用这条通路。" % LocationEnvironment.profile(location_id)["route_name"]
 	event_reported.emit(feedback)
+
+
+func deploy_decoy(actor: Survivor) -> bool:
+	if not active or not environment_active or actor.health <= 0 or climb_target != -1 or lure_cooldown > 0 or attack_windup > 0 or decoys.size() >= 3: return false
+	if int(bag["materials"]) < 1 or int(bag["fuel"]) < 1:
+		feedback = "发声诱饵需要背包材料1、燃料1。"
+		return false
+	bag["materials"] -= 1
+	bag["fuel"] -= 1
+	_reset_search();_reset_route()
+	decoys.append({"x":clampf(player_x+facing*240,90 if floor_level == 0 else upper_left(),right_edge(floor_level)),"floor":floor_level,"remaining":18.0})
+	lure_cooldown = 3
+	noise_burst = maxf(noise_burst,24)
+	feedback = "已投出发声诱饵；敌人会调查声源，看到或听到你仍会转向追击。"
+	event_reported.emit(feedback)
+	return true
+
+
+func heard_decoy(enemy: Dictionary) -> Dictionary:
+	var nearest := INF
+	var result: Dictionary = {}
+	for d: Dictionary in decoys:
+		var same: bool = int(enemy["floor"]) == int(d["floor"])
+		var ladder := route_ladder(float(enemy["x"]),float(d["x"]))
+		var distance := absf(float(enemy["x"])-float(d["x"])) if same else absf(float(enemy["x"])-ladder)+absf(float(d["x"])-ladder)+99
+		if distance < 68*4*float(weather()["hearing"])*(1.0 if same else .75) and distance < nearest:
+			nearest = distance;result = d
+	return result

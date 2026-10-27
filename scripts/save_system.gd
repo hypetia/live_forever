@@ -3,7 +3,7 @@ extends RefCounted
 ## Validated snapshots, checksummed JSON, atomic replacement and one backup.
 ## Only data is loaded: no resource paths, scripts or executable expressions.
 
-const VERSION := 15
+const VERSION := 16
 const MAX_BYTES := 2 * 1024 * 1024
 const STATIONS := ["workbench", "stove", "table", "bed"]
 const FLOAT_FIELDS := ["work_elapsed", "work_duration", "hunger", "fatigue", "health", "injury", "infection", "illness", "cold_exposure", "movement_clock", "facing"]
@@ -32,6 +32,7 @@ static func capture(game: Node2D) -> Dictionary:
 	for id in game.regions:
 		if id != game.expedition.location_id: other_regions[id] = game.regions[id].snapshot()
 	return {
+		"districts": game.districts_snapshot() if game.has_method("districts_snapshot") else {},
 		"director": game.director_snapshot() if game.has_method("director_snapshot") else {},
 		"facilities": game.facilities_snapshot() if game.has_method("facilities_snapshot") else {},
 		"residence": game.residence_snapshot() if game.has_method("residence_snapshot") else {},
@@ -103,6 +104,7 @@ static func validate(data: Variant) -> String:
 		return "存档内容不是对象"
 	var required := ["simulation_time", "paused", "speed", "selected_id", "selected_task", "stock", "history", "stairs_open", "actors", "stations", "logs", "expedition", "destination", "other_regions", "upkeep", "people", "story", "goals", "campaign", "expansion", "residence", "facilities"]
 	required.append("director")
+	required.append("districts")
 	if not _exact_keys(data, required):
 		return "存档缺少字段或包含未知字段"
 	var region_ids: Array = LocationCatalog.IDS if data["expansion"] is Dictionary and data["expansion"].is_empty() else LocationCatalog.ALL_IDS
@@ -249,6 +251,8 @@ static func validate(data: Variant) -> String:
 	if not expansion_error.is_empty(): return expansion_error
 	var facilities_error := FacilitySystem.validate(data["facilities"],data)
 	if not facilities_error.is_empty(): return facilities_error
+	var district_error := DistrictSystem.validate(data["districts"],data)
+	if not district_error.is_empty(): return district_error
 	var director_error := CampaignDirector.validate(data["director"],data)
 	if not director_error.is_empty(): return director_error
 	if data["residence"] is Dictionary and data["residence"].is_empty() and not data["campaign"].is_empty(): return "昼夜战役缺少家园记录"
@@ -330,6 +334,7 @@ static func apply_state(game: Node2D, data: Dictionary) -> String:
 	if game.has_method("restore_expansion"): game.restore_expansion(data["expansion"])
 	if game.has_method("restore_residence"): game.restore_residence(data["residence"])
 	if game.has_method("restore_director"): game.restore_director(data["director"])
+	if game.has_method("restore_districts"): game.restore_districts(data["districts"])
 	game.expedition_view.reset_feedback()
 	game.select_survivor(int(data["selected_id"]))
 	game._refresh_log()
@@ -389,6 +394,8 @@ func _read_file(filename: String) -> Dictionary:
 		data = migrate_v13(data)
 	if int(envelope["version"]) <= 14:
 		data = migrate_v14(data)
+	if int(envelope["version"]) <= 15:
+		data = migrate_v15(data)
 	var error := validate(data)
 	if not error.is_empty():
 		return {"ok": false, "message": error}
@@ -657,4 +664,17 @@ static func migrate_v14(data: Variant) -> Variant:
 		field["route_open"] = false
 		field["route_progress"] = 0.0
 		field["route_tool"] = false
+	return upgraded
+
+
+static func migrate_v15(data: Variant) -> Variant:
+	if not data is Dictionary or not data.get("campaign") is Dictionary or not data.get("expedition") is Dictionary or not data.get("other_regions") is Dictionary: return null
+	var upgraded: Dictionary = data.duplicate(true)
+	upgraded["districts"] = {} if upgraded["campaign"].is_empty() else DistrictSystem.new().snapshot()
+	for f in [upgraded["expedition"]]+upgraded["other_regions"].values():
+		if not f is Dictionary: return null
+		f["decoys"] = [];f["lure_cooldown"] = 0.0
+	if not upgraded["campaign"].is_empty() and upgraded["expedition"].get("active",false):
+		upgraded["districts"]["trip_map"] = upgraded["destination"]
+		upgraded["districts"]["trip_dead"] = upgraded["expedition"]["enemies"].filter(func(e): return e["hp"] <= 0).size()
 	return upgraded

@@ -1,21 +1,29 @@
-# Live Forever · 留一盏灯 v1.8.0
+# Live Forever · 留一盏灯 v1.9.0
 
-单人末日生存游戏：白天直接控制幸存者生活、制作和建设；夜间安排一人搜刮、其他人警戒或睡眠。亲自带回补给和战役零件，在35日窗口内完成撤离，也可以继续无尽生存。敌人为僵尸，暂不新增复杂剧情NPC。人物与房屋采用原创的简化画面。v1.8.0重做九地图场景，加入可清障第二通路、实际地面速度与噪声、18种地点状况和持久化路线；v1.7.0加入物品独立堆叠上限、实际背包格、Shift整格转移与满包补堆，并提供REA研究入口及证据记录；v1.6.0补齐按感知追踪、跨层攀爬、家具遮挡与扑咬落点判定，以及Z安防贡献检查与清晨复盘；v1.5.0新增三日街区委托、风险预报，统一面板对比度与字号，补上命中血迹、受击动作、倒地尸体和三类敌人轮廓；v1.4.0增加厨房／工作台三级升级、配方解锁与效率，并把修缮避难所和设施升级分开；v1.3.3补齐双侧边缘离场确认、夜间持械外观和随身装备查看；v1.3.2补齐白天键盘移动；v1.3.1修复搜索进度、空箱外观和返程操作；v1.3补充影响实际操作的角色专长、有准备成本的迁居，以及门窗加固、预警、拒马和安防维护。主画面仍以场景、图标和人物卡为主。
+单人僵尸生存游戏：白天照料人物、制作和建设；夜间亲自搜刮，分配守夜、休息与前哨轮值。九张地图，35日撤离战役和无尽生存。v1.9加入持续影响街区的尸群压力、能引开敌人的声源诱饵，以及需要现场建设、人员轮值和维护的补给前哨。角色、装备、气候和安防共同影响结果，画面采用原创简化风格。
 
 ## 下载后直接玩
 
 | 用途 | GitHub直接下载 | 使用方法 |
 | --- | --- | --- |
-| Windows 64位游戏 | [live_forever_v18_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.8.0/live_forever_v18_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
-| Linux x86_64游戏 | [live_forever_v18_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.8.0/live_forever_v18_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
-| Windows一键验收工具 | [live_forever_v18_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.8.0/live_forever_v18_windows_acceptance.zip) | 主动运行 `windows_acceptance.cmd`，默认约30分钟 |
-| v1.8.0完整源码 | [live_forever_shelter_m18.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.8.0/live_forever_shelter_m18.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
+| Windows 64位游戏 | [live_forever_v19_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.9.0/live_forever_v19_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
+| Linux x86_64游戏 | [live_forever_v19_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.9.0/live_forever_v19_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
+| Windows一键验收工具 | [live_forever_v19_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.9.0/live_forever_v19_windows_acceptance.zip) | 主动运行 `windows_acceptance.cmd`，默认约30分钟 |
+| v1.9.0完整源码 | [live_forever_shelter_m19.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.9.0/live_forever_shelter_m19.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
 
 普通游戏不需要Godot、Python、登录、服务器或持续联网。验收工具是单独的程序，不会在正常游戏中替你操作。Windows包按官方模板导出；**尚未在Windows真实设备完成验收**。
 
-[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.8.0) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
+[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.9.0) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
 
-运行包、验收包、版本源码ZIP托管在`downloads-v1.8.0`分支，开发源码在`main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
+运行包、验收包、版本源码ZIP托管在`downloads-v1.9.0`分支，开发源码在`main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
+
+## 新版怎样玩
+
+**Y看街区，G投发声诱饵。** 枪声与大动静会留下地区压力，影响下一次进入的敌人组合；可以换区、整治，或用诱饵引开敌人。到小旗标记的现场投入材料和工具、花时间建成前哨，再选人整夜轮值。轮值会占用守夜和休息人手，提前消耗燃料，枪械还需弹药；前哨会损耗，失修后要亲自维修。
+
+[完整规则与实际流程](docs/DISTRICTS_V19.md) · [本作的设计目标](docs/DESIGN_DIRECTION.md)
+
+![现场诱饵与调查声源](docs/v19-decoy-investigation.png)
 
 ## 四项状态都以100为最佳
 
@@ -66,9 +74,9 @@
 
 ## 存档与验证
 
-旧档无需重开。schema15增加地点状况、持久通路与清障，兼容schema1–14；schema14加入堆叠规则，兼容schema1–13，保留实际件数、装备与敌人AI；schema13增加敌人的原巡逻楼层、目标记忆和攀爬进度，兼容schema1–12；schema10保留家园、迁居、安防、勘察与演奏记录，增加可恢复的返程安排，继续保存装备归属／耐久、弹匣与换弹进度、疾病／寒冷、炉火、工作台在制项目、地图和战役进度，兼容schema1–9。旧版在途物资继续保留，新增战役从导入当天计日；不会因读取旧档反复发装备。系统用户目录和旧版本一致，首次写入保留备份。建议解压到新文件夹，不覆盖正在运行的旧程序。
+旧档无需重开。schema16加入街区经营、声源与轮值预留，兼容schema1–15；schema15增加地点状况、持久通路与清障，兼容schema1–14；schema14加入堆叠规则，兼容schema1–13，保留实际件数、装备与敌人AI；schema13增加敌人的原巡逻楼层、目标记忆和攀爬进度，兼容schema1–12；schema10保留家园、迁居、安防、勘察与演奏记录，增加可恢复的返程安排，继续保存装备归属／耐久、弹匣与换弹进度、疾病／寒冷、炉火、工作台在制项目、地图和战役进度，兼容schema1–9。旧版在途物资继续保留，新增战役从导入当天计日；不会因读取旧档反复发装备。系统用户目录和旧版本一致，首次写入保留备份。建议解压到新文件夹，不覆盖正在运行的旧程序。
 
-[v1.8地图与路线](docs/MAP_ENVIRONMENTS_V18.md) · [v1.7背包堆叠](docs/BACKPACK_STACKS_V17.md) · [REA研究状态](docs/REA_RESEARCH_V17.md) · [原作公开资料研究](docs/TWOM_PUBLIC_RESEARCH.md) · [v1.6敌人AI、攻击与安防](docs/AI_SECURITY_V16.md) · [v1.5事件、界面与战斗](docs/DIRECTOR_UI_COMBAT_V15.md) · [v1.4设施升级](docs/FACILITIES_V14.md) · [v1.3.3离场与装备](docs/DEPARTURE_EQUIPMENT_V133.md) · [v1.3.2白天键盘修复](docs/KEYBOARD_V132.md) · [v1.3.1交互修复与验证](docs/INTERACTIONS_V131.md) · [v1.3角色、家园与验证](docs/HOMES_V13.md) · [v1.2界面说明](docs/PRESENTATION_V12.md) · [装备、气候、九地图和战役规则](docs/EXPANSION_V11.md) · [Windows检查方法](docs/WINDOWS_ACCEPTANCE.md) · [下载索引](downloads/README.md) · [许可](licenses/README.md)
+[v1.9街区、前哨与诱饵](docs/DISTRICTS_V19.md) · [v1.8地图与路线](docs/MAP_ENVIRONMENTS_V18.md) · [v1.7背包堆叠](docs/BACKPACK_STACKS_V17.md) · [REA研究状态](docs/REA_RESEARCH_V17.md) · [原作公开资料研究](docs/TWOM_PUBLIC_RESEARCH.md) · [v1.6敌人AI、攻击与安防](docs/AI_SECURITY_V16.md) · [v1.5事件、界面与战斗](docs/DIRECTOR_UI_COMBAT_V15.md) · [v1.4设施升级](docs/FACILITIES_V14.md) · [v1.3.3离场与装备](docs/DEPARTURE_EQUIPMENT_V133.md) · [v1.3.2白天键盘修复](docs/KEYBOARD_V132.md) · [v1.3.1交互修复与验证](docs/INTERACTIONS_V131.md) · [v1.3角色、家园与验证](docs/HOMES_V13.md) · [v1.2界面说明](docs/PRESENTATION_V12.md) · [装备、气候、九地图和战役规则](docs/EXPANSION_V11.md) · [Windows检查方法](docs/WINDOWS_ACCEPTANCE.md) · [下载索引](downloads/README.md) · [许可](licenses/README.md)
 
 ```sh
 git clone --single-branch --branch main https://github.com/hypetia/live_forever.git

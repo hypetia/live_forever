@@ -35,10 +35,13 @@ static func route(game: Node2D, destination: Vector2) -> PackedVector2Array:
 	var field: ExpeditionState = game.expedition
 	var points := PackedVector2Array([Vector2(field.player_x,field.player_y)])
 	if field.climb_target != -1:
-		points.append(Vector2(field.ladder_x(),ExpeditionState.FLOOR_Y[field.climb_target]))
-		if destination.y != ExpeditionState.FLOOR_Y[field.climb_target]: points.append(Vector2(field.ladder_x(),destination.y))
+		points.append(Vector2(field.player_x,ExpeditionState.FLOOR_Y[field.climb_target]))
+		if destination.y != ExpeditionState.FLOOR_Y[field.climb_target]:
+			var ladder := field.route_ladder(field.player_x,destination.x)
+			points.append(Vector2(ladder,ExpeditionState.FLOOR_Y[field.climb_target]))
+			points.append(Vector2(ladder,destination.y))
 	elif absf(field.player_y-destination.y) > 1:
-		points.append(Vector2(field.ladder_x(),field.player_y))
-		points.append(Vector2(field.ladder_x(),destination.y))
+		var ladder := field.route_ladder(field.player_x,destination.x)
+		points.append(Vector2(ladder,field.player_y));points.append(Vector2(ladder,destination.y))
 	points.append(destination)
 	return points

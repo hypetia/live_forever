@@ -22,6 +22,7 @@ var capacity_label: Label
 var feedback_label: Label
 var log_label: Label
 var search_bar: ProgressBar
+var decoy_button: Button
 var search_button: Button
 var attack_button: Button
 var medicine_button: Button
@@ -146,6 +147,12 @@ func _ready() -> void:
 		hint.position = Vector2(20,467); hint.size = Vector2(450,30)
 		stack_panel.add_child(hint)
 		stack_panel.hide()
+		decoy_button = _button("\n诱饵 G",Vector2(934,816),Vector2(104,62),game.expedition_decoy)
+		decoy_button.draw.connect(func():
+			var at := Vector2(52,19)
+			decoy_button.draw_circle(at,5,GOLD)
+			for r in [10,16]: decoy_button.draw_arc(at,r,-.9,.9,14,GOLD,1.5,true)
+		)
 		equipment_name = _label("",Vector2(350,788),Vector2(340,23),15,GOLD)
 		for index in range(3):
 			var button := _button("",Vector2(350+index*76,817),Vector2(66,60),show_equipment)
@@ -334,6 +341,8 @@ func _draw() -> void:
 	if quiet: _draw_exit(1,state,camera)
 	if not quiet: _draw_landmarks(state,camera,accent)
 	else: _draw_route(state,camera)
+	if quiet: _draw_district(state,camera)
+	_draw_decoys(state,camera)
 	for index in range(state.site_definitions().size()):
 		if quiet: _draw_site(index,state,camera)
 		else:
@@ -668,6 +677,9 @@ func _action_icon(button: Button, kind: String) -> void:
 
 
 func _refresh_quiet(state: ExpeditionState, actor: Survivor) -> void:
+	decoy_button.disabled = game.paused or state.climb_target != -1 or state.lure_cooldown > 0 or state.decoys.size() >= 3 or state.bag["materials"] < 1 or state.bag["fuel"] < 1
+	decoy_button.tooltip_text = "发声诱饵 G · 背包材料1、燃料1 · 向前投掷，发声18秒。敌人看到或听到你仍会追击。"
+	decoy_button.queue_redraw()
 	var slots := EquipmentArt.slots(actor)
 	equipment_name.text = slots[0]["name"]+(" · 损坏" if slots[0]["broken"] else "")
 	for index in range(3):
@@ -719,6 +731,14 @@ func _refresh_quiet(state: ExpeditionState, actor: Survivor) -> void:
 		search_bar.position = game.world_offset()+Vector2(state.route_x()-_camera(),516)*game.world_scale()-Vector2(48,0)
 		search_bar.size = Vector2(96,7)
 
+
+	if not game.districts.work.is_empty():
+		var w: Dictionary = game.districts.work
+		var def: Dictionary = state.site_definitions()[DistrictSystem.POINTS[state.location_id]]
+		search_bar.visible = true
+		search_bar.value = float(w["elapsed"])/float(DistrictSystem.SECONDS[w["action"]])*100
+		search_bar.position = game.world_offset()+Vector2(float(def["x"])-_camera(),ExpeditionState.FLOOR_Y[int(def["floor"])]-102)*game.world_scale()-Vector2(48,0)
+		search_bar.size = Vector2(96,7)
 
 
 func _draw_site(index: int, state: ExpeditionState, camera: float) -> void:
@@ -796,7 +816,8 @@ func _draw_route(state: ExpeditionState,camera: float) -> void:
 				draw_line(point+Vector2(-23,y-2),point+Vector2(23,y+10),Color("c0ac82"),1,true)
 		var marker := point+Vector2(0,-108)
 		draw_circle(marker,14,Color("142525"))
-		HudIcons.draw(self,"tools",marker,15,color)
+		draw_line(marker+Vector2(-5,6),marker+Vector2(4,-5),color,3,true)
+		draw_line(marker+Vector2(-1,-6),marker+Vector2(7,0),color,3,true)
 		if near or hovered: draw_arc(marker,17,0,TAU,24,color,1.6,true)
 		if state.route_progress > 0:
 			draw_arc(marker,21,-PI/2,-PI/2+TAU*state.route_progress/LocationEnvironment.route_seconds(state.location_id,state.route_tool),32,color,3,true)
@@ -805,3 +826,33 @@ func _draw_route(state: ExpeditionState,camera: float) -> void:
 	else:
 		# The removed boards stay on the ground; the actual ladder is now usable.
 		for j in range(3): draw_line(point+Vector2(-33+j*12,5),point+Vector2(5+j*13,9),Color("7c7965"),3,true)
+
+
+func _draw_decoys(state: ExpeditionState,camera: float) -> void:
+	for d: Dictionary in state.decoys:
+		var p := Vector2(float(d["x"])-camera,ExpeditionState.FLOOR_Y[int(d["floor"])]-9)
+		if p.x < 0 or p.x > 1065: continue
+		draw_circle(p,6,Color("c5aa73"));draw_rect(Rect2(p-Vector2(3,3),Vector2(6,5)),Color("3c4c48"))
+		var phase := fposmod(state.elapsed*1.3,1)
+		for offset in [0.0,.5]:
+			var wave := fposmod(phase+offset,1)
+			draw_arc(p,14+wave*43,0,TAU,32,Color(.8,.7,.43,.55*(1-wave)),1.5,true)
+		draw_arc(p,9,-PI/2,-PI/2+TAU*float(d["remaining"])/18,24,Color("dfc994"),2,true)
+
+
+func _draw_district(state: ExpeditionState,camera: float) -> void:
+	var definition: Dictionary = state.site_definitions()[DistrictSystem.POINTS[state.location_id]]
+	var p := Vector2(float(definition["x"])-camera,ExpeditionState.FLOOR_Y[int(definition["floor"])])
+	if p.x < 0 or p.x > 1065: return
+	var r: Dictionary = game.districts.regions[state.location_id]
+	var tint := Color("9bc5b6") if r["built"] and r["condition"] >= 20 else Color("c0b18d")
+	draw_line(p+Vector2(17,-4),p+Vector2(17,-91),tint,2,true)
+	var points := PackedVector2Array([p+Vector2(18,-90),p+Vector2(39,-84),p+Vector2(18,-73)])
+	if r["built"]: draw_colored_polygon(points,tint)
+	else: draw_polyline(PackedVector2Array([points[0],points[1],points[2],points[0]]),tint,1.5,true)
+	if r["built"]:
+		draw_rect(Rect2(p+Vector2(10,-102),Vector2(32,3)),Color("30423e"))
+		draw_rect(Rect2(p+Vector2(10,-102),Vector2(32*float(r["condition"])/100,3)),tint)
+	if not game.districts.work.is_empty():
+		var w: Dictionary = game.districts.work
+		draw_arc(p+Vector2(17,-118),12,-PI/2,-PI/2+TAU*float(w["elapsed"])/float(DistrictSystem.SECONDS[w["action"]]),28,Color("dcca94"),3,true)
