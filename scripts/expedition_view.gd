@@ -305,37 +305,35 @@ func _draw() -> void:
 	var state: ExpeditionState = game.expedition
 	var camera := _camera()
 	draw_set_transform(game.world_offset()+combat_effects.shake(), 0, game.world_scale())
-	draw_rect(Rect2(0, 210, 1095, 490), Color("142126"))
-	for index in range(18):
-		var x := fposmod(index * 107.0 - camera * 0.22, 1150) - 50
-		draw_rect(Rect2(x, 305 + index % 3 * 22, 80, 322), Color("1b2b2e"))
-	var upper := state.upper_left()
-	var width: float = state.area()["width"]
-	var wall := Color(str(state.area()["color"]))
 	var accent := Color(str(state.area()["accent"]))
-	# Each place has its own floor access, props, patrols and resource layout.
-	_rect_world(Rect2(160, 429, 850, 192), Color("2b3430"))
-	_rect_world(Rect2(upper, 285, width - upper - 120, 335), wall)
-	if quiet: game.scene_art.expedition(self,state,camera)
-	for x in [215, 430, 670, 890, 1300, 1560, 1810, 2060, 2340]:
-		_rect_world(Rect2(x, 452 if x < 1000 else 305, 70, 64), Color("52615b"))
-		_rect_world(Rect2(x + 4, 456 if x < 1000 else 309, 62, 56), Color("1a2c32"))
-		_rect_world(Rect2(x + 32, 452 if x < 1000 else 305, 4, 64), Color("607064"))
-	_rect_world(Rect2(upper, 400, width - upper - 120, 12), wall.lightened(0.20))
-	_rect_world(Rect2(0, 620, width, 14), Color("535d50"))
-	for y in range(408, 620, 18):
-		_rect_world(Rect2(state.ladder_x() - 12, y, 24, 4), Color("a9af98"))
-	_rect_world(Rect2(state.ladder_x() - 14, 400, 3, 220), Color("9da891"))
-	_rect_world(Rect2(state.ladder_x() + 12, 400, 3, 220), Color("9da891"))
-	for definition in state.area()["covers"]:
-		var y := 570 if definition[2] == 0 else 350
-		var cover := Rect2(definition[0], y, definition[1] - definition[0], 50)
-		_rect_world(cover, Color("646c59"))
-		_rect_world(Rect2(cover.position + Vector2(4, 5), cover.size - Vector2(8, 10)), Color("424c41"))
+	if quiet:
+		game.scene_art.expedition(self,state,camera)
+	else:
+		draw_rect(Rect2(0, 210, 1095, 490), Color("142126"))
+		for index in range(18):
+			var x := fposmod(index * 107.0 - camera * 0.22, 1150) - 50
+			draw_rect(Rect2(x, 305 + index % 3 * 22, 80, 322), Color("1b2b2e"))
+		var upper := state.upper_left()
+		var width: float = state.area()["width"]
+		var wall := Color(str(state.area()["color"]))
+		# Each place has its own floor access, props, patrols and resource layout.
+		_rect_world(Rect2(160, 429, 850, 192), Color("2b3430"))
+		_rect_world(Rect2(upper, 285, width - upper - 120, 335), wall)
+		for x in [215, 430, 670, 890, 1300, 1560, 1810, 2060, 2340]:
+			_rect_world(Rect2(x, 452 if x < 1000 else 305, 70, 64), Color("52615b"))
+			_rect_world(Rect2(x + 4, 456 if x < 1000 else 309, 62, 56), Color("1a2c32"))
+			_rect_world(Rect2(x + 32, 452 if x < 1000 else 305, 4, 64), Color("607064"))
+		_rect_world(Rect2(upper, 400, width - upper - 120, 12), wall.lightened(0.20))
+		_rect_world(Rect2(0, 620, width, 14), Color("535d50"))
+		for y in range(408, 620, 18):
+			_rect_world(Rect2(state.ladder_x() - 12, y, 24, 4), Color("a9af98"))
+		_rect_world(Rect2(state.ladder_x() - 14, 400, 3, 220), Color("9da891"))
+		_rect_world(Rect2(state.ladder_x() + 12, 400, 3, 220), Color("9da891"))
 	if not quiet: _text(Vector2(145 - camera, 660), "← 入口 · E/T 撤退", 14, GOLD)
 	_draw_exit(-1,state,camera)
 	if quiet: _draw_exit(1,state,camera)
-	_draw_landmarks(state,camera,accent)
+	if not quiet: _draw_landmarks(state,camera,accent)
+	else: _draw_route(state,camera)
 	for index in range(state.site_definitions().size()):
 		if quiet: _draw_site(index,state,camera)
 		else:
@@ -355,9 +353,7 @@ func _draw() -> void:
 	_draw_player(Vector2(state.player_x - camera, state.player_y), actor, state)
 	for cover in state.area()["covers"]:
 		var bottom: float = ExpeditionState.FLOOR_Y[int(cover[2])]
-		_rect_world(Rect2(cover[0],bottom-50,cover[1]-cover[0],50),Color("454f44"))
-		_rect_world(Rect2(cover[0],bottom-50,cover[1]-cover[0],4),Color("85917a"))
-		_rect_world(Rect2(cover[0]+5,bottom-43,cover[1]-cover[0]-10,2),Color("67745e"))
+		MapScenery.cover(self,Vector2(float(cover[0])-camera,bottom),float(cover[1])-float(cover[0]),state.location_id)
 	if state.attack_windup > 0 or (state.attack_cooldown > maxf(0, float(actor.weapon().get("cooldown", 1.1)) - 0.34)):
 		var swing := Vector2(state.player_x - camera, state.player_y - 38)
 		if swing.x >= 0 and swing.x <= 1065 and not actor.weapon().has("magazine") and actor.weapon_item.get("kind", "") != "spear" and combat_effects.player_time <= 0:
@@ -685,7 +681,7 @@ func _refresh_quiet(state: ExpeditionState, actor: Survivor) -> void:
 		stack_grid.render(BackpackStacks.carried(state,actor,game.expansion.carried),state.capacity)
 	search_bar.value = state.search_progress/state.search_duration*100 if state.search_duration > 0 else 0
 	retreat_button.disabled = false if quiet else game.paused
-	search_button.disabled = game.paused or state.nearby_site() < 0 or game.cycle.return_requested or game.cycle.phase == "returning"
+	search_button.disabled = game.paused or (state.nearby_site() < 0 and not state.route_in_range()) or game.cycle.return_requested or game.cycle.phase == "returning"
 	attack_button.disabled = game.paused or state.attack_cooldown > 0 or state.climb_target != -1 or state.reload_remaining > 0
 	drink_button.disabled = game.paused or state.bag["water"] <= 0 or actor.person.thirst <= 0
 	medicine_button.disabled = game.paused or state.bag["medicine"] <= 0 or state.medicine_cooldown > 0
@@ -715,6 +711,14 @@ func _refresh_quiet(state: ExpeditionState, actor: Survivor) -> void:
 		attack_button.text = "\n%d/%d" % [state.magazine,state.reserve_ammo]
 		attack_button.tooltip_text += "\n弹匣%d / 备用%d" % [state.magazine,state.reserve_ammo]
 	if state.reload_remaining > 0: attack_button.text = "\n换弹"
+	if state.route_in_range():
+		search_button.tooltip_text = LocationEnvironment.route_hint(state.location_id)+"\n按住E或点击通路标记开始；移动取消，松开暂停。"
+	if state.route_progress > 0 and state.route_in_range():
+		search_bar.visible = true
+		search_bar.value = state.route_progress / LocationEnvironment.route_seconds(state.location_id,state.route_tool)*100
+		search_bar.position = game.world_offset()+Vector2(state.route_x()-_camera(),516)*game.world_scale()-Vector2(48,0)
+		search_bar.size = Vector2(96,7)
+
 
 
 func _draw_site(index: int, state: ExpeditionState, camera: float) -> void:
@@ -725,15 +729,12 @@ func _draw_site(index: int, state: ExpeditionState, camera: float) -> void:
 	var mouse: Vector2 = (get_viewport().get_mouse_position()-game.world_offset())/game.world_scale()+Vector2(camera,0)
 	var hovered: bool = state.site_hit_rect(index).has_point(mouse) and not game._loot_open
 	var info := InteractionFeedback.site(game,index,hovered)
-	draw_rect(Rect2(point+Vector2(-22,-38),Vector2(44,38)),info["body"])
-	draw_rect(Rect2(point+Vector2(-18,-34),Vector2(36,30)),info["edge"],false,2)
-	if not info["supplied"]:
-		# Open neutral-grey lid; no state labels or lingering coloured resource trim.
-		draw_line(point+Vector2(-22,-39),point+Vector2(10,-49),InteractionFeedback.EMPTY_EDGE,3,true)
+	var kind: String = LocationEnvironment.profile(state.location_id)["containers"][index]
+	MapScenery.container(self,point,kind,info["body"],info["edge"],not info["supplied"])
 	if state.sites[index]["locked"] and info["supplied"]: draw_circle(point+Vector2(0,-23),5,info["edge"])
 	if hovered or info["target"]:
 		var tint := InteractionFeedback.READY if info["near"] else InteractionFeedback.DISTANT
-		draw_rect(Rect2(point+Vector2(-25,-41),Vector2(50,44)),tint,false,1.5)
+		draw_rect(Rect2(point+Vector2(-43,-79),Vector2(84,82)),tint,false,1.5)
 		var low := maxf(90 if int(definition["floor"]) == 0 else state.upper_left(),world.x-ExpeditionState.INTERACTION_RADIUS)
 		var high := minf(state.right_edge(int(definition["floor"])),world.x+ExpeditionState.INTERACTION_RADIUS)
 		draw_line(Vector2(low-camera,world.y+5),Vector2(high-camera,world.y+5),Color(tint,0.45),2,true)
@@ -770,3 +771,37 @@ func _draw_intent(state: ExpeditionState, camera: float) -> void:
 	var destination := goal-Vector2(camera,0)
 	if destination.x >= 20 and destination.x <= 1050: draw_arc(destination,12,0,TAU,24,InteractionFeedback.READY,1.5,true)
 	elif destination.x < 20: draw_colored_polygon(PackedVector2Array([Vector2(22,590),Vector2(33,583),Vector2(33,597)]),InteractionFeedback.READY)
+
+
+func _draw_route(state: ExpeditionState,camera: float) -> void:
+	var point := Vector2(state.route_x()-camera,620)
+	if point.x < 0 or point.x > 1065: return
+	var mouse: Vector2 = (get_viewport().get_mouse_position()-game.world_offset())/game.world_scale()+Vector2(camera,0)
+	var hovered: bool = state.route_hit_rect().has_point(mouse) and not game._loot_open
+	var near := state.route_in_range()
+	var color := InteractionFeedback.READY if near else InteractionFeedback.DISTANT
+	if not state.route_open:
+		var kind: String = LocationEnvironment.profile(state.location_id)["route_kind"]
+		if kind == "service":
+			draw_rect(Rect2(point+Vector2(-25,-92),Vector2(50,92)),Color("344a4b"))
+			for j in range(5): draw_line(point+Vector2(-22+j*11,-89),point+Vector2(-22+j*11,-2),Color("93a395"),2,true)
+			for y in [-74,-49,-24]: draw_line(point+Vector2(-25,y),point+Vector2(25,y),Color("93a395"),2,true)
+		elif kind == "shutter":
+			draw_rect(Rect2(point+Vector2(-27,-91),Vector2(54,91)),Color("637470"))
+			for y in range(-86,-1,12): draw_line(point+Vector2(-26,y),point+Vector2(26,y),Color("a3ab94"),2,true)
+		else:
+			for j in range(3):
+				var y := -67+j*22
+				draw_line(point+Vector2(-24,y),point+Vector2(24,y+12),Color("99876a"),7,true)
+				draw_line(point+Vector2(-23,y-2),point+Vector2(23,y+10),Color("c0ac82"),1,true)
+		var marker := point+Vector2(0,-108)
+		draw_circle(marker,14,Color("142525"))
+		HudIcons.draw(self,"tools",marker,15,color)
+		if near or hovered: draw_arc(marker,17,0,TAU,24,color,1.6,true)
+		if state.route_progress > 0:
+			draw_arc(marker,21,-PI/2,-PI/2+TAU*state.route_progress/LocationEnvironment.route_seconds(state.location_id,state.route_tool),32,color,3,true)
+		if near or hovered:
+			draw_rect(Rect2(point+Vector2(-31,-100),Vector2(62,103)),Color(color,.5),false,1)
+	else:
+		# The removed boards stay on the ground; the actual ladder is now usable.
+		for j in range(3): draw_line(point+Vector2(-33+j*12,5),point+Vector2(5+j*13,9),Color("7c7965"),3,true)

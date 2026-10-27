@@ -85,9 +85,29 @@ def main():
         finally:
             if data: x.XFree(C.cast(data, D))
 
+    class XError(C.Structure):
+        _fields_ = [('type', I), ('display', D), ('resourceid', U), ('serial', U),
+                    ('error_code', C.c_ubyte), ('request_code', C.c_ubyte), ('minor_code', C.c_ubyte)]
+
+    error_handler_type = C.CFUNCTYPE(I, D, C.POINTER(XError))
+    x.XSetErrorHandler.argtypes, x.XSetErrorHandler.restype = [D], D
+    x.XSync.argtypes = [D, I]
+
     def find_ready_window(expected_pid=None, contains="Live Forever"):
         # Snapshot the tree under a short X server grab. Utility windows may
         # disappear during startup; querying stale children causes BadWindow.
+        unexpected = []
+
+        @error_handler_type
+        def startup_error(_display, event):
+            error = event.contents
+            # A splash/utility window can vanish while startup is being scanned.
+            # Its failed query is skipped by title()/owner_pid(); other X errors fail.
+            if error.error_code != 3:
+                unexpected.append((error.error_code, error.request_code, error.resourceid))
+            return 0
+
+        previous_handler = x.XSetErrorHandler(C.cast(startup_error, D))
         x.XGrabServer(display)
         try:
             pending = children(root)
@@ -100,7 +120,9 @@ def main():
             return None
         finally:
             x.XUngrabServer(display)
-            x.XFlush(display)
+            x.XSync(display, False)
+            x.XSetErrorHandler(previous_handler)
+            assert not unexpected, ('Unexpected X11 startup scan errors', unexpected)
 
     def key(name, pressed):
         code = x.XKeysymToKeycode(display, x.XStringToKeysym(name.encode()))

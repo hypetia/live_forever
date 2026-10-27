@@ -3,7 +3,7 @@ extends RefCounted
 ## Validated snapshots, checksummed JSON, atomic replacement and one backup.
 ## Only data is loaded: no resource paths, scripts or executable expressions.
 
-const VERSION := 14
+const VERSION := 15
 const MAX_BYTES := 2 * 1024 * 1024
 const STATIONS := ["workbench", "stove", "table", "bed"]
 const FLOAT_FIELDS := ["work_elapsed", "work_duration", "hunger", "fatigue", "health", "injury", "infection", "illness", "cold_exposure", "movement_clock", "facing"]
@@ -387,6 +387,8 @@ func _read_file(filename: String) -> Dictionary:
 		data = migrate_v12(data)
 	if int(envelope["version"]) <= 13:
 		data = migrate_v13(data)
+	if int(envelope["version"]) <= 14:
+		data = migrate_v14(data)
 	var error := validate(data)
 	if not error.is_empty():
 		return {"ok": false, "message": error}
@@ -641,4 +643,18 @@ static func migrate_v13(data: Variant) -> Variant:
 		if not field is Dictionary: return null
 		# Earlier migrations create current-format fresh maps.
 		field["stacked"] = not upgraded["campaign"].is_empty()
+	return upgraded
+
+
+static func migrate_v14(data: Variant) -> Variant:
+	if not data is Dictionary or not data.get("expedition") is Dictionary or not data.get("other_regions") is Dictionary: return null
+	var upgraded: Dictionary = data.duplicate(true)
+	for field in [upgraded["expedition"]]+upgraded["other_regions"].values():
+		if not field is Dictionary: return null
+		# Older migrations may create fresh maps using the current constructor.
+		# Existing units, current coordinates, search and enemy memory are preserved.
+		field["condition"] = 0
+		field["route_open"] = false
+		field["route_progress"] = 0.0
+		field["route_tool"] = false
 	return upgraded

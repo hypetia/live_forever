@@ -23,3 +23,5 @@
 `v12_equipped_campaign.json`：来自v1.5.0最终干净回归中的真实跨进程装备／战役存档（persistence_expansion_process.json），保留原始schema12封装、数据与校验；用于验证schema13在所有地图补全AI字段而不重置装备或战役。
 
 `v13_equipped_campaign.json`：来自v1.6.0完整干净验证的真实schema13跨进程装备／战役存档（persistence_expansion_process.json），保留原封装和校验，用于验证schema14只调整背包规则、不重置物资、装备或敌人AI。
+
+`v14_stacked_campaign.json`保留v1.7最终干净回归的`persistence_backpack_stacks_process.json.bak`原始schema14封装与校验值，来源为真实跨进程拾取、返回后的存档；用来验证schema15地图字段迁移不会改变库存、物资和感染者AI。它不是当前版本反向生成的旧档。

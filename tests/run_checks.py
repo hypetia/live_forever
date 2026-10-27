@@ -74,7 +74,7 @@ def main():
     logical += 52
     run('combat_feedback', ['--headless', '--path', str(project), '--script', 'res://tests/test_combat_feedback.gd'], '18 checks, 0 failures')
     logical += 18
-    for name, count in [('enemy_ai', 59), ('security', 25), ('backpack_stacks', 73)]:
+    for name, count in [('enemy_ai', 59), ('security', 25), ('backpack_stacks', 73), ('map_environments', 298)]:
         run(name, ['--headless', '--path', str(project), '--script', f'res://tests/test_{name}.gd'], f'{count} checks, 0 failures')
         logical += count
     run('startup', ['--headless', '--path', str(project), '--quit-after', '8'])
@@ -91,18 +91,19 @@ def main():
                          ('persistence_facilities_process', ['write', 'read', 'verify']),
                          ('persistence_director_process', ['write', 'read', 'verify']),
                          ('persistence_enemy_ai_process', ['write', 'read', 'verify']),
-                         ('persistence_backpack_stacks_process', ['write', 'read', 'verify'])]:
+                         ('persistence_backpack_stacks_process', ['write', 'read', 'verify']),
+                         ('persistence_map_environments_process', ['write', 'read', 'climb', 'verify'])]:
         slot = workspace / f'{name}.json'
         for phase in phases:
             run(f'{name}-{phase}', ['--headless', '--path', str(project), '--script',
                 f'res://tests/{name}.gd', '--', phase, str(slot)], 'PASS:')
     graphical = 0
     if args.graphics:
-        for name, count in [('visual_smoke', 36), ('visual_expedition', 36), ('visual_long_term', 24), ('visual_people', 22), ('visual_story', 17), ('visual_goals', 24), ('visual_presentation', 45), ('visual_campaign', 47), ('visual_expansion', 15), ('visual_quiet', 20), ('visual_residence', 26), ('visual_interactions', 26), ('visual_keyboard_movement', 10), ('visual_departure_equipment', 21), ('visual_facilities', 21), ('visual_director', 25), ('visual_combat_feedback', 11), ('visual_security_ai', 24), ('visual_backpack_stacks', 25)]:
+        for name, count in [('visual_smoke', 36), ('visual_expedition', 36), ('visual_long_term', 24), ('visual_people', 22), ('visual_story', 17), ('visual_goals', 24), ('visual_presentation', 45), ('visual_campaign', 47), ('visual_expansion', 15), ('visual_quiet', 20), ('visual_residence', 26), ('visual_interactions', 26), ('visual_keyboard_movement', 10), ('visual_departure_equipment', 21), ('visual_facilities', 21), ('visual_director', 25), ('visual_combat_feedback', 11), ('visual_security_ai', 24), ('visual_backpack_stacks', 25), ('visual_map_environments', 77)]:
             run(name, ['--path', str(project), '--resolution', '1440x900', '--audio-driver', 'Dummy',
                 '--script', f'res://tests/{name}.gd'], f'{count} checks, 0 failures')
             graphical += count
-    print(f'Validated {logical} logical checks, {graphical} GUI checks, startup and 43 persistence processes.')
+    print(f'Validated {logical} logical checks, {graphical} GUI checks, startup and 47 persistence processes.')
     print(f'Clean project: {project}\nLogs: {output}')
 
 

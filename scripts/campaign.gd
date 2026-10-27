@@ -68,11 +68,12 @@ func _ready() -> void:
 	scheduler.production_rate = func(id: String): return facilities.rate(id)
 	facilities.sync(self)
 	expansion.sync(self)
-	get_window().title = "Live Forever · 留一盏灯 v1.7"
+	get_window().title = "Live Forever · 留一盏灯 v1.8"
 	for actor in survivors: actor.metabolism = 0.4
 	for field: ExpeditionState in regions.values():
 		field.manual_loot = true
 		field.stacked = true
+		field.environment_active = true
 		field.confirm_exits = true
 		field.exit_requested.connect(_offer_departure)
 		field.combat_resolved.connect(func(kind: String, _point: Vector2, damage: int): director.shot(self,kind,damage))
@@ -226,6 +227,7 @@ func restore_campaign(data: Dictionary) -> void:
 	for field: ExpeditionState in regions.values():
 		field.manual_loot = true
 		field.stacked = true
+		field.environment_active = true
 		field.confirm_exits = true
 	_props_signature = ""
 	context_open = false
@@ -409,6 +411,7 @@ func start_expedition(take_tool: bool = false, take_medicine: bool = false) -> b
 	expedition.capacity = cycle.capacity(self)
 	expedition.manual_loot = true
 	expedition.stacked = true
+	expedition.environment_active = true
 	expedition.begin(id, equipment, 1.0)
 	expedition.reserve_ammo = expansion.ammo_loadout
 	expansion.ammo -= expansion.ammo_loadout
@@ -698,7 +701,7 @@ func _expedition_controls() -> Dictionary:
 		var arrival := 0.5 if interface.target_floor == 0 and (interface.target_x <= 90 or interface.target_x >= expedition.right_edge(0)) else 10.0
 		if absf(expedition.player_x-interface.target_x) < arrival and expedition.floor_level == interface.target_floor and expedition.climb_target == -1:
 			interface.has_move_target = false
-			if interface.target_site >= 0: expedition_view.search_held = true
+			if interface.target_site >= 0 or interface.target_site == -2: expedition_view.search_held = true
 		return controls
 	return manual
 
@@ -714,7 +717,8 @@ func _day_keyboard_allowed() -> bool:
 func _route_controls(x: float, floor_level: int, retreat: bool) -> Dictionary:
 	if expedition.climb_target != -1: return {}
 	if expedition.floor_level != floor_level:
-		if absf(expedition.player_x - expedition.ladder_x()) > 8: return {"axis": signf(expedition.ladder_x() - expedition.player_x), "sprint": retreat}
+		var access := expedition.route_ladder(expedition.player_x,x)
+		if absf(expedition.player_x - access) > 8: return {"axis": signf(access - expedition.player_x), "sprint": retreat}
 		return {"climb": 1 if floor_level == 1 else -1}
 	var tolerance := 0.25 if floor_level == 0 and (x <= 90 or x >= expedition.right_edge(0)) else 9.0
 	if absf(expedition.player_x - x) > tolerance: return {"axis": signf(x - expedition.player_x), "sprint": retreat}
@@ -963,8 +967,12 @@ func _unhandled_input(event: InputEvent) -> void:
 				point.x = definition["x"]
 				floor_level = definition["floor"]
 				break
+		if site == -1 and not expedition.route_open and expedition.route_hit_rect().has_point(point):
+			site = -2
+			point.x = expedition.route_x()
+			floor_level = 0
 		interface.set_target(clampf(point.x, 90 if floor_level == 0 else expedition.upper_left(), expedition.right_edge(floor_level)), floor_level, event.double_click, site)
-		if site < 0:
+		if site == -1:
 			for index in range(expedition.enemies.size()):
 				var enemy: Dictionary = expedition.enemies[index]
 				if enemy["hp"] > 0 and absf(point.x - float(enemy["x"])) < 34 and Rect2(Vector2(float(enemy["x"])-34,expedition.enemy_y(enemy)-100),Vector2(68,105)).has_point(point):

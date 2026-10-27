@@ -19,6 +19,12 @@ const SITE_DEFS := LocationCatalog.STREET_SITES
 
 const MODES := ["patrol", "investigate", "chase", "windup", "stunned", "dead"]
 
+var environment_active := false # Derived by the campaign, not trusted from disk.
+var condition := 0
+var route_open := false
+var route_progress := 0.0
+var route_tool := false
+
 var capacity := CAPACITY
 var stacked := false # The legacy shelter fixture retains its original unit capacity. Campaigns use stacks.
 var extra_slots := 0
@@ -90,8 +96,9 @@ func refresh_for_day(day: int) -> void:
 		sites[index] = {"contents": site_definitions()[index]["items"].duplicate(), "locked": site_definitions()[index]["locked"]}
 		discovered.erase(index)
 	last_refresh_day = day
+	condition = (day - 1) % 2
 	_spawn_enemies(day)
-	event_reported.emit("旧街出现新物资与感染者迁入：今日只有两处容器补充，出发前留意警戒。")
+	event_reported.emit("%s：两处容器补充，感染者迁入；%s。已打通的通路保留。" % [area()["name"],condition_name()])
 
 
 func _spawn_enemies(day: int) -> void:
@@ -106,6 +113,7 @@ func _spawn_enemies(day: int) -> void:
 
 func begin(id: int, loadout: Dictionary, previous_speed: float) -> void:
 	_exit_interact_held = false
+	_reset_route()
 	active = true
 	loot_site = -1
 	actor_id = id
@@ -140,7 +148,7 @@ func begin(id: int, loadout: Dictionary, previous_speed: float) -> void:
 			enemy["memory"] = 0.0
 			enemy["target_floor"] = enemy["floor"]
 			enemy["target"] = enemy["x"]
-	feedback = "街口有物资。先观察警戒方向；回入口按 E 或 T 撤退。"
+	feedback = "%s · %s。%s" % [area()["name"],condition_name(),LocationEnvironment.route_hint(location_id)]
 
 
 func used_capacity() -> int:
@@ -232,24 +240,32 @@ func tick(delta: float, actor: Survivor, controls: Dictionary) -> void:
 			player_y = FLOOR_Y[floor_level]
 	else:
 		var climb := int(controls.get("climb", 0))
-		if absf(player_x - ladder_x()) < 48 and ((climb > 0 and floor_level == 0) or (climb < 0 and floor_level == 1)):
+		var access := nearest_ladder(player_x)
+		if absf(player_x - access) < 48 and ((climb > 0 and floor_level == 0) or (climb < 0 and floor_level == 1)):
 			climb_target = 1 - floor_level
 			climb_progress = 0
-			player_x = ladder_x()
+			player_x = access
 			_reset_search()
+			_reset_route()
 		elif moving:
 			facing = signf(axis)
 			var pace := 95.0 if sneaking else 275.0 if sprinting else 190.0
-			player_x = clampf(player_x + axis * pace * actor.effort_factor() * delta, 90 if floor_level == 0 else upper_left(), right_edge(floor_level))
+			var surface := current_surface()
+			player_x = clampf(player_x + axis * pace * float(surface["pace"]) * actor.effort_factor() * delta, 90 if floor_level == 0 else upper_left(), right_edge(floor_level))
 			actor.fatigue = minf(100, actor.fatigue + delta * (0.10 if sprinting else 0.04))
+			_reset_route()
 		var movement_noise := (8.0 if sneaking else 75.0 if sprinting else 30.0) if moving else 0.0
+		movement_noise *= float(current_surface()["quiet" if sneaking else "noise"])
 		movement_noise *= (0.8 if actor.speciality == "搜寻者" else 1.0) * (1.0 - actor.person.level("scout") * 0.05)
-		noise = maxf(noise_burst, movement_noise)
+		noise = minf(100, maxf(noise_burst, movement_noise))
 		if bool(controls.get("interact", false)) and not moving and climb_target == -1:
 			if exit_side() != 0:
 				if exit_interact: request_retreat()
 				return
-			_search(delta * (1.2 if actor.speciality == "搜寻者" else 1.0) * actor.person.bonus("scout"), actor)
+			if route_in_range() and nearby_site() == -1:
+				_clear_route(delta)
+			else:
+				_search(delta * (1.2 if actor.speciality == "搜寻者" else 1.0) * actor.person.bonus("scout"), actor)
 	if attack_windup > 0:
 		attack_windup = maxf(0, attack_windup - delta)
 		if attack_windup == 0:
@@ -333,6 +349,7 @@ func attack(actor: Survivor) -> bool:
 		var old_slots := ceili((reserve_ammo + magazine) / 8.0)
 		magazine -= 1
 		extra_slots = maxi(0, extra_slots - old_slots + ceili((reserve_ammo + magazine) / 8.0))
+	_reset_route()
 	actor.fatigue = minf(100, actor.fatigue + (0.6 if not weapon.is_empty() or bag["tools"] > 0 else 1.2))
 	attack_cooldown = float(weapon.get("cooldown", 1.1))
 	attack_windup = float(weapon.get("windup", 0.2))
@@ -459,6 +476,7 @@ func drop(resource: String) -> bool:
 		return false
 	bag[resource] -= 1
 	_reset_search()
+	_reset_route()
 	feedback = "丢弃了%s×1，无法拾回。" % ShelterInventory.NAMES[resource]
 	event_reported.emit(feedback)
 	return true
@@ -471,7 +489,8 @@ func request_retreat() -> bool:
 	if side == 0:
 		var distance := minf(maxf(0,player_x-145),maxf(0,right_edge(0)-55-player_x))
 		if floor_level != 0 or climb_target != -1:
-			distance = absf(player_x-ladder_x())+minf(ladder_x()-145,right_edge(0)-55-ladder_x())
+			var access := route_ladder(player_x,minf(player_x,right_edge(0)-55))
+			distance = absf(player_x-access)+minf(access-145,right_edge(0)-55-access)
 		feedback = "回到地面左侧或右侧出口再离开，距出口约%d步。%s" % [ceili(distance/10),"先回梯子下楼。" if floor_level != 0 or climb_target != -1 else ""]
 		return false
 	if confirm_exits:
@@ -504,6 +523,7 @@ func _finish(survived: bool) -> void:
 	actor_id = -1
 	_clear_bag()
 	_reset_search()
+	_reset_route()
 	climb_target = -1
 	climb_progress = 0
 	player_y = FLOOR_Y[floor_level]
@@ -524,12 +544,13 @@ func enemy_can_reach(enemy: Dictionary) -> bool:
 
 
 func _enemy_route(enemy: Dictionary, destination: float, level: int, speed: float, delta: float) -> void:
-	var x := ladder_x() if int(enemy["floor"]) != level else destination
+	var access := route_ladder(float(enemy["x"]),destination)
+	var x := access if int(enemy["floor"]) != level else destination
 	var difference := x-float(enemy["x"])
 	if absf(difference) > 0.01:
 		enemy["direction"] = signf(difference)
 		enemy["x"] = move_toward(float(enemy["x"]),x,speed*delta)
-	if int(enemy["floor"]) != level and absf(float(enemy["x"])-ladder_x()) < 0.01:
+	if int(enemy["floor"]) != level and absf(float(enemy["x"])-access) < 0.01:
 		enemy["climb_target"] = level
 		enemy["climb_progress"] = 0.0
 
@@ -569,6 +590,7 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 				actor.person.trauma = minf(100, actor.person.trauma + 2)
 				actor.person.morale = maxf(0, actor.person.morale - 2)
 				invulnerable = 1.6
+				_reset_route()
 				player_hurt.emit(Vector2(player_x,player_y),1.0 if player_x >= enemy["x"] else -1.0,damage)
 				player_x = clampf(player_x + (1 if player_x >= enemy["x"] else -1) * 42, 90 if floor_level == 0 else upper_left(), right_edge(floor_level))
 				feedback = "被扑咬！生命-%d（护甲已计入），伤势与感染上升；R用药。" % damage
@@ -582,7 +604,8 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 	vision = maxf(55,vision*float(weather()["vision"]))
 	var sight_clear := same_floor and CombatGeometry.obstruction(area()["covers"],Vector2(enemy["x"],enemy_y(enemy)-60*float(EnemyCatalog.stats(kind)["scale"])),Vector2(player_x,player_y-(40 if sneaking else 65)),floor_level).is_empty()
 	var sees := sight_clear and distance < vision and (facing_player or distance < 55)
-	var hearing_distance := distance if same_floor else absf(float(enemy["x"])-ladder_x())+absf(player_x-ladder_x())+absf(enemy_y(enemy)-player_y)*0.45
+	var sound_access := route_ladder(float(enemy["x"]),player_x)
+	var hearing_distance := distance if same_floor else absf(float(enemy["x"])-sound_access)+absf(player_x-sound_access)+absf(enemy_y(enemy)-player_y)*0.45
 	var hears: bool = noise >= 15 and hearing_distance < noise*4*float(weather()["hearing"])*(1 if same_floor else 0.75)
 	if sees or hears:
 		enemy["suspicion"] = minf(100,float(enemy["suspicion"])+delta*((90 if distance < 100 else 55) if sees else 35))
@@ -618,6 +641,7 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 
 func snapshot() -> Dictionary:
 	return {
+		"condition":condition,"route_open":route_open,"route_progress":route_progress,"route_tool":route_tool,
 		"stacked": stacked, "extra_slots": extra_slots, "reserve_ammo": reserve_ammo, "magazine": magazine, "reload_remaining": reload_remaining, "discovered": discovered.duplicate(), "capacity": capacity, "manual_loot": manual_loot, "loot_site": loot_site,
 		"active": active, "actor_id": actor_id, "attempts": attempts, "last_refresh_day": last_refresh_day,
 		"return_speed": return_speed, "player_x": player_x, "player_y": player_y, "floor": floor_level,
@@ -632,7 +656,7 @@ func snapshot() -> Dictionary:
 
 func restore_validated(data: Dictionary) -> void:
 	_exit_interact_held = false
-	for property in ["stacked", "extra_slots", "reserve_ammo", "magazine", "reload_remaining", "capacity", "manual_loot", "loot_site", "active", "facing", "sneaking", "sprinting", "moving", "return_speed", "player_x", "player_y", "noise", "noise_burst", "elapsed", "invulnerable", "attack_cooldown", "attack_windup", "medicine_cooldown", "climb_progress", "search_progress", "search_duration", "search_tool", "feedback"]:
+	for property in ["condition", "route_open", "route_progress", "route_tool", "stacked", "extra_slots", "reserve_ammo", "magazine", "reload_remaining", "capacity", "manual_loot", "loot_site", "active", "facing", "sneaking", "sprinting", "moving", "return_speed", "player_x", "player_y", "noise", "noise_burst", "elapsed", "invulnerable", "attack_cooldown", "attack_windup", "medicine_cooldown", "climb_progress", "search_progress", "search_duration", "search_tool", "feedback"]:
 		set(property, data[property])
 	discovered.clear()
 	for index in data["discovered"]: discovered.append(int(index))
@@ -678,8 +702,16 @@ static func validate_snapshot(data: Variant, actors: Array, id: String = "street
 	var site_defs: Array = definition["sites"]
 	var upper: float = definition["upper_left"]
 	var width: float = definition["width"]
-	var fields := ["stacked", "extra_slots", "reserve_ammo", "magazine", "reload_remaining", "discovered", "capacity", "manual_loot", "loot_site", "active", "actor_id", "attempts", "last_refresh_day", "return_speed", "player_x", "player_y", "floor", "facing", "sneaking", "sprinting", "moving", "noise", "noise_burst", "elapsed", "invulnerable", "attack_cooldown", "attack_windup", "medicine_cooldown", "climb_target", "climb_progress", "search_index", "search_progress", "search_duration", "search_tool", "feedback", "bag", "sites", "enemies"]
+	var fields := ["condition", "route_open", "route_progress", "route_tool", "stacked", "extra_slots", "reserve_ammo", "magazine", "reload_remaining", "discovered", "capacity", "manual_loot", "loot_site", "active", "actor_id", "attempts", "last_refresh_day", "return_speed", "player_x", "player_y", "floor", "facing", "sneaking", "sprinting", "moving", "noise", "noise_burst", "elapsed", "invulnerable", "attack_cooldown", "attack_windup", "medicine_cooldown", "climb_target", "climb_progress", "search_index", "search_progress", "search_duration", "search_tool", "feedback", "bag", "sites", "enemies"]
 	if not _keys(data, fields): return "探索字段不完整"
+	if not _keys(data["bag"], ShelterInventory.NAMES.keys()): return "探索背包种类无效"
+	if not _i(data["condition"],0,1) or not data["route_open"] is bool or not data["route_tool"] is bool: return "地图状态无效"
+	var route_seconds := LocationEnvironment.route_seconds(id,data["route_tool"])
+	if not _n(data["route_progress"],0,route_seconds) or data["route_progress"] >= route_seconds: return "清障进度无效"
+	if data["route_progress"] > 0:
+		if not data["active"] or data["route_open"] or data["floor"] != 0 or data["climb_target"] != -1 or absf(float(data["player_x"])-float(LocationEnvironment.profile(id)["route"])) >= INTERACTION_RADIUS or data["search_index"] != -1: return "清障位置无效"
+		if data["route_tool"] and int(data.get("bag",{}).get("tools",0)) < 1: return "清障工具缺失"
+	elif data["route_tool"]: return "空清障保留工具状态"
 	if not _i(data["extra_slots"], 0, 16) or not _i(data["reserve_ammo"], 0, 120) or not _i(data["magazine"], 0, 6) or not _n(data["reload_remaining"], 0, 1.4): return "弹药或装备负重无效"
 	if not _i(data["capacity"], 10, 16) or not data["manual_loot"] is bool or not _i(data["loot_site"], -1, site_defs.size() - 1): return "背包容量或物资窗口无效"
 	if not data["discovered"] is Array or data["discovered"].size() > site_defs.size(): return "已搜索容器记录无效"
@@ -703,7 +735,7 @@ static func validate_snapshot(data: Variant, actors: Array, id: String = "street
 	if target == -1:
 		if absf(data["player_y"] - FLOOR_Y[level]) > 0.01 or data["climb_progress"] != 0: return "探索角色不在走道上"
 	else:
-		if not data["active"] or target == level or absf(data["player_x"] - float(definition["ladder"])) > 0.01 or data["climb_progress"] >= 1 or absf(data["player_y"] - lerpf(FLOOR_Y[level], FLOOR_Y[target], data["climb_progress"])) > 0.01: return "探索攀爬路径不一致"
+		if not data["active"] or target == level or not valid_ladder(id,float(data["player_x"]),data["route_open"]) or data["climb_progress"] >= 1 or absf(data["player_y"] - lerpf(FLOOR_Y[level], FLOOR_Y[target], data["climb_progress"])) > 0.01: return "探索攀爬路径不一致"
 	if not _keys(data["bag"], ShelterInventory.NAMES.keys()): return "探索背包种类无效"
 	var used := int(data["extra_slots"])
 	for resource in data["bag"]:
@@ -748,7 +780,7 @@ static func validate_snapshot(data: Variant, actors: Array, id: String = "street
 		if not _n(enemy["x"],low,high) or not _n(enemy["min"],home_low,home_high) or not _n(enemy["max"],enemy["min"],home_high) or not _n(enemy["target"],target_low,target_high): return "感染者位置越界"
 		if enemy["climb_target"] == -1:
 			if enemy["climb_progress"] != 0: return "感染者攀爬进度无效"
-		elif enemy["hp"] <= 0 or enemy["mode"] == "windup" or enemy["climb_target"] == enemy["floor"] or enemy["climb_progress"] >= 1 or absf(float(enemy["x"])-float(definition["ladder"])) > 0.01:
+		elif enemy["hp"] <= 0 or enemy["mode"] == "windup" or enemy["climb_target"] == enemy["floor"] or enemy["climb_progress"] >= 1 or not valid_ladder(id,float(enemy["x"]),data["route_open"]):
 			return "感染者攀爬路径不一致"
 		if not _n(enemy["brace"], 0, 3.6) or not _n(enemy["suspicion"], 0, 100) or not _n(enemy["timer"], 0, 2) or not _n(enemy["cooldown"], 0, 2) or (enemy["hp"] == 0) != (enemy["mode"] == "dead"): return "感染者警觉或动作无效"
 	return ""
@@ -800,3 +832,71 @@ func put_loot(resource: String, count: int) -> int:
 		bag[resource] -= amount
 		contents[resource] += amount
 	return amount
+
+
+func condition_name() -> String:
+	return LocationEnvironment.profile(location_id)["conditions"][condition]
+
+
+func current_surface() -> Dictionary:
+	if not environment_active: return {"pace":1.0,"noise":1.0,"quiet":1.0}
+	return LocationEnvironment.surface(location_id,condition,player_x,floor_level)
+
+
+func route_x() -> float:
+	return float(LocationEnvironment.profile(location_id)["route"])
+
+
+func ladders() -> Array[float]:
+	var result: Array[float] = [ladder_x()]
+	if route_open: result.append(route_x())
+	return result
+
+
+func nearest_ladder(x: float) -> float:
+	return route_x() if route_open and absf(x-route_x()) < absf(x-ladder_x()) else ladder_x()
+
+
+func route_ladder(from_x: float, to_x: float) -> float:
+	if not route_open: return ladder_x()
+	var original := absf(from_x-ladder_x())+absf(to_x-ladder_x())
+	var alternate := absf(from_x-route_x())+absf(to_x-route_x())
+	# Equal horizontal distances are common when returning left. Prefer the
+	# closer landing so opening a local escape also affects real T return.
+	if alternate < original or (is_equal_approx(alternate,original) and absf(from_x-route_x()) < absf(from_x-ladder_x())): return route_x()
+	return ladder_x()
+
+
+static func valid_ladder(id: String, x: float, opened: bool) -> bool:
+	return absf(x-float(LocationCatalog.area(id)["ladder"])) < 0.01 or (opened and absf(x-float(LocationEnvironment.profile(id)["route"])) < 0.01)
+
+
+func route_hit_rect() -> Rect2:
+	return Rect2(route_x()-36,488,72,142)
+
+
+func route_in_range() -> bool:
+	return environment_active and not route_open and floor_level == 0 and climb_target == -1 and absf(player_x-route_x()) < INTERACTION_RADIUS
+
+
+func _reset_route() -> void:
+	route_progress = 0
+	route_tool = false
+
+
+func _clear_route(delta: float) -> void:
+	if not route_in_range(): return
+	_reset_search()
+	if route_progress == 0: route_tool = int(bag["tools"]) > 0
+	if route_tool and int(bag["tools"]) < 1:
+		_reset_route()
+		return
+	route_progress += delta
+	noise_burst = maxf(noise_burst,36 if route_tool else 95)
+	feedback = LocationEnvironment.route_hint(location_id)
+	if route_progress + 0.000001 < LocationEnvironment.route_seconds(location_id,route_tool): return
+	if route_tool: bag["tools"] -= 1
+	route_open = true
+	_reset_route()
+	feedback = "%s已打通；感染者也能使用这条通路。" % LocationEnvironment.profile(location_id)["route_name"]
+	event_reported.emit(feedback)

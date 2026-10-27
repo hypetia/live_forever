@@ -108,6 +108,17 @@ func _run() -> void:
 		root.get_texture().get_image().save_png(output.path_join("stacks_%dx%d.png" % [size.x,size.y]))
 		game.close_loot(); game.expedition_view.toggle_bag(); game._process(0)
 		record(game.expedition_view.stack_panel.visible and design.encloses(game.expedition_view.stack_panel.get_global_rect()),"field stack drawer fits at %dx%d" % [size.x,size.y])
+		game.expedition_view.toggle_bag()
+		# Declared clearance fixture; timed action, UI and snapshot APIs are real.
+		field.player_x = field.route_x();field.bag["tools"] = 1
+		field._clear_route(.5);game._process(0)
+		record(field.route_progress == .5 and field.bag["tools"] == 1 and game.expedition_view.search_bar.visible,"timed map clearance is visible before payment at %dx%d" % [size.x,size.y])
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png(output.path_join("map_route_%dx%d.png" % [size.x,size.y]))
+		field._clear_route(2.5)
+		record(field.route_open and field.bag["tools"] == 0 and game._route_controls(field.route_x(),1,false).get("climb") == 1,"cleared access consumes one tool and enters real routing at %dx%d" % [size.x,size.y])
+		var route_snapshot := SaveSystem.capture(game)
+		record(SaveSystem.apply_state(game,route_snapshot).is_empty() and game.expedition.route_open,"opened map access survives actual restore at %dx%d" % [size.x,size.y])
 		record(SaveSystem.apply_state(game, initial_campaign).is_empty(), "preflight restores untouched campaign at %dx%d" % [size.x, size.y])
 		game.center.open(7)
 		for frame in range(3): await get_tree().process_frame

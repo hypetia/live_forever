@@ -3,6 +3,7 @@ extends RefCounted
 ## Original layered cutaway scenery. Floors and every hotspot retain real coordinates.
 var plaster: ImageTexture
 var wood: ImageTexture
+var map_scenery := MapScenery.new()
 
 func _init() -> void:
 	var noise := FastNoiseLite.new()
@@ -163,12 +164,4 @@ func window(c: CanvasItem, at: Vector2, extent: Vector2) -> void:
 	c.draw_colored_polygon(PackedVector2Array([at+Vector2(1,extent.y),at+extent,at+extent+Vector2(100,39),at+Vector2(40,extent.y+39)]),Color(0.61,0.73,0.73,0.035))
 
 func expedition(c: CanvasItem, state: ExpeditionState, camera: float) -> void:
-	var upper := state.upper_left()
-	var width: float = state.area()["width"]
-	c.draw_texture_rect(plaster,Rect2(160-camera,429,850,191),true,Color("566158"))
-	c.draw_texture_rect(plaster,Rect2(upper-camera,285,width-upper-120,335),true,Color(str(state.area()["color"])).lightened(0.3))
-	for x in range(170,int(width),173):
-		if x-camera < -80 or x-camera > 1160:continue
-		c.draw_rect(Rect2(x-camera,434,7,186),Color(0.04,0.05,0.05,0.48))
-		c.draw_line(Vector2(x-camera+4,435),Vector2(x-camera+4,620),Color("556158"),1,true)
-		c.draw_polyline(PackedVector2Array([Vector2(x-camera+21,473),Vector2(x-camera+29,484),Vector2(x-camera+23,507),Vector2(x-camera+34,528)]),Color(0.03,0.045,0.04,0.48),1,true)
+	map_scenery.draw(c,state,camera,c.game.weather_time,self)
