@@ -7,7 +7,7 @@ func _run() -> void:
   game.chronicle.apply_scenario(game,scenario);game._process(0)
   await process_frame;await process_frame
   var names:Array=game.survivors.map(func(a):return a.display_name)
-  check(names.all(func(n):return n in ['斯塔克','纲手','里昂','山治','华佗','韦小宝']),'actual roster cards use recognizable names in '+scenario)
+  check(names.all(func(n):return n in ['斯塔克','白求恩','里昂','小当家','华佗','杰克船长']),'actual roster cards use recognizable names in '+scenario)
   game.chronicle_view.show_page('people')
   var text:=''
   for child in game.chronicle_view.body.get_children():
