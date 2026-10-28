@@ -516,7 +516,7 @@ func _refresh_candidate() -> void:
 	var id: String = candidate_picker.get_item_metadata(candidate_picker.selected)
 	var living: int = game.survivors.filter(func(a): return a.health > 0).size()
 	if id.is_empty():
-		candidate_text.text = "来访者会在第3、6、9天陆续出现。每人仅能加入一次，不会替已故成员复活。\n目前在队%d/%d；至少一级据点才可接纳。" % [living, PeopleCatalog.MAX_LIVING]
+		candidate_text.text = "角色池共12人，来访者从第3天至第18天分批出现。每人仅能加入一次，不会替已故成员复活。\n目前在队%d/%d；至少一级据点才可接纳。" % [living, PeopleCatalog.MAX_LIVING]
 	else:
 		var info: Dictionary = PeopleCatalog.DATA[id]
 		candidate_text.text = "%s\n%s\n接纳准备：%s\n到达时饱腹40、精神45，需要继续照料。\n目前在队%d/%d；需要一级据点。" % [info["bio"], info["traits"], ShelterInventory.describe(PeopleCatalog.RECRUIT_COST), living, PeopleCatalog.MAX_LIVING]

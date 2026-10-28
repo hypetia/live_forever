@@ -142,15 +142,16 @@ func refresh() -> void:
 		button.text = "    %d" % (game.expedition.bag[key] if field else game.inventory.amount(key))
 		button.tooltip_text = ("随身" if field else "据点") + ShelterInventory.NAMES[key]
 		button.queue_redraw()
-	var count: int = game.survivors.size()
+	var live_ids: Array = range(game.survivors.size()).filter(func(i): return game.survivors[i].health > 0)
+	var count: int = maxi(1, live_ids.size())
 	var width: float = minf(216,(1075.0-(count-1)*10)/count)
 	for index in range(game.cards.size()):
 		var card: Button = game.cards[index]
 		if card.get_parent()!=root:card.reparent(root)
-		card.position = Vector2(32+index*(width+10),790)
+		card.position = Vector2(32+live_ids.find(index)*(width+10),790)
 		card.size = Vector2(width,94)
 		card.text = ""
-		card.visible = day or (field and index == game.expedition.actor_id) or (game.siege.active and game.siege.participants.has(index))
+		card.visible = (day and live_ids.has(index)) or (field and index == game.expedition.actor_id) or (game.siege.active and game.siege.participants.has(index))
 		if game.siege.active:
 			var defending: int = maxi(1,game.siege.participants.size())
 			var defense_width: float = minf(216,(690.0-(defending-1)*8)/defending)

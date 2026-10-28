@@ -150,7 +150,7 @@ static func validate(data: Variant,world: Dictionary) -> String:
   if not data['arcs'].has(id) or not CharacterState.keys(data['arcs'][id],['stage','choice','last_trip']):return '个人线身份无效'
   var a:Dictionary=data['arcs'][id]
   if not CharacterState.integer(a['stage'],0,3) or not CharacterState.integer(a['choice'],-1,1) or (a['stage']==0)!=(a['choice']==-1) or not CharacterState.integer(a['last_trip'],1,day):return '个人线阶段无效'
- if not data['intel'] is Array or data['intel'].size()>9 or not data['trip_evidence'] is Array or data['trip_evidence'].size()>6:return '勘查记录容量无效'
+ if not data['intel'] is Array or data['intel'].size()>9 or not data['trip_evidence'] is Array or data['trip_evidence'].size()>PeopleCatalog.MAX_HISTORY:return '勘查记录容量无效'
  var unique:Array=[]
  for id in data['intel']:
   if not id in LocationCatalog.ALL_IDS or unique.has(id):return '感染档案重复或未知'

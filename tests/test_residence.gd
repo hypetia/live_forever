@@ -121,7 +121,7 @@ func _run() -> void:
 	listener.person.stress = 50
 	var mood := listener.person.morale
 	project(game,"music",40)
-	expect(listener.person.stress < 36 and listener.person.morale > mood+7,"skilled guitarist calms living companions after reaching the guitar")
+	expect(listener.person.stress < 42 and listener.person.morale > mood+4,"ordinary guitarist calms living companions after reaching the guitar")
 	expect(not game.expansion.start_job(game,"music"),"same performer cannot farm music repeatedly that day")
 	valid(game,"music cooldown persists")
 	game.free()

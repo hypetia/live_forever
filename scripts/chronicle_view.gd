@@ -57,6 +57,21 @@ func refresh() -> void:
     var toggle:=CheckBox.new();toggle.text=pair[1];toggle.button_pressed=record[pair[0]];toggle.disabled=disabled or (pair[0]=='medical' and actor.speciality!='医护');body.add_child(toggle)
     toggle.toggled.connect(func(value: bool):game.self_care.set_cooperation(game,actor,pair[0],value))
   text('手动命令始终优先。伤员移动、医护受伤、缺药或日落会取消未完成护理；不会远程回血。多人授权备餐时优先厨师，同一时刻不重复开锅。')
+ elif page=='roster':
+  text('角色图鉴 · 12名候选／每局3人开局／最多5人在队',25)
+  text('这里可提前比较全部角色。加入需要一级据点及生食2、水2、药品1；到访不等于自动入队。已故成员不会复活。')
+  button('返回人物志',func():page='people';refresh())
+  var offers: Array = game.people.offers(game)
+  var living: int = game.survivors.filter(func(a):return a.health>0).size()
+  for id in PeopleCatalog.DATA:
+   var info: Dictionary = PeopleCatalog.DATA[id]
+   var resident: Survivor = game.chronicle._actor(game,id)
+   var status: String = ('在队' if resident.health>0 else '已故') if resident!=null else ('可接纳' if offers.has(id) else '第%d天起到访' % maxi(3,int(info['day'])))
+   if game.neighborhood.enabled and game.neighborhood.rescue['id']==id and game.neighborhood.rescue['state']=='lost':status='救援失败，无法加入'
+   text(info['name']+' · '+info['role']+' · '+status,23)
+   text(info['reference']+'\n'+info['bio']+'\n'+CharacterAbilities.description(id)+'\n背包%d格' % CampaignCycle.BAGS[id],18)
+   if resident==null:
+    button('接纳 '+info['name']+' · 生食2 / 水2 / 药品1',func():game.people.recruit(game,id);refresh();game._refresh_hud(),not offers.has(id) or living>=PeopleCatalog.MAX_LIVING or game.upkeep.level<1 or game.cycle.phase!='day' or game.game_over or not game.inventory.can_take(PeopleCatalog.RECRUIT_COST))
  elif page=='people':
   if game.neighborhood.enabled:
    text('共同经历：街区会记住你们',23)
@@ -66,6 +81,7 @@ func refresh() -> void:
     var title:String=NeighborhoodSystem.ACTIONS[kind]['name'] if NeighborhoodSystem.ACTIONS.has(kind) else {'rescued':'成功背回同伴','rescue_lost':'未能完成救援','network':'恢复街区医疗与稳定供水'}[kind]
     text('第%d天 · %s：%s%s' % [memory['day'],PeopleCatalog.DATA[memory['actor']]['name'],title,(' · '+PeopleCatalog.DATA[memory['other']]['name']) if not memory['other'].is_empty() else ''],18)
    if game.neighborhood.rescue['state']=='safe' and not game.neighborhood.rescue['carrier'].is_empty():text('救援记忆：获救医护在伤情接近时优先照护救援者；急重伤仍优先。需要F4明确授权。',18)
+  button('全部角色图鉴 · 12人及加入条件',func():page='roster';refresh())
   button('同伴分工与协作 F4',func():page='cooperate';refresh())
   text('不是代号：每个人都带着一段未完的过去',26)
   text('选择一条信念，亲自勘查目标并生还，再让本人回到工作台完成专属计划。没有限时惩罚，也不会自动扣料。')

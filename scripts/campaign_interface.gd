@@ -167,9 +167,11 @@ func _create_plan() -> void:
 		map_buttons[id] = button(overlay, "选择地点", Vector2(x + 16, 267), Vector2(405, 35), func(): game.choose_destination(id); refresh())
 		map_buttons[id].tooltip_text = area["summary"]+"\n"+LocationEnvironment.route_hint(id)+"\n通路状态："+("已打通" if game.regions[id].route_open else "待清障；原有楼梯始终可用")
 	label(overlay, "夜间岗位  /  一名搜刮者 · 床位%d" % game.cycle.bed_count(), Vector2(38, 334), Vector2(650, 30), 19, game.GOLD)
+	var live_row := 0
 	for index in range(game.survivors.size()):
 		var actor: Survivor = game.survivors[index]
-		var y := 377.0 + index * 66
+		var y := 377.0 + live_row * 66
+		var row_start := overlay.get_child_count()
 		panel(overlay, Vector2(38, y), Vector2(665, 58))
 		label(overlay, actor.display_name + " · " + actor.speciality, Vector2(53, y + 4), Vector2(220, 24), 16, actor.tint.lightened(0.2))
 		role_stats.append(label(overlay, "", Vector2(53, y + 30), Vector2(455, 24), 13))
@@ -182,6 +184,8 @@ func _create_plan() -> void:
 		option.item_selected.connect(func(item: int): _set_role(index, CampaignCycle.ROLES[item]))
 		overlay.add_child(option)
 		role_options.append(option)
+		for child in overlay.get_children().slice(row_start): child.visible = actor.health > 0
+		if actor.health > 0: live_row += 1
 	label(overlay, "携带物资 · 出发前可反复调整", Vector2(746, 334), Vector2(640, 30), 19, game.GOLD)
 	plan_capacity = label(overlay, "", Vector2(746, 374), Vector2(650, 30), 17)
 	var row := 0
@@ -266,11 +270,14 @@ func _stay_home() -> void:
 func _create_dawn() -> void:
 	label(overlay, "第%d天 · 天亮了" % ExpeditionState.day_at(game.simulation_time), Vector2(80, 48), Vector2(1250, 58), 34, game.GOLD)
 	overlay.add_theme_stylebox_override("panel",game._style(Color(0.035,0.055,0.06,0.94),Color("465047")))
+	var live_row := 0
 	for index in range(game.survivors.size()):
+		if game.survivors[index].health <= 0: continue
 		var card := SurvivorCard.new()
 		card.game = game
 		card.member_id = index
-		card.position = Vector2(80+(index%3)*425,180+(index/3)*143)
+		card.position = Vector2(80+(live_row%3)*425,180+(live_row/3)*143)
+		live_row += 1
 		card.size = Vector2(390,96)
 		card.tooltip_text = Vitals.summary(game.survivors[index])
 		for state in ["normal","hover","pressed"]:card.add_theme_stylebox_override(state,StyleBoxEmpty.new())

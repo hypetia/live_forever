@@ -9,10 +9,13 @@ static func render(ui: CampaignInterface) -> Panel:
 	var window := ui.panel(ui.root,Vector2(25,20),Vector2(1390,860))
 	ui.label(window,"设施与装备 · 已暂停",Vector2(25,17),Vector2(1080,40),27,game.GOLD)
 	ui.button(window,"关闭 K / Esc",Vector2(1170,17),Vector2(190,40),ui.close_workshop)
+	var living_row := 0
 	for index in range(game.survivors.size()):
 		var actor: Survivor = game.survivors[index]
-		var choose := ui.button(window,("✓ " if game.selected_id == index else "")+actor.display_name,Vector2(25+index*150,72),Vector2(140,36),func(): game.select_survivor(index); ui._create_workshop())
+		if actor.health <= 0: continue
+		var choose := ui.button(window,("✓ " if game.selected_id == index else "")+actor.display_name,Vector2(25+living_row*150,72),Vector2(140,36),func(): game.select_survivor(index); ui._create_workshop())
 		choose.disabled = actor.health <= 0
+		living_row += 1
 	var pages := [["workbench","工作台"],["kitchen","厨房"],["storage","装备仓库"],["campaign","战役设备"]]
 	for index in range(pages.size()):
 		var page: Array = pages[index]
