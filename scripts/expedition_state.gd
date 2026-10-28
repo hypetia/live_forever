@@ -276,8 +276,10 @@ func tick(delta: float, actor: Survivor, raw_controls: Dictionary) -> void:
 			facing = signf(axis)
 			var pace := (95.0 if sneaking else 275.0 if sprinting else 190.0) * (.8 if carrying_person else 1.0)
 			var surface := current_surface()
+			var previous_x := player_x
 			player_x = clampf(interior.stop_x(location_id,player_x,player_x + axis * pace * float(surface["pace"]) * actor.effort_factor() * delta,floor_level) if environment_active else player_x + axis * pace * float(surface["pace"]) * actor.effort_factor() * delta, 90 if floor_level == 0 else upper_left(), right_edge(floor_level))
-			actor.fatigue = minf(100, actor.fatigue + delta * (0.10 if sprinting else 0.04))
+			moving = absf(player_x-previous_x)>0.00001
+			if moving: actor.fatigue = minf(100, actor.fatigue + delta * (0.10 if sprinting else 0.04))
 			_reset_route()
 		var movement_noise := (8.0 if sneaking else 75.0 if sprinting else 30.0) if moving else 0.0
 		movement_noise *= float(current_surface()["quiet" if sneaking else "noise"])

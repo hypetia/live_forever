@@ -53,9 +53,20 @@ func barrier(id: String, a: float, b: float, floor_id: int) -> int:
  return chosen
 
 func stop_x(id: String, a: float, b: float, floor_id: int) -> float:
- var n:=barrier(id,a,b,floor_id)
- if n<0:return b
- return float(layout(id)[n]['x'])-signf(b-a)*18
+ if not enabled or is_equal_approx(a,b):return b
+ var direction:=signf(b-a)
+ var result:=b
+ var points:=layout(id)
+ for n in range(doors.size()):
+  if points[n]['floor']!=floor_id or doors[n]['open'] or doors[n]['hp']<=0:continue
+  var wall:=float(points[n]['x'])
+  # Stop at the body boundary before crossing the wall. Old saves may start
+  # inside that margin; do not push them backwards or trap them moving away.
+  if direction>0 and a<wall and b>wall-18:
+   result=minf(result,maxf(a,wall-18))
+  elif direction<0 and a>wall and b<wall+18:
+   result=maxf(result,minf(a,wall+18))
+ return result
 
 func clear_sight(id: String,a: float,b: float,floor_id: int) -> bool:
  if not enabled:return true

@@ -82,7 +82,7 @@ def main():
     for name, count in [('enemy_ai', 59), ('security', 25), ('backpack_stacks', 73), ('map_environments', 298), ('district_system', 172), ('decoys', 32), ('self_care', 87)]:
         run(name, ['--headless', '--path', str(project), '--script', f'res://tests/test_{name}.gd'], f'{count} checks, 0 failures')
         logical += count
-    for name, count in [('tactical_campaign', 59), ('siege', 25), ('cooperation_motion', 86), ('neighborhood', 89)]:
+    for name, count in [('tactical_campaign', 59), ('siege', 25), ('cooperation_motion', 86), ('neighborhood', 89), ('door_stability', 13)]:
         run(name, ['--headless', '--path', str(project), '--script', f'res://tests/test_{name}.gd'], f'{count} checks, 0 failures')
         logical += count
     for scenario in ['classic','convoy','infirmary']:
