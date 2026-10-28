@@ -1,13 +1,13 @@
-# v1.13.0 游戏与源码下载
+# v1.13.1 游戏与源码下载
 
-发行文件位于[GitHub下载分支](https://github.com/hypetia/live_forever/tree/downloads-v1.13.0)，主分支此目录提供索引。
+发行文件位于[GitHub下载分支](https://github.com/hypetia/live_forever/tree/downloads-v1.13.1)，主分支此目录提供索引。
 
 | 用途 | 直接下载 | 打开方法 |
 | --- | --- | --- |
-| Windows游戏 | [live_forever_v23_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.13.0/live_forever_v23_windows_x64.zip) | 解压，双击LiveForever.exe |
-| Linux游戏 | [live_forever_v23_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.13.0/live_forever_v23_linux_x64.zip) | 解压，运行LiveForever.x86_64 |
+| Windows游戏 | [live_forever_v1.13.1_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.13.1/live_forever_v1.13.1_windows_x64.zip) | 解压，双击LiveForever.exe |
+| Linux游戏 | [live_forever_v1.13.1_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.13.1/live_forever_v1.13.1_linux_x64.zip) | 解压，运行LiveForever.x86_64 |
 | Windows一键验收 | [live_forever_v23_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.13.0/live_forever_v23_windows_acceptance.zip) | 主动运行windows_acceptance.cmd |
-| v1.13.0完整源码 | [live_forever_shelter_m23.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.13.0/live_forever_shelter_m23.zip) | Godot4.6.3导入project.godot，F5 |
+| v1.13.1完整源码 | [live_forever_v1.13.1_source.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.13.1/live_forever_v1.13.1_source.zip) | Godot4.6.3导入project.godot，F5 |
 
 [SHA-256](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.13.0/v1.13.0-SHA256SUMS.txt) · [玩法](../docs/PLAYING.md) · [本轮街区、救援与验证](../docs/NEIGHBORHOOD_V23.md)
 

@@ -1,21 +1,21 @@
-# Live Forever · 留一盏灯 v1.13.0
+# Live Forever · 留一盏灯 v1.13.1
 
 单人僵尸生存游戏：白天经营、制作、改造并照顾同伴，夜间亲自潜入搜刮、抵御尸群。v1.13把诊所、供水站与基地连成持续变化的街区：保全或拆取冷链、持续供水与分流、背负救援及共同经历。保留同伴协作、记忆搜索和关节动画。保留九地图、三个开局、六名人物及个人线、35日撤离战役、无尽生存、迁居和前哨。采用原创简化画面。
 
 ## 下载后直接玩
 
-以下 v1.13.0 下载包对应已发布的版本。main 源码包含后续修复：救援失败的角色不会再通过普通招募加入；该修复尚未包含在这些运行包中。
+v1.13.1 修复救援失败后仍能招募同一角色的问题。Windows 一键验收包暂为 v1.13.0 版本，不能用于验证本次修复。
 
 | 用途 | GitHub直接下载 | 使用方法 |
 | --- | --- | --- |
-| Windows 64位游戏 | [live_forever_v23_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.13.0/live_forever_v23_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
-| Linux x86_64游戏 | [live_forever_v23_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.13.0/live_forever_v23_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
+| Windows 64位游戏 | [live_forever_v1.13.1_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.13.1/live_forever_v1.13.1_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
+| Linux x86_64游戏 | [live_forever_v1.13.1_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.13.1/live_forever_v1.13.1_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
 | Windows一键验收工具 | [live_forever_v23_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.13.0/live_forever_v23_windows_acceptance.zip) | 主动运行 `windows_acceptance.cmd`，默认约30分钟 |
-| v1.13.0完整源码 | [live_forever_shelter_m23.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.13.0/live_forever_shelter_m23.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
+| v1.13.1完整源码 | [live_forever_v1.13.1_source.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.13.1/live_forever_v1.13.1_source.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
 
 普通游戏不需要Godot、Python、登录、服务器或持续联网。验收工具是单独的程序，不会在正常游戏中替你操作。Windows包按官方模板导出；**尚未在Windows真实设备完成验收**。
 
-[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.13.0) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
+[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.13.1) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
 
 运行包、验收包、版本源码ZIP托管在`downloads-v1.13.0`分支，开发源码在`main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
 
