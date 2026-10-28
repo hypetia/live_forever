@@ -128,6 +128,9 @@ func _run() -> void:
  game=district_trip();f=game.expedition;n=game.neighborhood
  perform(game,'rescue');game.survivors[f.actor_id].health=0;f.tick(.01,game.survivors[f.actor_id],{})
  expect(n.rescue['state']=='lost' and game.survivors.size()==3,'death during extraction loses the rescue instead of granting an immortal companion')
+ expect(not game.people.offers(game).has('gu') and not game.people.recruit(game,'gu'),'failed rescue cannot be bypassed by ordinary recruitment')
+ var lost_save:=SaveSystem.capture(game)
+ expect(SaveSystem.apply_state(game,lost_save).is_empty() and not game.people.offers(game).has('gu'),'failed rescue remains unavailable after a validated save restore')
  valid(game,'failed rescue');game.free()
 
  game=fresh();var store:=SaveSystem.new();store.path='res://tests/fixtures/v19_neighborhood_upgrade_campaign.json';var read:=store.read_state()

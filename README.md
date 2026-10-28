@@ -4,6 +4,8 @@
 
 ## 下载后直接玩
 
+以下 v1.13.0 下载包对应已发布的版本。main 源码包含后续修复：救援失败的角色不会再通过普通招募加入；该修复尚未包含在这些运行包中。
+
 | 用途 | GitHub直接下载 | 使用方法 |
 | --- | --- | --- |
 | Windows 64位游戏 | [live_forever_v23_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.13.0/live_forever_v23_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |

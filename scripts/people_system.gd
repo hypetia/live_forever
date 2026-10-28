@@ -146,6 +146,9 @@ func offers(game: Node2D) -> Array[String]:
 	var known: Array = game.survivors.map(func(a): return a.person.persona)
 	var day := ExpeditionState.day_at(game.simulation_time)
 	for id in (PeopleCatalog.DATA.keys() if game.has_method("chronicle_snapshot") else PeopleCatalog.CANDIDATES):
+		# A failed on-site rescue is a persistent outcome, not another way to
+		# recruit the same person for the ordinary arrival fee.
+		if game.has_method("neighborhood_snapshot") and game.neighborhood.enabled and game.neighborhood.rescue["state"] == "lost" and game.neighborhood.rescue["id"] == id: continue
 		if not known.has(id) and day >= maxi(3,int(PeopleCatalog.DATA[id]["day"])): available.append(id)
 	return available
 
