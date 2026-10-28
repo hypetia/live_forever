@@ -109,7 +109,7 @@ func _ready() -> void:
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--qa-slot="): save_store.path = argument.trim_prefix("--qa-slot=")
 	get_window().close_requested.connect(_on_window_close_requested)
-	if DisplayServer.get_name() != "headless": get_window().title = "Live Forever · 留一盏灯 v0.9"
+	if DisplayServer.get_name() != "headless": get_window().title = "Live Forever · 封锁区：余生 v0.9"
 	for id in _region_ids():
 		regions[id] = expedition if id == "street" else ExpeditionState.new(id)
 	_create_world()
@@ -680,7 +680,7 @@ func _sync_mode() -> void:
 	expedition_view.visible = not base
 	expedition_view.layer.visible = not base
 	if not base: expedition_view.refresh()
-	main_title.text = "临时避难所  /  留一盏灯"
+	main_title.text = "临时避难所  /  封锁区：余生"
 	subtitle.text = "点击人物选择 · 点击设施查看行动 · 右键地面移动 · 空格暂停"
 
 

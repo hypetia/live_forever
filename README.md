@@ -1,23 +1,25 @@
-# Live Forever · 留一盏灯 v1.13.2
+# Live Forever · 封锁区：余生 v1.14.0
 
 单人僵尸生存游戏：白天经营、制作、改造并照顾同伴，夜间亲自潜入搜刮、抵御尸群。v1.13把诊所、供水站与基地连成持续变化的街区：保全或拆取冷链、持续供水与分流、背负救援及共同经历。保留同伴协作、记忆搜索和关节动画。保留九地图、三个开局、六名人物及个人线、35日撤离战役、无尽生存、迁居和前哨。采用原创简化画面。
 
 ## 下载后直接玩
 
-v1.13.2 修复靠近关闭的门时画面抖动，并包含此前的救援失败后果修复。角色命名、食物种类与整体视听改造尚未完成。Windows 一键验收包暂为 v1.13.0 版本，不能用于验证本次修复。
+v1.14.0 使用斯塔克、纲手、里昂、山治、华佗、韦小宝六个明确原型，人物页显示参照来源，外观与能力同步调整；同时更新游戏标题和餐饮动作。肉类、蔬菜、饮料仍未拆分为独立物品；后续将继续完善。一键验收包已同步至 v1.14.0，Windows 真机仍待验收。
 
 | 用途 | GitHub直接下载 | 使用方法 |
 | --- | --- | --- |
-| Windows 64位游戏 | [live_forever_v1.13.2_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.13.2/live_forever_v1.13.2_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
-| Linux x86_64游戏 | [live_forever_v1.13.2_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.13.2/live_forever_v1.13.2_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
-| Windows一键验收工具 | [live_forever_v23_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.13.0/live_forever_v23_windows_acceptance.zip) | 主动运行 `windows_acceptance.cmd`，默认约30分钟 |
-| v1.13.2完整源码 | [live_forever_v1.13.2_source.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.13.2/live_forever_v1.13.2_source.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
+| Windows 64位游戏 | [live_forever_v1.14.0_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.14.0/live_forever_v1.14.0_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
+| Linux x86_64游戏 | [live_forever_v1.14.0_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.14.0/live_forever_v1.14.0_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
+| Windows一键验收工具 | [live_forever_v1.14.0_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.14.0/live_forever_v1.14.0_windows_acceptance.zip) | 主动运行 `windows_acceptance.cmd`，默认约30分钟 |
+| v1.14.0完整源码 | [live_forever_v1.14.0_source.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.14.0/live_forever_v1.14.0_source.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
 
 普通游戏不需要Godot、Python、登录、服务器或持续联网。验收工具是单独的程序，不会在正常游戏中替你操作。Windows包按官方模板导出；**尚未在Windows真实设备完成验收**。
 
-[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.13.2) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
+[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.14.0) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
 
-v1.13.2 运行包和对应源码托管在 `downloads-v1.13.2`；旧版验收包在 `downloads-v1.13.0`，开发源码在 `main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
+v1.14.0 运行包和对应源码托管在 `downloads-v1.14.0`；同版验收包在 `downloads-v1.14.0`，开发源码在 `main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
+
+[本版角色与验证范围](docs/CHARACTER_REFERENCES_V25.md)
 
 ## 新版怎样玩
 
@@ -101,7 +103,7 @@ v1.13.2 运行包和对应源码托管在 `downloads-v1.13.2`；旧版验收包�
 
 ## 角色、安防与迁居
 
-人物具有独立专长：祁烬「灰犬」近战+40%和低脚步声，祝九「铁锅女王」同料做3份饭，闻人灯「白鸦」医疗援助与演奏更好，纪无咎「缝骨师」处理伤病更彻底，陆行舟「燕尾」恢复更快、邻里交换得到更多物资。P页显示实际效果；现有工艺／照护／探索成长和情绪、关系机制继续保留。
+人物具有独立专长：里昂近战+40%和低脚步声，山治同料做3份饭，纲手医疗援助与演奏更好，华佗处理伤病更彻底，韦小宝恢复更快、邻里交换得到更多物资。P页显示实际效果；现有工艺／照护／探索成长和情绪、关系机制继续保留。
 
 家园不是随意切换的菜单：先深入住宅或货运站勘察、活着返回；在H准备清理工具，再去新址消灭附近上下层感染者、确认并带回记录；最早第5天打包运输补给，整夜全员转移，途中消耗精神、受冷并可能遇袭。迁居后至少休整5天。内巷更暖且隐蔽，货场更坚固但更冷、更易吸引尸群。旧址固定设施拆解回收部分材料，新址等级和安防重新建设；库存、装备和战役设备随队转移。
 
@@ -109,7 +111,7 @@ v1.13.2 运行包和对应源码托管在 `downloads-v1.13.2`；旧版验收包�
 
 ## 存档与验证
 
-旧档无需重开。schema20保存街区项目、现场生产与分流、在途救援、共同经历和独立的敌人迁入日期，兼容schema1–19；schema19保存协作授权、未完成现场护理与敌人搜索计划，兼容schema1–18；schema18增加房间、感染者行为、人物志与实时防守，兼容schema1–17；schema17增加基本自理，兼容schema1–16，保留实际任务和物资；schema16加入街区经营、声源与轮值预留，兼容schema1–15；schema15增加地点状况、持久通路与清障，兼容schema1–14；schema14加入堆叠规则，兼容schema1–13，保留实际件数、装备与敌人AI；schema13增加敌人的原巡逻楼层、目标记忆和攀爬进度，兼容schema1–12；schema10保留家园、迁居、安防、勘察与演奏记录，增加可恢复的返程安排，继续保存装备归属／耐久、弹匣与换弹进度、疾病／寒冷、炉火、工作台在制项目、地图和战役进度，兼容schema1–9。旧版在途物资继续保留，新增战役从导入当天计日；不会因读取旧档反复发装备。系统用户目录和旧版本一致，首次写入保留备份。建议解压到新文件夹，不覆盖正在运行的旧程序。
+新版本使用新的存档目录，旧版存档不会自动载入，建议新开一局。schema20保存街区项目、现场生产与分流、在途救援、共同经历和独立的敌人迁入日期，兼容schema1–19；schema19保存协作授权、未完成现场护理与敌人搜索计划，兼容schema1–18；schema18增加房间、感染者行为、人物志与实时防守，兼容schema1–17；schema17增加基本自理，兼容schema1–16，保留实际任务和物资；schema16加入街区经营、声源与轮值预留，兼容schema1–15；schema15增加地点状况、持久通路与清障，兼容schema1–14；schema14加入堆叠规则，兼容schema1–13，保留实际件数、装备与敌人AI；schema13增加敌人的原巡逻楼层、目标记忆和攀爬进度，兼容schema1–12；schema10保留家园、迁居、安防、勘察与演奏记录，增加可恢复的返程安排，继续保存装备归属／耐久、弹匣与换弹进度、疾病／寒冷、炉火、工作台在制项目、地图和战役进度，兼容schema1–9。旧版在途物资继续保留，新增战役从导入当天计日；不会因读取旧档反复发装备。正常存档使用新游戏名对应的用户目录，写入保留备份。建议解压到新文件夹，不覆盖正在运行的旧程序。
 
 [v1.11战术与角色](docs/TACTICS_CHARACTERS_V21.md) · [v1.10人物自理](docs/AUTONOMY_V20.md) · [v1.9街区、前哨与诱饵](docs/DISTRICTS_V19.md) · [v1.8地图与路线](docs/MAP_ENVIRONMENTS_V18.md) · [v1.7背包堆叠](docs/BACKPACK_STACKS_V17.md) · [原作文件静态研究](docs/TWOM_BINARY_REFERENCE_20261028.md) · [REA工具验证](docs/REA_RESEARCH_V17.md) · [原作公开资料研究](docs/TWOM_PUBLIC_RESEARCH.md) · [v1.6敌人AI、攻击与安防](docs/AI_SECURITY_V16.md) · [v1.5事件、界面与战斗](docs/DIRECTOR_UI_COMBAT_V15.md) · [v1.4设施升级](docs/FACILITIES_V14.md) · [v1.3.3离场与装备](docs/DEPARTURE_EQUIPMENT_V133.md) · [v1.3.2白天键盘修复](docs/KEYBOARD_V132.md) · [v1.3.1交互修复与验证](docs/INTERACTIONS_V131.md) · [v1.3角色、家园与验证](docs/HOMES_V13.md) · [v1.2界面说明](docs/PRESENTATION_V12.md) · [装备、气候、九地图和战役规则](docs/EXPANSION_V11.md) · [Windows检查方法](docs/WINDOWS_ACCEPTANCE.md) · [下载索引](downloads/README.md) · [许可](licenses/README.md)
 

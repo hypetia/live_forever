@@ -93,7 +93,7 @@ def main():
     x.XSetErrorHandler.argtypes, x.XSetErrorHandler.restype = [D], D
     x.XSync.argtypes = [D, I]
 
-    def find_ready_window(expected_pid=None, contains="Live Forever"):
+    def find_ready_window(expected_pid=None, contains="封锁区：余生"):
         # Snapshot the tree under a short X server grab. Utility windows may
         # disappear during startup; querying stale children causes BadWindow.
         unexpected = []

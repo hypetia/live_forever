@@ -73,7 +73,7 @@ static func pose(mode: String,time: float,progress: float,facing: float,weapon: 
   'music':front=Vector2(17*facing,-30+sin(time*11)*4);back=Vector2(35*facing,-48)
   'cold':front=Vector2(-4*facing,-42);back=Vector2(7*facing,-43);shoulder.x=sin(time*19)*.65;head.x=shoulder.x
   _:head.y+=sin(time*1.6)*.7;front.y+=sin(time*1.6)*1.4
- return {'facing':facing,'mode':mode,'root':root,'rotation':rotation,'hip':hip,'shoulder':shoulder,'head':head,'front':front,'back':back,'left':left,'right':right,'knee_l':knee_l,'knee_r':knee_r,'angle':angle}
+ return {'facing':facing,'mode':mode,'time':time,'root':root,'rotation':rotation,'hip':hip,'shoulder':shoulder,'head':head,'front':front,'back':back,'left':left,'right':right,'knee_l':knee_l,'knee_r':knee_r,'angle':angle}
 
 static func field_context(state: ExpeditionState,actor: Survivor,hurt: float=0) -> Dictionary:
  var mode:='idle';var p:=0.0
@@ -130,12 +130,24 @@ static func draw(c: CanvasItem,at: Vector2,actor: Survivor,data: Dictionary,arme
  PersonalityArt.face(c,actor.person.persona,head,.9)
  var hand: Vector2=data['front']
  if mode=='drink':
-  c.draw_rect(Rect2(hand+Vector2(-4,-5),Vector2(8,10)),Color('a6bdc0'));c.draw_arc(hand+Vector2(5,-1),4,-PI/2,PI/2,12,Color('a6bdc0'),2,true)
- elif mode=='eat':c.draw_circle(data['back'],6,Color('a68f6a'));c.draw_line(hand,hand+Vector2(5*f,-3),Color('c8baa0'),2,true)
+  c.draw_rect(Rect2(hand+Vector2(-5,-7),Vector2(10,12)),Color('829fa2'))
+  c.draw_rect(Rect2(hand+Vector2(-4,-5),Vector2(8,3)),Color('c1d6d0'))
+  c.draw_arc(hand+Vector2(5,-1),4,-PI/2,PI/2,12,Color('a6bdc0'),2,true)
+ elif mode=='eat':
+  var bowl:Vector2=data['back']+Vector2(3,0)
+  c.draw_colored_polygon(PackedVector2Array([bowl+Vector2(-9,-3),bowl+Vector2(9,-3),bowl+Vector2(6,4),bowl+Vector2(-6,4)]),Color('b49f7b'))
+  c.draw_line(bowl+Vector2(-8,-3),bowl+Vector2(8,-3),Color('d6c39c'),2,true)
+  c.draw_line(hand,hand+Vector2(7*f,-4),Color('c8baa0'),2,true)
+  c.draw_circle(hand+Vector2(7*f,-4),2,Color('c8baa0'))
  elif mode in ['heal','aid','self_heal']:
   c.draw_line(hand+Vector2(-5,0),hand+Vector2(5,0),Color('ecdbba'),3);c.draw_line(hand+Vector2(0,-5),hand+Vector2(0,5),Color('ecdbba'),3)
  elif mode=='cook':
-  c.draw_arc(data['back']+Vector2(7,-1),8,0,PI,16,Color('a68f6a'),3,true);c.draw_line(hand,hand+Vector2(7*f,-10),Color('b9bba7'),2,true)
+  var pot:Vector2=data['back']+Vector2(7,-1)
+  c.draw_colored_polygon(PackedVector2Array([pot+Vector2(-10,-4),pot+Vector2(10,-4),pot+Vector2(8,6),pot+Vector2(-8,6)]),Color('596965'))
+  c.draw_line(pot+Vector2(-11,-4),pot+Vector2(11,-4),Color('b9bba7'),2,true)
+  c.draw_line(hand,hand+Vector2(7*f,-10),Color('b9bba7'),2,true)
+  var steam:=sin(float(data.get('time',0))*3)*2
+  for x in [-5,4]:c.draw_line(pot+Vector2(x,-8),pot+Vector2(x+steam,-15),Color(.8,.85,.8,.55),1,true)
  elif mode in ['craft','repair','build'] or (mode in ['window','search'] and data.get('tool',false)):
   c.draw_line(hand,hand+Vector2(8*f,-12),Color('aab3a3'),3,true);c.draw_line(hand+Vector2(3*f,-12),hand+Vector2(13*f,-12),Color('aab3a3'),4,true)
  elif mode=='music':

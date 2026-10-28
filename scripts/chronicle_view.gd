@@ -72,6 +72,7 @@ func refresh() -> void:
   for actor:Survivor in game.survivors:
    var id:=actor.person.persona;var a:Dictionary=ChronicleCatalog.ARCS[id];var r:Dictionary=game.chronicle.arcs[id]
    text(actor.display_name+' · '+a['title']+(' · 已故' if actor.health<=0 else ''),23)
+   text('角色原型：'+PeopleCatalog.DATA[id]['reference'],18)
    text(a['text']+'\n性格：'+a['trait']+'\n'+CharacterAbilities.description(id))
    var disabled:bool=game.cycle.phase!='day' or actor.health<=0
    if r['stage']==0:
