@@ -17,7 +17,7 @@ v1.13.1 修复救援失败后仍能招募同一角色的问题。Windows 一键�
 
 [全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.13.1) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
 
-运行包、验收包、版本源码ZIP托管在`downloads-v1.13.0`分支，开发源码在`main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
+v1.13.1 运行包和对应源码托管在 `downloads-v1.13.1`；旧版验收包在 `downloads-v1.13.0`，开发源码在 `main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
 
 ## 新版怎样玩
 
