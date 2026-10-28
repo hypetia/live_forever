@@ -78,7 +78,9 @@ func _ready() -> void:
 	role_label = _label("", Vector2(32, 828), Vector2(300, 22), 13, MUTED)
 	stats_label = _label("", Vector2(250, 786), Vector2(480, 48), 14, INK)
 	search_button = _button("按住搜索 E", Vector2(760, 784), Vector2(160, 42), func(): pass)
-	search_button.button_down.connect(func(): search_held = true)
+	search_button.button_down.connect(func():
+		if game.has_method("neighborhood_snapshot") and not game.neighborhood.nearby(game).is_empty() and game.expedition.interior.nearby(game.expedition)<0:game.neighborhood_view.open_at(game.neighborhood.nearby(game))
+		else:search_held=true)
 	search_button.button_up.connect(func(): search_held = false)
 	attack_button = _button("推搡 J", Vector2(930, 784), Vector2(150, 42), game.expedition_attack)
 	medicine_button = _button("急救 R", Vector2(1090, 784), Vector2(100, 42), game.expedition_medicine)
@@ -355,6 +357,7 @@ func _draw() -> void:
 			if state.sites[index]["locked"]: draw_circle(point+Vector2(0,-23),6,Color("d8c28c"))
 			_text(point+Vector2(-47,27),definition["name"]+(" · 空" if empty else ""),12,MUTED if empty else GOLD)
 	if quiet: _draw_intent(state,camera)
+	if game.has_method("neighborhood_snapshot") and is_instance_valid(game.neighborhood_view):game.neighborhood_view.draw_field(self,camera)
 	combat_effects.draw_marks(self,camera)
 	if state.environment_active: state.interior.draw(self,state,camera)
 	for enemy_index in range(state.enemies.size()):
@@ -462,6 +465,9 @@ func _draw_enemy(enemy: Dictionary, camera: float, state: ExpeditionState, index
 func _draw_player(point: Vector2, actor: Survivor, state: ExpeditionState) -> void:
 	var crouch := 20.0 if state.sneaking else 0.0
 	var context:=CharacterMotion.field_context(state,actor,combat_effects.player_time)
+	if game.has_method("neighborhood_snapshot") and not game.neighborhood.work.is_empty() and combat_effects.player_time<=0:
+		var job:Dictionary=game.neighborhood.work
+		context={"mode":"aid" if job["id"]=="rescue" else "search","progress":float(job["elapsed"])/float(NeighborhoodSystem.ACTIONS[job["id"]]["seconds"]),"tool":false}
 	var tint:=actor.tint.lightened(.35) if state.invulnerable>0 and int(state.elapsed*12)%2 else actor.tint
 	if combat_effects.player_time>.24:tint=tint.lerp(Color('f2ad9a'),.7)
 	var pose:=CharacterMotion.pose(context['mode'],state.elapsed,context['progress'],state.facing,str(actor.weapon_item.get('kind','')))
@@ -669,7 +675,7 @@ func _refresh_quiet(state: ExpeditionState, actor: Survivor) -> void:
 		stack_grid.render(BackpackStacks.carried(state,actor,game.expansion.carried),state.capacity)
 	search_bar.value = state.search_progress/state.search_duration*100 if state.search_duration > 0 else 0
 	retreat_button.disabled = false if quiet else game.paused
-	search_button.disabled = game.paused or (state.nearby_site() < 0 and not state.route_in_range()) or game.cycle.return_requested or game.cycle.phase == "returning"
+	search_button.disabled = game.paused or (state.nearby_site() < 0 and not state.route_in_range() and game.neighborhood.nearby(game).is_empty()) or game.cycle.return_requested or game.cycle.phase == "returning"
 	attack_button.disabled = game.paused or state.attack_cooldown > 0 or state.climb_target != -1 or state.reload_remaining > 0
 	drink_button.disabled = game.paused or state.bag["water"] <= 0 or actor.person.thirst <= 0
 	medicine_button.disabled = game.paused or state.bag["medicine"] <= 0 or state.medicine_cooldown > 0
@@ -699,6 +705,8 @@ func _refresh_quiet(state: ExpeditionState, actor: Survivor) -> void:
 		attack_button.text = "\n%d/%d" % [state.magazine,state.reserve_ammo]
 		attack_button.tooltip_text += "\n弹匣%d / 备用%d" % [state.magazine,state.reserve_ammo]
 	if state.reload_remaining > 0: attack_button.text = "\n换弹"
+	if not game.neighborhood.nearby(game).is_empty():
+		search_button.tooltip_text=NeighborhoodSystem.NODES[game.neighborhood.nearby(game)]["name"]+" · E / 点击物件"
 	if state.route_in_range():
 		search_button.tooltip_text = LocationEnvironment.route_hint(state.location_id)+"\n按住E或点击通路标记开始；移动取消，松开暂停。"
 	if state.route_progress > 0 and state.route_in_range():

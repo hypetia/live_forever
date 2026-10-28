@@ -39,5 +39,7 @@ static func carried(field: ExpeditionState, actor: Survivor, parts: Array) -> Ar
 		var count := mini(rounds,AMMO_LIMIT)
 		result.append({"kind":"ammo","key":"ammo","count":count,"limit":AMMO_LIMIT})
 		rounds -= count
+	if field.carrying_person:
+		for index in range(2):result.append({"kind":"rescue","key":"rescue","count":1,"limit":1})
 	for key in parts: result.append({"kind":"part","key":key,"count":1,"limit":1})
 	return result

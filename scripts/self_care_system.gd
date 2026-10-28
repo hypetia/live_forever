@@ -246,6 +246,8 @@ func _plan_support(game: Node2D) -> void:
 				if patient.health>70 and patient.injury<35 and patient.infection<25 and patient.illness<35: continue
 				if patient.hunger>=80 and patient.injury<=0 and patient.infection<=0 and patient.illness<=0: continue
 				var need: float = 100-patient.health+patient.infection+patient.illness+patient.injury*.5
+				if patient.health<=25:need+=1000
+				elif game.neighborhood.prefers(actor,patient):need+=5
 				if need>worst: target=patient;worst=need
 			if target!=null:
 				var path: Array[Vector2] = game.scheduler.navigation.route_between(actor.position,target.position)

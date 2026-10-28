@@ -36,6 +36,7 @@ func begin_trip(game: Node2D) -> void:
 	var region: Dictionary = regions[trip_map]
 	# Population composition changes only before departure, never materializes
 	# around the player mid-fight and never scales to their equipment.
+	if field.persistent_loot:return # Persistent wounds and deaths are not replaced by a fresh difficulty preset.
 	if float(region["heat"]) >= 45:
 		for index in range(mini(2,field.enemies.size())):
 			var e: Dictionary = field.enemies[index]

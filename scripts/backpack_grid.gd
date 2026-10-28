@@ -36,6 +36,7 @@ func render(entries: Array[Dictionary], capacity: int) -> void:
 				continue
 			if entry["kind"] == "resource" and not first_resources.has(entry["key"]): first_resources[entry["key"]] = cell
 			var name: String = ShelterInventory.NAMES.get(entry["key"],GearCatalog.ITEMS.get(entry["key"],GearCatalog.PARTS.get(entry["key"],{})).get("name","弹药"))
+			if entry["kind"]=="rescue": name="背负伤员 · 占用2格，抵达出口后加入队伍"
 			cell.tooltip_text = "%s · 本格%d / %d" % [name,entry["count"],entry["limit"]]
 			if entry["kind"] == "resource": cell.tooltip_text += "\n"+resource_hint
 			elif entry["kind"] == "gear": cell.tooltip_text += "\n随身装备 · 耐久%d · 不能放入物资容器" % entry["durability"]
@@ -67,6 +68,7 @@ func _icon(cell: Button, entry: Dictionary) -> void:
 			for x in [-9,0,9]:
 				cell.draw_rect(Rect2(point+Vector2(x-2,-7),Vector2(5,17)),color)
 				cell.draw_circle(point+Vector2(x+0.5,-7),2.5,color)
+		"rescue": HudIcons.draw(cell,"medicine",point,27,color)
 		"part":
 			cell.draw_arc(point,11,0,TAU,24,color,3,true)
 			for index in range(8):

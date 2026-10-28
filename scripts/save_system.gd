@@ -3,7 +3,7 @@ extends RefCounted
 ## Validated snapshots, checksummed JSON, atomic replacement and one backup.
 ## Only data is loaded: no resource paths, scripts or executable expressions.
 
-const VERSION := 19
+const VERSION := 20
 const MAX_BYTES := 2 * 1024 * 1024
 const STATIONS := ["workbench", "stove", "table", "bed"]
 const FLOAT_FIELDS := ["work_elapsed", "work_duration", "hunger", "fatigue", "health", "injury", "infection", "illness", "cold_exposure", "movement_clock", "facing"]
@@ -32,6 +32,7 @@ static func capture(game: Node2D) -> Dictionary:
 	for id in game.regions:
 		if id != game.expedition.location_id: other_regions[id] = game.regions[id].snapshot()
 	return {
+		"neighborhood": game.neighborhood_snapshot() if game.has_method("neighborhood_snapshot") else {},
 		"chronicle": game.chronicle_snapshot() if game.has_method("chronicle_snapshot") else {},
 		"siege": game.siege_snapshot() if game.has_method("siege_snapshot") else {},
 		"self_care": game.self_care_snapshot() if game.has_method("self_care_snapshot") else {},
@@ -111,6 +112,7 @@ static func validate(data: Variant) -> String:
 	required.append("self_care")
 	required.append("chronicle")
 	required.append("siege")
+	required.append("neighborhood")
 	if not _exact_keys(data, required):
 		return "存档缺少字段或包含未知字段"
 	var region_ids: Array = LocationCatalog.IDS if data["expansion"] is Dictionary and data["expansion"].is_empty() else LocationCatalog.ALL_IDS
@@ -256,6 +258,8 @@ static func validate(data: Variant) -> String:
 		if world["active"] or world["last_refresh_day"] > ExpeditionState.day_at(data["simulation_time"]): return "非当前地点不能活动或超前刷新"
 	var campaign_error := CampaignCycle.validate(data["campaign"], data)
 	if not campaign_error.is_empty(): return campaign_error
+	var neighborhood_error := NeighborhoodSystem.validate(data["neighborhood"],data)
+	if not neighborhood_error.is_empty(): return neighborhood_error
 	var expansion_error := SurvivalExpansion.validate(data["expansion"], data)
 	if not expansion_error.is_empty(): return expansion_error
 	var facilities_error := FacilitySystem.validate(data["facilities"],data)
@@ -353,6 +357,7 @@ static func apply_state(game: Node2D, data: Dictionary) -> String:
 	if game.has_method("restore_chronicle"): game.restore_chronicle(data["chronicle"])
 	if game.has_method("restore_siege"): game.restore_siege(data["siege"])
 	if game.has_method("restore_self_care"): game.restore_self_care(data["self_care"])
+	if game.has_method("restore_neighborhood"): game.restore_neighborhood(data["neighborhood"])
 	game.expedition_view.reset_feedback()
 	game.select_survivor(int(data["selected_id"]))
 	game._refresh_log()
@@ -420,6 +425,8 @@ func _read_file(filename: String) -> Dictionary:
 		data = migrate_v17(data)
 	if int(envelope["version"]) <= 18:
 		data = migrate_v18(data)
+	if int(envelope["version"]) <= 19:
+		data = migrate_v19(data)
 	var error := validate(data)
 	if not error.is_empty():
 		return {"ok": false, "message": error}
@@ -754,4 +761,15 @@ static func migrate_v18(data: Variant) -> Variant:
 		for mind in field["minds"]:
 			if not mind is Dictionary:return null
 			if not mind.has("search"):mind["search"]={}
+	return migrate_v19(upgraded)
+
+static func migrate_v19(data: Variant) -> Variant:
+	if not data is Dictionary or not data.get("campaign") is Dictionary:return null
+	var upgraded: Dictionary=data.duplicate(true)
+	if not upgraded.get("expedition") is Dictionary or not upgraded.get("other_regions") is Dictionary:return null
+	for field in [upgraded["expedition"]]+upgraded["other_regions"].values():
+		if not field is Dictionary:return null
+		if not field.has("population_day"):field["population_day"]=field.get("last_refresh_day",1)
+	if not upgraded.has("neighborhood"):
+		upgraded["neighborhood"]={} if upgraded["campaign"].is_empty() else NeighborhoodSystem.new().snapshot()
 	return upgraded

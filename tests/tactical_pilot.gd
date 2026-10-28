@@ -149,6 +149,7 @@ func _select_night() -> void:
  if part_target.is_empty() and not elective_person.is_empty():
   var arc:Dictionary=game.chronicle.arcs[elective_person]
   if arc['stage']==1:destination=ChronicleCatalog.ARCS[elective_person]['map']
+ destination=_preferred_destination(destination)
  game.choose_destination(destination)
  var scout:=-1;var best:=-INF
  for actor:Survivor in game.survivors:
@@ -184,6 +185,7 @@ func _select_night() -> void:
   if coats[n]['owner']!=game.survivors[target_id].person.persona:game.expansion.equip(game,int(coats[n]['id']),target_id)
  game.cycle.loadout.clear()
  if game.inventory.amount('medicine')>0:game.cycle.loadout['medicine']=1
+ _extra_loadout()
  game.expansion.use_night_heat=game.expansion.outside(game)<0
  if game.start_expedition():target=-1;returning=false;visited.clear()
 
@@ -207,3 +209,10 @@ func _manage_needs() -> void:
    if (not medic_available or not eligible) and game.inventory.amount('medicine')>0:game.scheduler.submit(actor,'heal')
  if game.upkeep.pending_event>=0:game.upkeep.resolve_event(game.inventory.can_take(ShelterProgress.EVENT_COSTS[game.upkeep.pending_event]) and game.inventory.amount('materials')>=8,game.inventory)
  if game.upkeep.integrity<30 and game.inventory.amount('materials')>=4:policy._order('repair')
+
+# Optional normal-command policy hooks for district-specific journeys.
+func _preferred_destination(destination: String) -> String:
+ return destination
+
+func _extra_loadout() -> void:
+ pass

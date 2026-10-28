@@ -83,6 +83,8 @@ func render() -> void:
 	var risk: int = game.districts.shift_risk(actor,selected)
 	var location: Dictionary = LocationCatalog.area(selected)["sites"][DistrictSystem.POINTS[selected]]
 	var lines := "压力  %d / 100\n前哨  %s\n\n现场位置：%s · %s\n轮值参考：%s\n消耗燃料1 · 精神−45\n枪械另需弹药2；装备会磨损\n回收：%s\n遇险估计：%d%%\n\n枪声与动静积累压力。\n换区、清理和低噪声行动可缓解。" % [roundi(r["heat"]),("耐久%d%%" % roundi(r["condition"])) if r["built"] else "尚未建立",location["name"],"楼上" if location["floor"] == 1 else "地面",actor.display_name,ShelterInventory.describe(game.districts.shift_yield(actor,selected)),risk]
+	if game.neighborhood.enabled and selected in NeighborhoodSystem.MAPS:
+		lines="压力%d / 前哨耐久%d\n\n" % [roundi(r["heat"]),roundi(r["condition"])]+game.neighborhood.summary(selected)+"\n\n现场施工：点击设备或靠近按E。\n压力35以上可能有远端迁入者。\n轮值仍须人手、燃料与维护。"
 	detail = ui.label(window,lines,Vector2(918,260),Vector2(425,367),18,GameUi.TEXT)
 	detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	target_button = ui.button(window,"设为轮值目标",Vector2(918,651),Vector2(425,44),func(): game.districts.select_target(game,selected);game.interface.refresh();render())

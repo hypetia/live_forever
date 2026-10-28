@@ -168,6 +168,7 @@ func _run() -> void:
 		var district_snapshot := SaveSystem.capture(game)
 		record(heard and SaveSystem.apply_state(game,district_snapshot).is_empty() and game.expedition.decoys.size() == 1,"paid lure, separate enemy target and district state restore at %dx%d" % [size.x,size.y])
 		record(SaveSystem.apply_state(game, initial_campaign).is_empty(), "preflight restores untouched campaign at %dx%d" % [size.x, size.y])
+		await neighborhood_preflight(design,size,initial_campaign)
 		game.center.open(7)
 		for frame in range(3): await get_tree().process_frame
 		var bounds := Rect2(Vector2(game.center.position), Vector2(game.center.size))
@@ -225,3 +226,45 @@ func write_report() -> void:
 	file.store_string(JSON.stringify(report, "  "))
 	file.close()
 	DirAccess.rename_absolute(output.path_join("desktop-report.json.tmp"), output.path_join("desktop-report.json"))
+
+
+func neighborhood_preflight(design: Rect2,size: Vector2i,initial: Dictionary) -> void:
+	# Deliberate isolated display fixture; the separate campaign journeys use no grants.
+	game.simulation_time=3600
+	game.inventory.deposit({"materials":12,"tools":3,"fuel":4},"acceptance display fixture")
+	game.end_day();game.choose_destination("clinic");game.cycle.roles.assign(["guard","bed","scavenge"])
+	game.cycle.loadout={"materials":4,"tools":1,"fuel":2};game.start_expedition()
+	var field: ExpeditionState=game.expedition
+	for e in field.enemies:e["hp"]=0;e["mode"]="dead"
+	field.player_x=NeighborhoodSystem.point("generator").x
+	game.neighborhood_view.open_at("generator")
+	record(game.neighborhood_view.opened and game.paused and design.encloses(game.neighborhood_view.window.get_global_rect()),"physical clinic context fits at %dx%d" % [size.x,size.y])
+	var original: Dictionary=game.neighborhood.snapshot()
+	game.neighborhood_view.choose("strip_cold")
+	record(game.neighborhood.snapshot()==original and game.neighborhood_view.opened,"demolition requires review without changing the world at %dx%d" % [size.x,size.y])
+	game.neighborhood_view.close();game.neighborhood_view.open_at("generator");game.neighborhood_view.choose("restore_cold")
+	game.advance_simulation(2)
+	record(not game.neighborhood.work.is_empty() and game.neighborhood.clinic["mode"]=="sealed" and field.bag["materials"]==4,"on-site project shows unpaid progress at %dx%d" % [size.x,size.y])
+	var path: String=game.save_store.path
+	game.save_store.path=output.path_join("neighborhood_preflight_%dx%d.json" % [size.x,size.y])
+	var wrote: bool=game.save_store.write_state(game)["ok"]
+	var loaded: bool=game.load_game();game.save_store.path=path
+	record(wrote and loaded and game.paused and not game.neighborhood.work.is_empty(),"unfinished field project restores paused at %dx%d" % [size.x,size.y])
+	game.paused=false;game.advance_simulation(13)
+	record(game.neighborhood.clinic["mode"]=="running" and game.neighborhood.clinic["fuel"]==2 and field.bag["materials"]==0 and field.bag["tools"]==0,"continued field project pays once and changes actual device at %dx%d" % [size.x,size.y])
+	await RenderingServer.frame_post_draw
+	root.get_texture().get_image().save_png(output.path_join("clinic_project_%dx%d.png" % [size.x,size.y]))
+	SaveSystem.apply_state(game,initial)
+	game.simulation_time=3600;game.expansion.stage=2;game.expansion.collected.assign(["relay"]);game.expansion.warm_nights=2
+	game.inventory.deposit({"materials":10,"tools":2},"acceptance display fixture")
+	game.end_day();game.choose_destination("waterworks");game.cycle.roles.assign(["guard","bed","scavenge"]);game.cycle.loadout={"materials":9,"tools":2};game.start_expedition()
+	field=game.expedition
+	for e in field.enemies:e["hp"]=0;e["mode"]="dead"
+	field.player_x=NeighborhoodSystem.point("pump").x;game.neighborhood.start(game,"restore_water");game.advance_simulation(15)
+	field.player_x=NeighborhoodSystem.point("valve").x;field.floor_level=1;field.player_y=400
+	game.neighborhood.start(game,"connect");game.advance_simulation(11);game.neighborhood_view.open_at("valve")
+	record(game.neighborhood_view.opened and game.neighborhood_view.actions.size()==5 and design.encloses(game.neighborhood_view.window.get_global_rect()),"largest water diversion card fits at %dx%d" % [size.x,size.y])
+	await RenderingServer.frame_post_draw
+	root.get_texture().get_image().save_png(output.path_join("water_choices_%dx%d.png" % [size.x,size.y]))
+	game.neighborhood_view.choose("route_home");game.advance_simulation(3)
+	record(game.neighborhood.water["target"]=="home" and SaveSystem.validate(SaveSystem.capture(game)).is_empty() and SaveSystem.apply_state(game,initial).is_empty(),"paid plant and completed route preserve saves and reset fixture at %dx%d" % [size.x,size.y])

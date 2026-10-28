@@ -82,7 +82,7 @@ def main():
     for name, count in [('enemy_ai', 59), ('security', 25), ('backpack_stacks', 73), ('map_environments', 298), ('district_system', 172), ('decoys', 32), ('self_care', 87)]:
         run(name, ['--headless', '--path', str(project), '--script', f'res://tests/test_{name}.gd'], f'{count} checks, 0 failures')
         logical += count
-    for name, count in [('tactical_campaign', 59), ('siege', 25), ('cooperation_motion', 86)]:
+    for name, count in [('tactical_campaign', 59), ('siege', 25), ('cooperation_motion', 86), ('neighborhood', 87)]:
         run(name, ['--headless', '--path', str(project), '--script', f'res://tests/test_{name}.gd'], f'{count} checks, 0 failures')
         logical += count
     for scenario in ['classic','convoy','infirmary']:
@@ -90,6 +90,8 @@ def main():
         for style,days in cases:
             name = f'campaign-{scenario}-{style}-{days}'
             run(name, ['--headless','--path',str(project),'--script','res://tests/run_tactical_balance.gd','--',scenario,style,str(output.resolve() / (name+'.json')),str(days)], 'TACTICAL BALANCE PASS')
+    for style in ['preserve','salvage']:
+        run('campaign-neighborhood-'+style, ['--headless','--path',str(project),'--script','res://tests/run_neighborhood_journey.gd','--',style,str(output.resolve() / ('neighborhood-'+style+'.json'))], 'NEIGHBORHOOD JOURNEY PASS')
     run('startup', ['--headless', '--path', str(project), '--quit-after', '8'])
     run('district_journey', ['--headless', '--path', str(project), '--script', 'res://tests/run_district_journey.gd', '--', str(output.resolve() / 'district-journey.json')], 'DISTRICT JOURNEY PASS')
     run('self_care_journey', ['--headless', '--path', str(project), '--script', 'res://tests/run_self_care_journey.gd', '--', str(output.resolve() / 'self-care-journey.json')], 'SELF CARE JOURNEY PASS')
@@ -118,13 +120,15 @@ def main():
         run('persistence_tactical-'+phase, ['--headless','--path',str(project),'--script','res://tests/persistence_tactical_process.gd','--',phase,str(workspace / 'tactical.json')], '0 failures')
     for phase in ['aid_write','aid_finish','room_write','room_finish']:
         run('persistence_cooperation-'+phase, ['--headless','--path',str(project),'--script','res://tests/persistence_cooperation_motion_process.gd','--',phase,str(workspace / 'cooperation.json')], '0 failures')
+    for phase in ['work_write','work_finish','work_verify','carry_write','carry_return','carry_verify']:
+        run('persistence_neighborhood-'+phase, ['--headless','--path',str(project),'--script','res://tests/persistence_neighborhood_process.gd','--',phase,str(workspace / 'neighborhood.json')], '0 failures')
     graphical = 0
     if args.graphics:
-        for name, count in [('visual_smoke', 36), ('visual_expedition', 36), ('visual_long_term', 24), ('visual_people', 22), ('visual_story', 17), ('visual_goals', 24), ('visual_presentation', 45), ('visual_campaign', 47), ('visual_expansion', 15), ('visual_quiet', 20), ('visual_residence', 26), ('visual_interactions', 26), ('visual_keyboard_movement', 10), ('visual_departure_equipment', 21), ('visual_facilities', 21), ('visual_director', 25), ('visual_combat_feedback', 11), ('visual_security_ai', 24), ('visual_backpack_stacks', 25), ('visual_map_environments', 77), ('visual_district_system', 33), ('visual_self_care', 22), ('visual_tactical', 32), ('visual_cooperation_motion', 17)]:
+        for name, count in [('visual_smoke', 36), ('visual_expedition', 36), ('visual_long_term', 24), ('visual_people', 22), ('visual_story', 17), ('visual_goals', 24), ('visual_presentation', 45), ('visual_campaign', 47), ('visual_expansion', 15), ('visual_quiet', 20), ('visual_residence', 26), ('visual_interactions', 26), ('visual_keyboard_movement', 10), ('visual_departure_equipment', 21), ('visual_facilities', 21), ('visual_director', 25), ('visual_combat_feedback', 11), ('visual_security_ai', 24), ('visual_backpack_stacks', 25), ('visual_map_environments', 77), ('visual_district_system', 33), ('visual_self_care', 22), ('visual_tactical', 32), ('visual_cooperation_motion', 17), ('visual_neighborhood', 20)]:
             run(name, ['--path', str(project), '--resolution', '1440x900', '--audio-driver', 'Dummy',
                 '--script', f'res://tests/{name}.gd'], f'{count} checks, 0 failures')
             graphical += count
-    print(f'Validated {logical} logical checks, {graphical} GUI checks, startup and 65 persistence processes.')
+    print(f'Validated {logical} logical checks, {graphical} GUI checks, startup and 71 persistence processes.')
     print(f'Clean project: {project}\nLogs: {output}')
 
 

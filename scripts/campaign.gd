@@ -11,6 +11,8 @@ var expansion := SurvivalExpansion.new()
 var facilities := FacilitySystem.new()
 var director := CampaignDirector.new()
 var districts := DistrictSystem.new()
+var neighborhood := NeighborhoodSystem.new()
+var neighborhood_view: NeighborhoodView
 var self_care := SelfCareSystem.new()
 var chronicle := CampaignChronicle.new()
 var siege := SiegeState.new()
@@ -82,7 +84,8 @@ func _ready() -> void:
 	scheduler.production_rate = func(id: String): return facilities.rate(id)
 	facilities.sync(self)
 	expansion.sync(self)
-	get_window().title = "Live Forever · 留一盏灯 v1.12"
+	get_window().title = "Live Forever · 留一盏灯 v1.13"
+	neighborhood.sync(self)
 	chronicle.sync(self)
 	scheduler.task_finished.connect(func(id: int,task: String): chronicle.job(self,id,task))
 	self_care.sync(self)
@@ -114,6 +117,9 @@ func _ready() -> void:
 	security_view = SecurityView.new()
 	security_view.game = self
 	add_child(security_view)
+	neighborhood_view = NeighborhoodView.new()
+	neighborhood_view.game = self
+	add_child(neighborhood_view)
 	interface = CampaignInterface.new()
 	interface.game = self
 	add_child(interface)
@@ -163,6 +169,20 @@ func _ready() -> void:
 	if not persistence_enabled or not save_store.has_save(): chronicle.apply_scenario(self,"classic")
 	_log("左键走动，双击奔跑；点床与餐桌直接休息或进食，B选择建设。20:00安排夜间岗位。")
 	_refresh_hud()
+
+
+func neighborhood_snapshot() -> Dictionary:
+	return neighborhood.snapshot()
+
+
+func restore_neighborhood(data: Dictionary) -> void:
+	neighborhood.restore(data,self)
+	if is_instance_valid(neighborhood_view): neighborhood_view.dismiss_loaded()
+
+
+func expedition_attack() -> void:
+	neighborhood.cancel()
+	super.expedition_attack()
 
 
 func districts_snapshot() -> Dictionary:
@@ -379,6 +399,7 @@ func advance_simulation(delta: float) -> void:
 			if actor.person.persona == "chen" and expedition.noise_burst>75: actor.person.stress=minf(100,actor.person.stress+step*.18)
 			var controls := _expedition_controls()
 			districts.tick_work(self,step,controls)
+			controls = neighborhood.tick(self,step,controls)
 			expedition.tick(step, actor, controls)
 			districts.tick(self,step)
 			director.observe_trip(self)
@@ -542,6 +563,7 @@ func start_expedition(take_tool: bool = false, take_medicine: bool = false) -> b
 	expedition.reload_remaining = 0
 	expansion.refresh_slots(expedition, survivors[id])
 	districts.begin_trip(self)
+	neighborhood.begin_trip(self)
 	director.begin_trip(self)
 	cycle.phase = "scavenge"
 	context_open = false
@@ -554,6 +576,7 @@ func start_expedition(take_tool: bool = false, take_medicine: bool = false) -> b
 
 
 func expedition_retreat() -> void:
+	neighborhood.cancel()
 	if is_instance_valid(departure_dialog) and departure_dialog.visible: return
 	if not expedition.active or game_over or center.visible or load_dialog.visible or new_dialog.visible or exit_dialog.visible: return
 	if cycle.phase == "returning": return
@@ -623,6 +646,7 @@ func confirm_departure() -> void:
 
 
 func _on_expedition_returned(id: int, cargo: Dictionary, survived: bool) -> void:
+	neighborhood.trip_return(self,survived and survivors[id].health > 0)
 	chronicle.trip_return(self,survived and survivors[id].health > 0,id)
 	districts.trip_return(self,survived and survivors[id].health > 0)
 	director.trip_return(self,survived and survivors[id].health > 0)
@@ -673,6 +697,7 @@ func _settle_night(lines: Array) -> void:
 	upkeep.tick(minutes, simulation_time)
 	expansion.dawn(self, minutes, report)
 	districts.dawn(self,report)
+	neighborhood.dawn(self,report)
 	residence.finish_move(self, report)
 	residence.noise *= 0.4
 	# Morning boundaries are processed once; disable routine orders in the report.
@@ -799,6 +824,7 @@ func begin_day() -> void:
 
 
 func _expedition_controls() -> Dictionary:
+	if is_instance_valid(neighborhood_view) and neighborhood_view.opened: return {}
 	if _loot_open: return {}
 	if cycle.phase == "returning":
 		var forced := _route_controls(110,0,true)
@@ -858,6 +884,7 @@ func _expedition_controls() -> Dictionary:
 					if expedition.interior.doors[door_index]["window"]==0:return {"window":true}
 				elif int(expedition.interior.doors[door_index]["open"])!=interface.target_door_state:return {"interact":true}
 				interface.has_move_target = false
+			elif interface.target_site == -3: neighborhood_view.open_at(neighborhood_view.pending_node)
 			elif interface.target_site >= 0 or interface.target_site == -2: expedition_view.search_held = true
 		return controls
 	return manual
@@ -1018,6 +1045,12 @@ func cancel_selected() -> void:
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
+	if is_instance_valid(neighborhood_view) and neighborhood_view.opened:
+		if event is InputEventKey and event.pressed and not event.echo:
+			if event.physical_keycode==KEY_ESCAPE: neighborhood_view.close()
+			elif event.physical_keycode==KEY_F6: save_game()
+			elif event.physical_keycode==KEY_F11: center._set_fullscreen(not game_audio.fullscreen)
+		get_viewport().set_input_as_handled();return
 	if is_instance_valid(chronicle_view) and chronicle_view.opened:
 		if event is InputEventKey and event.pressed and not event.echo:
 			if event.physical_keycode in [KEY_ESCAPE,KEY_F2,KEY_F3,KEY_F4]: chronicle_view.close()
@@ -1072,6 +1105,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.physical_keycode == KEY_Y and not _loot_open:
 			district_view.toggle();get_viewport().set_input_as_handled();return
+		if event.physical_keycode==KEY_E and expedition.active and not _loot_open and not paused and not neighborhood.nearby(self).is_empty() and expedition.interior.nearby(expedition)<0:
+			neighborhood_view.open_at(neighborhood.nearby(self));get_viewport().set_input_as_handled();return
 		if event.physical_keycode == KEY_G and expedition.active:
 			expedition_decoy();get_viewport().set_input_as_handled();return
 		if event.physical_keycode == KEY_U and cycle.phase in ["day","planning","scavenge","returning"]:
@@ -1134,6 +1169,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if is_instance_valid(neighborhood_view) and neighborhood_view.opened: return
 	if is_instance_valid(chronicle_view) and chronicle_view.opened: return
 	if is_instance_valid(district_view) and district_view.opened: return
 	if is_instance_valid(security_view) and security_view.opened: return
@@ -1145,6 +1181,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if expedition.active:
 			cycle.return_requested = false
 			districts.work.clear()
+			neighborhood.cancel()
 			interface.has_move_target = false
 			expedition_view.search_held = false
 		else:
@@ -1160,6 +1197,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		point.x += expedition_view._camera()
 		var floor_level := 1 if point.y < 470 and point.x >= expedition.upper_left() else 0
 		var site := -1
+		neighborhood.cancel()
+		var project_hit:=neighborhood.hit(self,point)
+		if not project_hit.is_empty():
+			neighborhood_view.pending_node=project_hit
+			var destination:=NeighborhoodSystem.point(project_hit)
+			interface.set_target(destination.x,int(NeighborhoodSystem.NODES[project_hit]["floor"]),event.double_click,-3)
+			get_viewport().set_input_as_handled();return
 		var door_hit := expedition.interior.hit(expedition,point) if expedition.environment_active else -1
 		if door_hit>=0:
 			var door_point: Dictionary = InteriorState.layout(expedition.location_id)[door_hit]
@@ -1171,7 +1215,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled();return
 		for index in range(expedition.site_definitions().size()):
 			var definition: Dictionary = expedition.site_definitions()[index]
-			if expedition.site_hit_rect(index).has_point(point):
+			if expedition.site_hit_rect(index).has_point(point) and expedition.interior.visible(expedition,float(definition["x"]),int(definition["floor"])):
 				site = index
 				point.x = definition["x"]
 				floor_level = definition["floor"]

@@ -21,6 +21,8 @@ const MODES := ["patrol", "investigate", "chase", "windup", "stunned", "dead"]
 
 var interior := InteriorState.new()
 var minds: Array[Dictionary] = []
+var persistent_loot := false # Derived from the campaign neighborhood, never trusted from disk.
+var carrying_person := false # Derived from validated rescue ownership.
 var environment_active := false # Derived by the campaign, not trusted from disk.
 var decoys: Array[Dictionary] = []
 var lure_cooldown := 0.0
@@ -46,6 +48,7 @@ var active := false
 var actor_id := -1
 var attempts := 0
 var last_refresh_day := 1
+var population_day := 1
 var return_speed := 1.0
 var player_x := 110.0
 var player_y := 620.0
@@ -95,6 +98,10 @@ static func day_at(seconds: float) -> int:
 func refresh_for_day(day: int) -> void:
 	if active or day <= last_refresh_day:
 		return
+	if persistent_loot:
+		last_refresh_day=day
+		condition=(day-1)%2
+		return
 	# Migration/restocking is announced before departure, never spawned on a
 	# player mid-fight. Only two locations refresh; others stay depleted.
 	for index in [(day * 2) % site_definitions().size(), (day * 2 + 1) % site_definitions().size()]:
@@ -107,6 +114,7 @@ func refresh_for_day(day: int) -> void:
 
 
 func _spawn_enemies(day: int) -> void:
+	population_day=day
 	enemies.clear()
 	minds.clear()
 	var definitions: Array = area()["guards"].duplicate(true)
@@ -266,7 +274,7 @@ func tick(delta: float, actor: Survivor, raw_controls: Dictionary) -> void:
 			_reset_route()
 		elif moving:
 			facing = signf(axis)
-			var pace := 95.0 if sneaking else 275.0 if sprinting else 190.0
+			var pace := (95.0 if sneaking else 275.0 if sprinting else 190.0) * (.8 if carrying_person else 1.0)
 			var surface := current_surface()
 			player_x = clampf(interior.stop_x(location_id,player_x,player_x + axis * pace * float(surface["pace"]) * actor.effort_factor() * delta,floor_level) if environment_active else player_x + axis * pace * float(surface["pace"]) * actor.effort_factor() * delta, 90 if floor_level == 0 else upper_left(), right_edge(floor_level))
 			actor.fatigue = minf(100, actor.fatigue + delta * (0.10 if sprinting else 0.04))
@@ -698,7 +706,7 @@ func snapshot() -> Dictionary:
 		"decoys":decoys.duplicate(true),"lure_cooldown":lure_cooldown,
 		"condition":condition,"route_open":route_open,"route_progress":route_progress,"route_tool":route_tool,
 		"stacked": stacked, "extra_slots": extra_slots, "reserve_ammo": reserve_ammo, "magazine": magazine, "reload_remaining": reload_remaining, "discovered": discovered.duplicate(), "capacity": capacity, "manual_loot": manual_loot, "loot_site": loot_site,
-		"active": active, "actor_id": actor_id, "attempts": attempts, "last_refresh_day": last_refresh_day,
+		"active": active, "actor_id": actor_id, "attempts": attempts, "last_refresh_day": last_refresh_day, "population_day":population_day,
 		"return_speed": return_speed, "player_x": player_x, "player_y": player_y, "floor": floor_level,
 		"facing": facing, "sneaking": sneaking, "sprinting": sprinting, "moving": moving,
 		"noise": noise, "noise_burst": noise_burst, "elapsed": elapsed, "invulnerable": invulnerable,
@@ -723,6 +731,7 @@ func restore_validated(data: Dictionary) -> void:
 	actor_id = int(data["actor_id"])
 	attempts = int(data["attempts"])
 	last_refresh_day = int(data["last_refresh_day"])
+	population_day=int(data["population_day"])
 	floor_level = int(data["floor"])
 	climb_target = int(data["climb_target"])
 	search_index = int(data["search_index"])
@@ -762,7 +771,7 @@ static func validate_snapshot(data: Variant, actors: Array, id: String = "street
 	var site_defs: Array = definition["sites"]
 	var upper: float = definition["upper_left"]
 	var width: float = definition["width"]
-	var fields := ["interior", "minds", "decoys", "lure_cooldown", "condition", "route_open", "route_progress", "route_tool", "stacked", "extra_slots", "reserve_ammo", "magazine", "reload_remaining", "discovered", "capacity", "manual_loot", "loot_site", "active", "actor_id", "attempts", "last_refresh_day", "return_speed", "player_x", "player_y", "floor", "facing", "sneaking", "sprinting", "moving", "noise", "noise_burst", "elapsed", "invulnerable", "attack_cooldown", "attack_windup", "medicine_cooldown", "climb_target", "climb_progress", "search_index", "search_progress", "search_duration", "search_tool", "feedback", "bag", "sites", "enemies"]
+	var fields := ["interior", "minds", "decoys", "lure_cooldown", "condition", "route_open", "route_progress", "route_tool", "stacked", "extra_slots", "reserve_ammo", "magazine", "reload_remaining", "discovered", "capacity", "manual_loot", "loot_site", "active", "actor_id", "attempts", "last_refresh_day", "population_day", "return_speed", "player_x", "player_y", "floor", "facing", "sneaking", "sprinting", "moving", "noise", "noise_burst", "elapsed", "invulnerable", "attack_cooldown", "attack_windup", "medicine_cooldown", "climb_target", "climb_progress", "search_index", "search_progress", "search_duration", "search_tool", "feedback", "bag", "sites", "enemies"]
 	if not _keys(data, fields): return "探索字段不完整"
 	var room_error := InteriorState.validate(data["interior"],id,data)
 	if not room_error.is_empty(): return room_error
@@ -790,6 +799,7 @@ static func validate_snapshot(data: Variant, actors: Array, id: String = "street
 		unique.append(int(index))
 	for field in ["stacked", "active", "sneaking", "sprinting", "moving", "search_tool"]:
 		if not data[field] is bool: return "探索开关无效"
+	if not _i(data["population_day"],1,int(data["last_refresh_day"])): return "感染者迁入日期无效"
 	if not _i(data["actor_id"], -1, PeopleCatalog.MAX_HISTORY - 1) or not _i(data["attempts"], 0, 10000000) or not _i(data["last_refresh_day"], 1, 10000000): return "探索人员或地点日期无效"
 	if not data["return_speed"] in [1.0, 3.0] or not data["facing"] in [-1.0, 1.0] or not _i(data["floor"], 0, 1): return "探索方向与楼层无效"
 	for field in ["noise", "noise_burst"]:
@@ -835,7 +845,7 @@ static func validate_snapshot(data: Variant, actors: Array, id: String = "street
 		var duration := 3.0 if data["search_tool"] else float(site_defs[search]["seconds"]) + (4.0 if site["locked"] else 0.0)
 		if not data["active"] or target != -1 or site_defs[search]["floor"] != level or data["search_progress"] >= duration or not is_equal_approx(data["search_duration"], duration): return "搜索动作与容器不符"
 		if data["search_tool"] and (not site["locked"] or data["bag"]["tools"] < 1): return "破锁没有实际工具"
-	if not data["enemies"] is Array or data["enemies"].size() != (definition["guards"].size() + (1 if int(data["last_refresh_day"]) % 3 == 0 else 0)): return "感染者数量与迁入日期不符"
+	if not data["enemies"] is Array or data["enemies"].size() != (definition["guards"].size() + (1 if int(data["population_day"]) % 3 == 0 else 0)): return "感染者数量与迁入日期不符"
 	for enemy in data["enemies"]:
 		if not _keys(enemy, ["x", "floor", "min", "max", "direction", "mode", "suspicion", "target", "timer", "cooldown", "brace", "hp", "kind", "home_floor", "target_floor", "memory", "climb_target", "climb_progress"]): return "感染者字段无效"
 		if not _i(enemy["floor"], 0, 1) or not enemy["mode"] in MODES or not enemy["kind"] in ["walker", "runner", "brute"] or not _i(enemy["hp"], 0, EnemyCatalog.stats(enemy["kind"])["health"]) or not enemy["direction"] in [-1.0, 1.0]: return "感染者状态无效"

@@ -13,6 +13,13 @@ var peeking := false
 
 static func layout(id: String) -> Array[Dictionary]:
  if _layouts.has(id):return _layouts[id]
+ # The two district locations use authored partitions: clinic ward / pharmacy
+ # and pump hall / valve gallery, connected by the ordinary and service ladders.
+ if id in ['clinic','waterworks']:
+  var authored:Dictionary={'clinic':[[980.0,0],[1840.0,0],[1715.0,1],[2200.0,1]],'waterworks':[[1130.0,0],[2360.0,0],[2250.0,1]]}
+  var rooms:Array[Dictionary]=[]
+  for p:Array in authored[id]:rooms.append({'x':float(p[0]),'floor':int(p[1])})
+  _layouts[id]=rooms;return rooms
  var map: Dictionary = LocationCatalog.area(id)
  var result: Array[Dictionary] = []
  for floor_id in range(2):
@@ -38,9 +45,12 @@ func setup(id: String, initially_open: bool = false) -> void:
 func barrier(id: String, a: float, b: float, floor_id: int) -> int:
  if not enabled:return -1
  var points:=layout(id)
+ var chosen:=-1;var nearest:=INF
  for n in range(doors.size()):
-  if points[n]['floor']==floor_id and not doors[n]['open'] and doors[n]['hp']>0 and minf(a,b)<float(points[n]['x']) and maxf(a,b)>float(points[n]['x']):return n
- return -1
+  if points[n]['floor']==floor_id and not doors[n]['open'] and doors[n]['hp']>0 and minf(a,b)<float(points[n]['x']) and maxf(a,b)>float(points[n]['x']):
+   var distance:=absf(float(points[n]['x'])-a)
+   if distance<nearest:chosen=n;nearest=distance
+ return chosen
 
 func stop_x(id: String, a: float, b: float, floor_id: int) -> float:
  var n:=barrier(id,a,b,floor_id)

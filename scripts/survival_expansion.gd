@@ -79,7 +79,7 @@ func reserved_slots(game: Node2D) -> int:
 	return equipped_slots(game.survivors[id]) + ceili(ammo_loadout / 8.0) if id >= 0 else 0
 
 func refresh_slots(field: ExpeditionState, actor: Survivor) -> void:
-	field.extra_slots = equipped_slots(actor) + ceili((field.reserve_ammo + field.magazine) / 8.0) + carried.size()
+	field.extra_slots = equipped_slots(actor) + ceili((field.reserve_ammo + field.magazine) / 8.0) + carried.size() + (2 if field.carrying_person else 0)
 
 func unlocked(game: Node2D, id: String) -> bool:
 	match id:
@@ -370,6 +370,7 @@ static func validate(data: Variant, world: Dictionary) -> String:
 		for item in data["gear"]:
 			if item["owner"] == owner and GearCatalog.ITEMS[item["kind"]]["slot"] != "coat": equipped += 1
 		var expected: int = equipped + ceili((field["reserve_ammo"] + field["magazine"]) / 8.0) + data["carried"].size()
+		if world.get("neighborhood",{}).get("rescue",{}).get("state","")=="carried": expected+=2
 		if expected != field["extra_slots"]: return "装备弹药与背包负重不符"
 	elif not data["carried"].is_empty() or field["reserve_ammo"] != 0 or field["magazine"] != 0 or field["reload_remaining"] != 0:
 		return "未外出却保留随身装备物资"

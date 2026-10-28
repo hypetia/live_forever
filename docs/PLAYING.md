@@ -1,8 +1,18 @@
 # 正常游戏：白天生活，夜间分工，清晨结算
 
-[下载Windows游戏](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.12.0/live_forever_v22_windows_x64.zip) · [全部下载](../downloads/README.md)
+[下载Windows游戏](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.13.0/live_forever_v23_windows_x64.zip) · [全部下载](../downloads/README.md)
 
 解压整个文件夹，双击LiveForever.exe。游戏离线运行，不需要Godot、Python、账号或服务器。验收包是另一个工具，只有主动运行windows_acceptance.cmd才会自动控制人物测试。
+
+## v1.13：第一片持续变化的街区
+
+诊所和供水站：点击设备先实际走近，或靠近按E打开选择卡。项目完成才扣背包原料，移动、受伤、攻击、右键或T可中断。拆取设备要再次确认，会永久放弃对应生产能力。
+
+诊所楼下恢复冷链、楼上取已保全药品；原药有限，首次进入起有三个夜晚的停电抢救期。水厂修好后每夜供水，可到楼上接管线，选择分流基地或诊所。接头先预警，换好后不重复出现同一项老化。
+
+第6天起诊所右侧可救援被困同伴：药1、水2，背负占2格且移动慢20%，活着到出口后加入队伍。已有该人物时改为尚未加入的另一位，遵守其原有出现日期。F3记下共同经历，F4明确授权医护帮助；救援不会自动增加用药权限。
+
+其他七图仍采用现有补给规则；完整成本、生产和范围见[街区规则](NEIGHBORHOOD_V23.md)。
 
 ## v1.12：同伴协作与动作
 

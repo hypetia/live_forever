@@ -58,6 +58,14 @@ func refresh() -> void:
     toggle.toggled.connect(func(value: bool):game.self_care.set_cooperation(game,actor,pair[0],value))
   text('手动命令始终优先。伤员移动、医护受伤、缺药或日落会取消未完成护理；不会远程回血。多人授权备餐时优先厨师，同一时刻不重复开锅。')
  elif page=='people':
+  if game.neighborhood.enabled:
+   text('共同经历：街区会记住你们',23)
+   if game.neighborhood.memories.is_empty():text('在诊所与水厂采取行动后，这里记录持续的变化。')
+   for memory in game.neighborhood.memories.slice(-6):
+    var kind:String=memory['kind']
+    var title:String=NeighborhoodSystem.ACTIONS[kind]['name'] if NeighborhoodSystem.ACTIONS.has(kind) else {'rescued':'成功背回同伴','rescue_lost':'未能完成救援','network':'恢复街区医疗与稳定供水'}[kind]
+    text('第%d天 · %s：%s%s' % [memory['day'],PeopleCatalog.DATA[memory['actor']]['name'],title,(' · '+PeopleCatalog.DATA[memory['other']]['name']) if not memory['other'].is_empty() else ''],18)
+   if game.neighborhood.rescue['state']=='safe' and not game.neighborhood.rescue['carrier'].is_empty():text('救援记忆：获救医护在伤情接近时优先照护救援者；急重伤仍优先。需要F4明确授权。',18)
   button('同伴分工与协作 F4',func():page='cooperate';refresh())
   text('不是代号：每个人都带着一段未完的过去',26)
   text('选择一条信念，亲自勘查目标并生还，再让本人回到工作台完成专属计划。没有限时惩罚，也不会自动扣料。')

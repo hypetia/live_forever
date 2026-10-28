@@ -1,0 +1,1709 @@
+{
+  "version": "1.13.0",
+  "date": "2026-10-28",
+  "save_schema": 20,
+  "status": "Persistent clinic/waterworks, sourced production, physical rescue and contextual feedback verified within the stated scope. Windows hardware remains unverified.",
+  "logical_checks": 2337,
+  "logical_suites": {
+    "test_self_care": 87,
+    "test_cooperation_motion": 86,
+    "test_combat_feedback": 18,
+    "test_cooking": 57,
+    "test_district_system": 172,
+    "test_survival": 54,
+    "test_expedition_saves": 88,
+    "test_people": 124,
+    "test_director": 52,
+    "test_vitals": 30,
+    "test_neighborhood": 87,
+    "test_decoys": 32,
+    "test_backpack_stacks": 73,
+    "test_keyboard_movement": 27,
+    "test_goals": 63,
+    "test_enemy_ai": 59,
+    "test_story": 68,
+    "test_map_environments": 298,
+    "test_expedition": 76,
+    "test_tactical_campaign": 59,
+    "test_shelter": 41,
+    "test_long_term": 97,
+    "test_interactions": 89,
+    "test_siege": 25,
+    "test_residence": 90,
+    "test_campaign": 85,
+    "test_security": 25,
+    "test_expansion": 103,
+    "test_facilities": 62,
+    "test_saves": 74,
+    "test_departure_equipment": 36
+  },
+  "font": "All runtime Chinese glyphs are present in the bundled subset.",
+  "gui_checks": 676,
+  "gui_suites": {
+    "visual_self_care": 22,
+    "visual_smoke": 36,
+    "visual_facilities": 21,
+    "visual_interactions": 26,
+    "visual_long_term": 24,
+    "visual_people": 22,
+    "visual_goals": 24,
+    "visual_director": 25,
+    "visual_keyboard_movement": 10,
+    "visual_campaign": 47,
+    "visual_backpack_stacks": 25,
+    "visual_combat_feedback": 11,
+    "visual_expedition": 36,
+    "visual_map_environments": 77,
+    "visual_security_ai": 24,
+    "visual_quiet": 20,
+    "visual_story": 17,
+    "visual_presentation": 45,
+    "visual_expansion": 15,
+    "visual_departure_equipment": 21,
+    "visual_residence": 26,
+    "visual_tactical": 32,
+    "visual_district_system": 33,
+    "visual_cooperation_motion": 17,
+    "visual_neighborhood": 20
+  },
+  "persistence_processes": 71,
+  "campaign_runs": 11,
+  "campaign_evidence": "v23-campaign-balance.json",
+  "desktop": {
+    "checks": [
+      {
+        "message": "actual native window size 1024x768",
+        "passed": true
+      },
+      {
+        "message": "fixed design viewport and preserved aspect at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "day clock and dusk progress are visible at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "complete roster cards fit at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "new scenario / personal history page fits at 1024x768: starts",
+        "passed": true
+      },
+      {
+        "message": "new scenario / personal history page fits at 1024x768: people",
+        "passed": true
+      },
+      {
+        "message": "new scenario / personal history page fits at 1024x768: cooperate",
+        "passed": true
+      },
+      {
+        "message": "spatial district chart fits and pauses at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "home and relocation drawer fits at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "opportunity briefing fits at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "security inspection fits and pauses at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "equipment workshop fits and explicitly pauses at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "basic self-care and separate cooking policy fit at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "autonomous water use begins with actual travel at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "unfinished autonomous travel restores without duplicate payment at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "physical self-care consumes one water and cleanly restores the test fixture at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "named treatment confirmation fits at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "additional maps and campaign gates appear at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "outpost duty is visible and gated until actual construction at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "night assignment fits and names all roles at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "actual units are grouped into stacks at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "both physical stack grids fit at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "field stack drawer fits at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "timed map clearance is visible before payment at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "cleared access consumes one tool and enters real routing at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "opened map access survives actual restore at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "field outpost work shows progress and pays only on completion at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "paid lure, separate enemy target and district state restore at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "preflight restores untouched campaign at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "physical clinic context fits at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "demolition requires review without changing the world at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "on-site project shows unpaid progress at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "unfinished field project restores paused at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "continued field project pays once and changes actual device at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "largest water diversion card fits at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "paid plant and completed route preserve saves and reset fixture at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "handbook fits complete logical viewport at 1024x768",
+        "passed": true
+      },
+      {
+        "message": "actual native window size 1280x720",
+        "passed": true
+      },
+      {
+        "message": "fixed design viewport and preserved aspect at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "day clock and dusk progress are visible at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "complete roster cards fit at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "new scenario / personal history page fits at 1280x720: starts",
+        "passed": true
+      },
+      {
+        "message": "new scenario / personal history page fits at 1280x720: people",
+        "passed": true
+      },
+      {
+        "message": "new scenario / personal history page fits at 1280x720: cooperate",
+        "passed": true
+      },
+      {
+        "message": "spatial district chart fits and pauses at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "home and relocation drawer fits at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "opportunity briefing fits at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "security inspection fits and pauses at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "equipment workshop fits and explicitly pauses at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "basic self-care and separate cooking policy fit at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "autonomous water use begins with actual travel at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "unfinished autonomous travel restores without duplicate payment at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "physical self-care consumes one water and cleanly restores the test fixture at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "named treatment confirmation fits at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "additional maps and campaign gates appear at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "outpost duty is visible and gated until actual construction at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "night assignment fits and names all roles at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "actual units are grouped into stacks at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "both physical stack grids fit at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "field stack drawer fits at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "timed map clearance is visible before payment at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "cleared access consumes one tool and enters real routing at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "opened map access survives actual restore at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "field outpost work shows progress and pays only on completion at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "paid lure, separate enemy target and district state restore at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "preflight restores untouched campaign at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "physical clinic context fits at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "demolition requires review without changing the world at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "on-site project shows unpaid progress at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "unfinished field project restores paused at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "continued field project pays once and changes actual device at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "largest water diversion card fits at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "paid plant and completed route preserve saves and reset fixture at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "handbook fits complete logical viewport at 1280x720",
+        "passed": true
+      },
+      {
+        "message": "actual native window size 1440x900",
+        "passed": true
+      },
+      {
+        "message": "fixed design viewport and preserved aspect at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "day clock and dusk progress are visible at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "complete roster cards fit at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "new scenario / personal history page fits at 1440x900: starts",
+        "passed": true
+      },
+      {
+        "message": "new scenario / personal history page fits at 1440x900: people",
+        "passed": true
+      },
+      {
+        "message": "new scenario / personal history page fits at 1440x900: cooperate",
+        "passed": true
+      },
+      {
+        "message": "spatial district chart fits and pauses at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "home and relocation drawer fits at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "opportunity briefing fits at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "security inspection fits and pauses at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "equipment workshop fits and explicitly pauses at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "basic self-care and separate cooking policy fit at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "autonomous water use begins with actual travel at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "unfinished autonomous travel restores without duplicate payment at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "physical self-care consumes one water and cleanly restores the test fixture at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "named treatment confirmation fits at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "additional maps and campaign gates appear at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "outpost duty is visible and gated until actual construction at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "night assignment fits and names all roles at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "actual units are grouped into stacks at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "both physical stack grids fit at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "field stack drawer fits at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "timed map clearance is visible before payment at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "cleared access consumes one tool and enters real routing at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "opened map access survives actual restore at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "field outpost work shows progress and pays only on completion at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "paid lure, separate enemy target and district state restore at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "preflight restores untouched campaign at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "physical clinic context fits at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "demolition requires review without changing the world at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "on-site project shows unpaid progress at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "unfinished field project restores paused at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "continued field project pays once and changes actual device at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "largest water diversion card fits at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "paid plant and completed route preserve saves and reset fixture at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "handbook fits complete logical viewport at 1440x900",
+        "passed": true
+      },
+      {
+        "message": "actual native window size 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "fixed design viewport and preserved aspect at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "day clock and dusk progress are visible at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "complete roster cards fit at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "new scenario / personal history page fits at 1920x1080: starts",
+        "passed": true
+      },
+      {
+        "message": "new scenario / personal history page fits at 1920x1080: people",
+        "passed": true
+      },
+      {
+        "message": "new scenario / personal history page fits at 1920x1080: cooperate",
+        "passed": true
+      },
+      {
+        "message": "spatial district chart fits and pauses at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "home and relocation drawer fits at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "opportunity briefing fits at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "security inspection fits and pauses at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "equipment workshop fits and explicitly pauses at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "basic self-care and separate cooking policy fit at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "autonomous water use begins with actual travel at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "unfinished autonomous travel restores without duplicate payment at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "physical self-care consumes one water and cleanly restores the test fixture at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "named treatment confirmation fits at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "additional maps and campaign gates appear at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "outpost duty is visible and gated until actual construction at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "night assignment fits and names all roles at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "actual units are grouped into stacks at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "both physical stack grids fit at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "field stack drawer fits at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "timed map clearance is visible before payment at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "cleared access consumes one tool and enters real routing at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "opened map access survives actual restore at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "field outpost work shows progress and pays only on completion at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "paid lure, separate enemy target and district state restore at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "preflight restores untouched campaign at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "physical clinic context fits at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "demolition requires review without changing the world at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "on-site project shows unpaid progress at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "unfinished field project restores paused at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "continued field project pays once and changes actual device at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "largest water diversion card fits at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "paid plant and completed route preserve saves and reset fixture at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "handbook fits complete logical viewport at 1920x1080",
+        "passed": true
+      },
+      {
+        "message": "actual fullscreen mode enabled",
+        "passed": true
+      },
+      {
+        "message": "actual fullscreen returns to a movable window",
+        "passed": true
+      },
+      {
+        "message": "three original members survive continuous actual gameplay",
+        "passed": true
+      },
+      {
+        "message": "continuous test advances real gameplay time rather than leaving a paused window",
+        "passed": true
+      },
+      {
+        "message": "actual continuous searching and physical return completed",
+        "passed": true
+      },
+      {
+        "message": "continuous session saves a fully valid world",
+        "passed": true
+      }
+    ],
+    "elapsed_seconds": 360.154,
+    "engine": "4.6.3-stable (official)",
+    "frames": 2748,
+    "platform": "Linux",
+    "requested_minutes": 6.0,
+    "resolutions": [
+      {
+        "actual": [
+          1024,
+          768
+        ],
+        "requested": [
+          1024,
+          768
+        ],
+        "status": "checked"
+      },
+      {
+        "actual": [
+          1280,
+          720
+        ],
+        "requested": [
+          1280,
+          720
+        ],
+        "status": "checked"
+      },
+      {
+        "actual": [
+          1440,
+          900
+        ],
+        "requested": [
+          1440,
+          900
+        ],
+        "status": "checked"
+      },
+      {
+        "actual": [
+          1920,
+          1080
+        ],
+        "requested": [
+          1920,
+          1080
+        ],
+        "status": "checked"
+      }
+    ],
+    "samples": [
+      {
+        "alive": 3,
+        "fps": 9.0,
+        "frames": 1,
+        "simulation_seconds": 0.0811543333333337,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 12,
+          "meals": 2,
+          "medicine": 2,
+          "raw_food": 6,
+          "tools": 1,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 0.008
+      },
+      {
+        "alive": 3,
+        "fps": 9.0,
+        "frames": 122,
+        "simulation_seconds": 9.48761277777783,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 10,
+          "meals": 2,
+          "medicine": 2,
+          "raw_food": 6,
+          "tools": 1,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 10.089
+      },
+      {
+        "alive": 3,
+        "fps": 10.0,
+        "frames": 208,
+        "simulation_seconds": 17.5620977777781,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 4,
+          "meals": 2,
+          "medicine": 2,
+          "raw_food": 6,
+          "tools": 1,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 20.139
+      },
+      {
+        "alive": 3,
+        "fps": 11.0,
+        "frames": 321,
+        "simulation_seconds": 27.0592107037035,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 4,
+          "meals": 2,
+          "medicine": 2,
+          "raw_food": 6,
+          "tools": 1,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 30.238
+      },
+      {
+        "alive": 3,
+        "fps": 11.0,
+        "frames": 426,
+        "simulation_seconds": 36.3008831322744,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 4,
+          "meals": 2,
+          "medicine": 2,
+          "raw_food": 6,
+          "tools": 1,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 40.283
+      },
+      {
+        "alive": 3,
+        "fps": 7.0,
+        "frames": 528,
+        "simulation_seconds": 44.942112132274,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 4,
+          "meals": 2,
+          "medicine": 2,
+          "raw_food": 6,
+          "tools": 1,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 50.358
+      },
+      {
+        "alive": 3,
+        "fps": 13.0,
+        "frames": 647,
+        "simulation_seconds": 53.6846167989402,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 2,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 60.373
+      },
+      {
+        "alive": 3,
+        "fps": 10.0,
+        "frames": 777,
+        "simulation_seconds": 63.314166132273,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 2,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 70.423
+      },
+      {
+        "alive": 3,
+        "fps": 10.0,
+        "frames": 870,
+        "simulation_seconds": 71.9665188465583,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 2,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 80.449
+      },
+      {
+        "alive": 3,
+        "fps": 17.0,
+        "frames": 1008,
+        "simulation_seconds": 366.719805333328,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 1,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 90.537
+      },
+      {
+        "alive": 3,
+        "fps": 6.0,
+        "frames": 1085,
+        "simulation_seconds": 374.254489666655,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 1,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 100.573
+      },
+      {
+        "alive": 3,
+        "fps": 6.0,
+        "frames": 1155,
+        "simulation_seconds": 381.254489666649,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 1,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 110.648
+      },
+      {
+        "alive": 3,
+        "fps": 6.0,
+        "frames": 1219,
+        "simulation_seconds": 387.646876999976,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 1,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 120.907
+      },
+      {
+        "alive": 3,
+        "fps": 8.0,
+        "frames": 1288,
+        "simulation_seconds": 394.541573333303,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 1,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 130.997
+      },
+      {
+        "alive": 3,
+        "fps": 6.0,
+        "frames": 1346,
+        "simulation_seconds": 400.341573333298,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 1,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 141.062
+      },
+      {
+        "alive": 3,
+        "fps": 7.0,
+        "frames": 1402,
+        "simulation_seconds": 405.941573333293,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 1,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 151.129
+      },
+      {
+        "alive": 3,
+        "fps": 6.0,
+        "frames": 1471,
+        "simulation_seconds": 412.841573333287,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 1,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 161.204
+      },
+      {
+        "alive": 3,
+        "fps": 7.0,
+        "frames": 1531,
+        "simulation_seconds": 418.841573333281,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 1,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 171.324
+      },
+      {
+        "alive": 3,
+        "fps": 4.0,
+        "frames": 1590,
+        "simulation_seconds": 424.741573333276,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 1,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 181.325
+      },
+      {
+        "alive": 3,
+        "fps": 7.0,
+        "frames": 1658,
+        "simulation_seconds": 431.53776133327,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 1,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 191.444
+      },
+      {
+        "alive": 3,
+        "fps": 11.0,
+        "frames": 1738,
+        "simulation_seconds": 439.124392333263,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 1,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 201.518
+      },
+      {
+        "alive": 3,
+        "fps": 7.0,
+        "frames": 1821,
+        "simulation_seconds": 447.080373999922,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 1,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 211.603
+      },
+      {
+        "alive": 3,
+        "fps": 11.0,
+        "frames": 1910,
+        "simulation_seconds": 455.098860222138,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 1,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 221.663
+      },
+      {
+        "alive": 3,
+        "fps": 8.0,
+        "frames": 2020,
+        "simulation_seconds": 660.0,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 13,
+          "materials": 13,
+          "meals": 2,
+          "medicine": 4,
+          "raw_food": 8,
+          "tools": 1,
+          "water": 11
+        },
+        "trips": 1,
+        "wall_seconds": 231.94
+      },
+      {
+        "alive": 3,
+        "fps": 5.0,
+        "frames": 2070,
+        "simulation_seconds": 664.899999999996,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 13,
+          "materials": 11,
+          "meals": 2,
+          "medicine": 4,
+          "raw_food": 8,
+          "tools": 1,
+          "water": 17
+        },
+        "trips": 1,
+        "wall_seconds": 241.949
+      },
+      {
+        "alive": 3,
+        "fps": 8.0,
+        "frames": 2145,
+        "simulation_seconds": 672.399999999989,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 13,
+          "materials": 11,
+          "meals": 0,
+          "medicine": 4,
+          "raw_food": 8,
+          "tools": 1,
+          "water": 17
+        },
+        "trips": 1,
+        "wall_seconds": 252.012
+      },
+      {
+        "alive": 3,
+        "fps": 5.0,
+        "frames": 2193,
+        "simulation_seconds": 677.199999999984,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 13,
+          "materials": 9,
+          "meals": 0,
+          "medicine": 4,
+          "raw_food": 8,
+          "tools": 1,
+          "water": 17
+        },
+        "trips": 1,
+        "wall_seconds": 262.013
+      },
+      {
+        "alive": 3,
+        "fps": 8.0,
+        "frames": 2264,
+        "simulation_seconds": 684.299999999978,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 12,
+          "materials": 5,
+          "meals": 2,
+          "medicine": 4,
+          "raw_food": 7,
+          "tools": 1,
+          "water": 16
+        },
+        "trips": 1,
+        "wall_seconds": 272.137
+      },
+      {
+        "alive": 3,
+        "fps": 4.0,
+        "frames": 2328,
+        "simulation_seconds": 690.699999999972,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 12,
+          "materials": 5,
+          "meals": 1,
+          "medicine": 4,
+          "raw_food": 7,
+          "tools": 1,
+          "water": 16
+        },
+        "trips": 1,
+        "wall_seconds": 282.218
+      },
+      {
+        "alive": 3,
+        "fps": 5.0,
+        "frames": 2379,
+        "simulation_seconds": 695.799999999967,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 12,
+          "materials": 5,
+          "meals": 1,
+          "medicine": 4,
+          "raw_food": 7,
+          "tools": 1,
+          "water": 16
+        },
+        "trips": 1,
+        "wall_seconds": 292.309
+      },
+      {
+        "alive": 3,
+        "fps": 7.0,
+        "frames": 2448,
+        "simulation_seconds": 702.699999999961,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 12,
+          "materials": 5,
+          "meals": 1,
+          "medicine": 4,
+          "raw_food": 7,
+          "tools": 1,
+          "water": 16
+        },
+        "trips": 1,
+        "wall_seconds": 302.341
+      },
+      {
+        "alive": 3,
+        "fps": 4.0,
+        "frames": 2508,
+        "simulation_seconds": 708.699999999956,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 12,
+          "materials": 1,
+          "meals": 1,
+          "medicine": 4,
+          "raw_food": 7,
+          "tools": 0,
+          "water": 16
+        },
+        "trips": 1,
+        "wall_seconds": 312.451
+      },
+      {
+        "alive": 3,
+        "fps": 5.0,
+        "frames": 2561,
+        "simulation_seconds": 713.999999999951,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 12,
+          "materials": 1,
+          "meals": 1,
+          "medicine": 4,
+          "raw_food": 7,
+          "tools": 0,
+          "water": 16
+        },
+        "trips": 1,
+        "wall_seconds": 322.454
+      },
+      {
+        "alive": 3,
+        "fps": 5.0,
+        "frames": 2603,
+        "simulation_seconds": 718.199999999947,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 12,
+          "materials": 1,
+          "meals": 1,
+          "medicine": 4,
+          "raw_food": 7,
+          "tools": 0,
+          "water": 16
+        },
+        "trips": 1,
+        "wall_seconds": 332.465
+      },
+      {
+        "alive": 3,
+        "fps": 8.0,
+        "frames": 2668,
+        "simulation_seconds": 724.699999999941,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 12,
+          "materials": 1,
+          "meals": 1,
+          "medicine": 4,
+          "raw_food": 7,
+          "tools": 0,
+          "water": 16
+        },
+        "trips": 1,
+        "wall_seconds": 342.596
+      },
+      {
+        "alive": 3,
+        "fps": 4.0,
+        "frames": 2714,
+        "simulation_seconds": 729.299999999937,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 12,
+          "materials": 1,
+          "meals": 1,
+          "medicine": 4,
+          "raw_food": 7,
+          "tools": 0,
+          "water": 16
+        },
+        "trips": 1,
+        "wall_seconds": 352.639
+      }
+    ],
+    "save_path": "/workspace/artifacts/v23-desktop-final/session.json",
+    "screens": 1,
+    "status": "ready_to_close",
+    "stock": {
+      "fuel": 12,
+      "materials": 1,
+      "meals": 1,
+      "medicine": 4,
+      "raw_food": 7,
+      "tools": 0,
+      "water": 16
+    },
+    "worst_frame_seconds": 0.15,
+    "native_close_and_restart": "passed",
+    "executable_sha256": "bea6a26f891d9c752b3e5c097b57bfa7ddd286b48b4c699d90dcf8779350df5a",
+    "acceptance_binary_sha256": "b6392ff5cebb3427f83f4ee9b465aef089e9c9b9e5da39230e1d489b345a2867",
+    "continuous_30_minutes_complete": false,
+    "process_memory_samples": [
+      {
+        "monotonic_seconds": 296829.78307631,
+        "resident_bytes": 20480
+      },
+      {
+        "monotonic_seconds": 296839.795781807,
+        "resident_bytes": 170074112
+      },
+      {
+        "monotonic_seconds": 296849.816330299,
+        "resident_bytes": 363241472
+      },
+      {
+        "monotonic_seconds": 296859.823518116,
+        "resident_bytes": 389922816
+      },
+      {
+        "monotonic_seconds": 296869.839005919,
+        "resident_bytes": 402653184
+      },
+      {
+        "monotonic_seconds": 296879.853569527,
+        "resident_bytes": 404049920
+      },
+      {
+        "monotonic_seconds": 296889.885180027,
+        "resident_bytes": 409702400
+      },
+      {
+        "monotonic_seconds": 296899.92029525,
+        "resident_bytes": 409702400
+      },
+      {
+        "monotonic_seconds": 296909.96390917,
+        "resident_bytes": 409694208
+      },
+      {
+        "monotonic_seconds": 296919.991918671,
+        "resident_bytes": 408453120
+      },
+      {
+        "monotonic_seconds": 296930.028245608,
+        "resident_bytes": 408453120
+      },
+      {
+        "monotonic_seconds": 296940.152263902,
+        "resident_bytes": 408453120
+      },
+      {
+        "monotonic_seconds": 296950.228319069,
+        "resident_bytes": 408453120
+      },
+      {
+        "monotonic_seconds": 296960.245150759,
+        "resident_bytes": 407916544
+      },
+      {
+        "monotonic_seconds": 296970.283641166,
+        "resident_bytes": 400015360
+      },
+      {
+        "monotonic_seconds": 296980.309326508,
+        "resident_bytes": 400015360
+      },
+      {
+        "monotonic_seconds": 296990.333589312,
+        "resident_bytes": 400015360
+      },
+      {
+        "monotonic_seconds": 297000.352822922,
+        "resident_bytes": 400015360
+      },
+      {
+        "monotonic_seconds": 297010.389536288,
+        "resident_bytes": 400015360
+      },
+      {
+        "monotonic_seconds": 297020.449584805,
+        "resident_bytes": 400015360
+      },
+      {
+        "monotonic_seconds": 297030.497731527,
+        "resident_bytes": 400015360
+      },
+      {
+        "monotonic_seconds": 297040.538597545,
+        "resident_bytes": 400015360
+      },
+      {
+        "monotonic_seconds": 297050.593046973,
+        "resident_bytes": 400015360
+      },
+      {
+        "monotonic_seconds": 297060.61759492,
+        "resident_bytes": 400015360
+      },
+      {
+        "monotonic_seconds": 297070.63717885,
+        "resident_bytes": 400015360
+      },
+      {
+        "monotonic_seconds": 297080.720281346,
+        "resident_bytes": 400015360
+      },
+      {
+        "monotonic_seconds": 297090.745689225,
+        "resident_bytes": 400015360
+      },
+      {
+        "monotonic_seconds": 297100.785179499,
+        "resident_bytes": 400015360
+      },
+      {
+        "monotonic_seconds": 297110.813115108,
+        "resident_bytes": 400015360
+      },
+      {
+        "monotonic_seconds": 297120.82688779,
+        "resident_bytes": 400236544
+      },
+      {
+        "monotonic_seconds": 297130.840894577,
+        "resident_bytes": 400236544
+      },
+      {
+        "monotonic_seconds": 297140.884137471,
+        "resident_bytes": 400236544
+      },
+      {
+        "monotonic_seconds": 297150.905250147,
+        "resident_bytes": 400236544
+      },
+      {
+        "monotonic_seconds": 297160.920289709,
+        "resident_bytes": 400236544
+      },
+      {
+        "monotonic_seconds": 297170.944666951,
+        "resident_bytes": 400236544
+      },
+      {
+        "monotonic_seconds": 297181.054924865,
+        "resident_bytes": 400236544
+      },
+      {
+        "monotonic_seconds": 297191.115827467,
+        "resident_bytes": 400236544
+      },
+      {
+        "monotonic_seconds": 297201.132437707,
+        "resident_bytes": 400236544
+      },
+      {
+        "monotonic_seconds": 297211.218249178,
+        "resident_bytes": 400236544
+      },
+      {
+        "monotonic_seconds": 297221.340698433,
+        "resident_bytes": 400257024
+      },
+      {
+        "monotonic_seconds": 297231.388650527,
+        "resident_bytes": 400257024
+      }
+    ]
+  },
+  "cold_start": {
+    "rounds": [
+      {
+        "round": 1,
+        "cold_wm_delete_atom": 0,
+        "close_and_restart": "passed"
+      }
+    ],
+    "game_runtime_patched_for_probe": false,
+    "binary_sha256": "bea6a26f891d9c752b3e5c097b57bfa7ddd286b48b4c699d90dcf8779350df5a"
+  },
+  "builds": {
+    "runtime_sha256": {
+      "scripts/campaign_interface.gd": "af34d929239a4dc62a0e14c842757593b5a3822f29c9e78e063fe9f5dce75e93",
+      "scripts/combat_geometry.gd": "f52e5697d1022c98c167cb3cfdb6ea9c319f389ebfa84d084e29806b2d0eb310",
+      "scripts/campaign_director.gd": "ae539159e404b3f3ba9230eba3124a0a2800e5ebdc1eb09f870fc705466e9d9c",
+      "scripts/residence_system.gd": "203f05afb5f10c1c452251efcd25daafc28230e4882636c6d3589b91985b6fbd",
+      "scripts/map_scenery.gd": "686da47eb8bfe4153632c61556bd02447a39d01d9bd47ecc999945082f261dbc",
+      "scripts/scene_art.gd": "b001662dc2382940594d9d800ca44c557b4921bb8f814aa63ffd0f53daf8a4bf",
+      "scripts/combat_effects.gd": "55bfc63348574c7e5ec9d1d9d7458cfd9d756ba7dfed7740277825b2e0ef1bab",
+      "scripts/backpack_grid.gd": "6921e4cfa680891dbf3387337b1934e077342e474b8a75b0affd355f9b9c6a90",
+      "scripts/chronicle_view.gd": "9e76995edf81827762f0351f2d75bde3a68ceaa7ee5a8b9033f3369d1dfa6cd3",
+      "scripts/location_environment.gd": "d39a1065b51ad03c1a41609ed7875d31758da466804f853509f2b06d7fd49203",
+      "scripts/survivor_card.gd": "751a191fcce10dc3e38fa3d297d1f34ada23422d519bd06f11255cd76d51da62",
+      "scripts/shelter_keyboard.gd": "efc97f98c6e77481ab853f90301838c6f593ea01dd1ea287f7e3451ebc88d849",
+      "scripts/equipment_art.gd": "647d4acf1beb36b5f09977b340653c703ac1b03cac083caa47824b5d8c3009d8",
+      "scripts/character_motion.gd": "a3b4cec29dacf4889b335b276c03f5cc1383703ce84bf034f24ad08892e35993",
+      "scripts/save_system.gd": "c8058d775e9a34e165bedac6c4adb8f03341ef9daedb1711b75efccb78e075ac",
+      "scripts/shelter_navigation.gd": "6544dac50875336672d1f4e9a98f6d618a921ec43399a8d0137d809e45b95ba4",
+      "scripts/neighborhood_system.gd": "fac8f5a0ebb613a06ab1841aae78fc2b3e9299fa6eb697acaade96ad4fd911dc",
+      "scripts/enemy_mind.gd": "c4312a73a8b4d2a9893814e3935c12cb7efd39623a2c411584aa964e8d45b2a8",
+      "scripts/workstation.gd": "5fce83f45b7a88bb4bea4482f96c0d67792dd9c2389aa4b98dd67626c45684e6",
+      "scripts/chronicle_catalog.gd": "ef1ce93c73254805dbba8ce9eb506d998b1c4a24746420646fb1415d950e5120",
+      "scripts/personality_art.gd": "233166bd2013941d16c03c43831039d308bd5cc0b2a3f5276bc804c0ffc0974e",
+      "scripts/character_state.gd": "35404e57a7523bac8c339df11e314eaeb9b759bf7b814a38c253e2af44877ef7",
+      "scripts/survival_rules.gd": "df99c7811d874226dccc785c25f1ff205faf2a08c74b243a659a5ea90cc03934",
+      "scripts/vitals.gd": "93c5927c6ed1028e0cf58fa20ebc9215c08ae73df544e8416202af55f3c52281",
+      "scripts/game_audio.gd": "d7d2030467fb34aff5310544324dbc75a6c126b52511424c635698b98bab77a1",
+      "scripts/command_center.gd": "55146f5aee9d17d716a73571654198448bc1baa16b8101fdf59e5f87eda587fb",
+      "scripts/interaction_feedback.gd": "cc720325f71f01f1b5bd13e6f41908fb52e4c4646f34f9abad6993f2da0ab781",
+      "scripts/story_catalog.gd": "f4fcbfb0bacfcb1d7f042bdf0f0098ba7f6ebb54eeafed740e76e38a9c5c1450",
+      "scripts/survival_expansion.gd": "338a4b262fbadbfed00defc1423f9e0fe222fa7c0e914047748bf010f29c5f91",
+      "scripts/campaign_cycle.gd": "06eb883288a9706c61fd1113601cb365036ff50e25103bf31d414e474196c5d8",
+      "scripts/people_catalog.gd": "f1c250adfbc64ed18df64ff3b83cae846ec5beb4bee9ac3d630c77e6254717d4",
+      "scripts/story_system.gd": "d159b7a803f7ff9599bce0cfaa0a6d6daccc0f61c4532c62eb91d0a5b0c93943",
+      "scripts/task_catalog.gd": "00ccd040ac0fcdfdc050853b2358bdc4c9e2c4dcdcc1ffda64e760a0d4c2b18f",
+      "scripts/compact_hud.gd": "75df99c368737563bbfe67b7e04bf4cbdc420fbcf74c2f038220749b7e589eda",
+      "scripts/hud_icons.gd": "3139b9a836f4a36290b2502830027d3365ca8e2a37e08f1c6fae6ede7cb304bd",
+      "scripts/residence_interface.gd": "09d725fc27120c5b4a9d21763f4a174d121b8ca156d14c1545fa3df1c75342fe",
+      "scripts/enemy_catalog.gd": "c6b29ad8075223e9973031596318d5bfe77cc6676fd00c7cee3438f02eac6d49",
+      "scripts/campaign.gd": "44b38454b48d77607ad31c69b132b6faa3175c312d9710f0d58e94d9ee8b3623",
+      "scripts/defense_assessment.gd": "8b5ff9fe8f9e6b697885758abc427e79b78430dd557c6a8afd7087adc314cc03",
+      "scripts/self_care_system.gd": "8bf71b828f37412d35757c2fbbc3fb79df8c5b215baae14f78b656aaa23efa11",
+      "scripts/task_scheduler.gd": "7cecf069dc9e16dc6ad4a3a8b715752391e239f2c860acc76b1b927ca381e322",
+      "scripts/goal_system.gd": "b0b8d54402d9a452623e13780965c3f8c928cd4e1fb5613beffaf38df16c34bf",
+      "scripts/location_catalog.gd": "c22386c043cdeeed53cfcaecf74c7d3504565b64d56469269bfaa50e3d1470a3",
+      "scripts/district_view.gd": "584da8230a7eef8603c70357446ea440d66e6c1664818dfd1ac5f62be12ca366",
+      "scripts/expedition_state.gd": "ee3d7145f4d57291e0115b0c070167d3464b0dbededf806aa727f6f0adf7fd06",
+      "scripts/neighborhood_view.gd": "04217b81dee958e9139359d9ea16ad5e2b7c4603394ac97c1e55dbb6ac45be52",
+      "scripts/facility_system.gd": "23f4d614a1e45d2001f101cc01af442a7f9b13df11348edfac4117ded11e4aa8",
+      "scripts/campaign_briefing.gd": "2e048b380a693623a4fb31565b32ab45f8193295c209757035ee80f615aab5f7",
+      "scripts/siege_view.gd": "7f8758282062f342dabc4d5c10305cd563bc364553c2ecad0b14ae2da9327862",
+      "scripts/interior_state.gd": "27e30e6ec3601bb13bc4f209f60cef19ebc628e35968ceb4fafa5110d614cf58",
+      "scripts/survivor.gd": "c7dfbaea35c0ec49f2af34381b212de5c4e1b10b70fb6af1e1c524d289313b34",
+      "scripts/security_view.gd": "c64b60405c688494a50afba5ebacc4d1cfec6bfd484a210992232df915ee7ed8",
+      "scripts/campaign_chronicle.gd": "9844c7668762c555eee5a730893570d14389236bda61eef8d240c816ac2bdbe0",
+      "scripts/character_abilities.gd": "d9ff5c141049840fa29c01893101c14927cea2f115e7a232138db61f3d930203",
+      "scripts/workshop_view.gd": "4e1f7de980e5b119f3801c6ea630abf543693686cbefc0c81c464e33d1199a05",
+      "scripts/expedition_view.gd": "a2052b6db8a1c73fbe60b3ea685f3cbeffd3f9b7b8a6a67204e74c4c18397271",
+      "scripts/shelter.gd": "ef6bddde0d8c07aba1690fd7a139f9ee6747dfc2db91abef61d67802793c665b",
+      "scripts/siege_state.gd": "25e87fe9570e81f49fb5346dec1dc8c15deaf949e0f3137b9f4403520811a1e1",
+      "scripts/district_system.gd": "f2e5d68e1e995997e99e1a38680abcf7fdbd360282e9a97018f9fed539c3f924",
+      "scripts/gear_catalog.gd": "205f247928602f61125f973d77d5ae8ae744440957c40ea0924f62103524a6e5",
+      "scripts/inventory.gd": "bc82eb405e8e9de12654f480defecb12a4897f1358f632b7065ef6504c148df1",
+      "scripts/goal_catalog.gd": "a922be1d6c79b529bd4ad2ae006c46e02dc9ed07a8ad3140ceb8133886e561a4",
+      "scripts/shelter_progress.gd": "a22d582570639df0cf7ec29dc2179e9a032d7b42ec5835171bc493ce72f57121",
+      "scripts/people_system.gd": "e4820fae6d0e1015f2219194283d0ba2910d600e977bf3d8d36bf3e7fb4878a0",
+      "scripts/game_ui.gd": "5f45ed27ab0c154bd4f86084e96b3f197561c1b6153f7d4b7167df299d861a89",
+      "scripts/backpack_stacks.gd": "52d235703695ee6f8b96fed05a19d09c591d7e95b539aaa307062fa09c1eaa77",
+      "scenes/shelter.tscn": "402acad6eddb9c656e4263c1db0eb584a9a8c37e1fb1966fa3eb51ffe638219c",
+      "scenes/campaign.tscn": "f5e756e67450b7ba0e4fd36febb671bdcf4945f7e50fd3c01710186c4db52b0c",
+      "project.godot": "5824e81523aab9729a29565ddfad2047ada6315b32957e9519b9d9c9140b3877",
+      "assets/fonts/interface.otf": "df15200ca36d94a0f1da83a44cb1aa6c2b4cf04be18053badae74e9e6f0d7e7a",
+      "assets/icon.svg": "e7259fb42ad26708d3e3f9587c6da2b98cd6b07736e55915c5dd8f30810f3027",
+      "export_presets.cfg": "caff0157126dfe56ff90e2a7a91ef5e9ea48eb07234d48c5f8ca340ed28f586c"
+    },
+    "binaries": {
+      "windows": {
+        "bytes": 105791864,
+        "sha256": "d053115fbf55c3365ade294587cc1b7dc3b8eaec0cb18476527ace3ffccb110e"
+      },
+      "linux": {
+        "bytes": 72208264,
+        "sha256": "bea6a26f891d9c752b3e5c097b57bfa7ddd286b48b4c699d90dcf8779350df5a"
+      }
+    },
+    "acceptance": {
+      "windows": {
+        "bytes": 106738432,
+        "sha256": "4dd1a90b944873c82ce8a12adcbc59de032ca593c50b27c2892dccd14afefe4d"
+      },
+      "linux": {
+        "bytes": 73154832,
+        "sha256": "b6392ff5cebb3427f83f4ee9b465aef089e9c9b9e5da39230e1d489b345a2867"
+      }
+    }
+  },
+  "features": [
+    "Clinic preservation versus permanent demolition, eight finite original doses, sourced daily recovery, physical pickup and paid care-supply manufacture.",
+    "Gravity water production, actual reservoir limit, exclusive home/clinic diversion and a forecast one-time fitting failure with permanent repair.",
+    "Persistent ordinary containers, wounds, deaths and doors on clinic/waterworks; bounded far-entry migration instead of complete resets. Other seven maps retain their prior rules.",
+    "Named back-carried rescue takes two visible slots and reduces walking speed20%; recruitment occurs only at successful exit. Authorized rescued medics favor their rescuer at comparable severity; critical injury takes priority.",
+    "Shared context card for actual mouse approach and nearby E, local progress and model-driven device changes. Paid completion, interruption and load boundaries are checked.",
+    "Nearest-door ordering fixes return paths from the right past multiple closed doors. Unknown-room containers cannot be clicked through fog.",
+    "Schema20 migrates authentic published schema19, preserves actual supplies and adds no completed projects. Population-generation date is distinct from observation date."
+  ],
+  "validation_scope": [
+    "All72 runtime inputs match the final exported project.2337 logical checks across31 numeric-result suites, plus the font check, pass.",
+    "23 existing graphical suites639 checks, cooperation17 and neighborhood20 checks pass. One non-reproduced first-run ObjectDB shutdown warning was investigated with a verbose isolated neighborhood rerun; that exact rerun finishes without the warning and is the reported20-check evidence.",
+    "55 prior persistence steps,10 tactical/cooperation and6 neighborhood processes pass, including saved on-site work and carrying a person back through closed doors after restart.",
+    "Nine baseline routes and two district routes use normal commands without resource/HP/position/enemy/campaign injection. Both district routes evacuate four living members on day30. Test-policy allocation was corrected to equip distinct living members; game combat values were not reduced to make the cases pass.",
+    "Display and desktop preflight use declared item/position/enemy fixtures. Those screenshots are separate from campaign balance evidence.",
+    "Exact final Linux ordinary bytes pass cold-server native input/close/restart. Exact final QA bytes pass154 desktop checks: four native sizes, fullscreen, district work/load/payment and diversion preflight, six real minutes, normal OS close and restart."
+  ],
+  "limitations": [
+    "Windows uses official Godot4.6.3 export templates; Windows hardware, audible audio and Windows performance are not verified.",
+    "The Linux desktop run covers six minutes, while the Windows tool defaults to thirty. It used llvmpipe software rendering under concurrent validation load, not a consumer-GPU performance benchmark.",
+    "The new persistent economy applies to two of nine maps. Maps remain two-floor cutaways, and home layouts still need greater variation.",
+    "Rescue is back carrying, not an independently controlled escort AI. Gratitude is one explicit behavior consequence, not a complete social simulation.",
+    "Campaign evidence uses the normal seed and selected viable policies. Failed allocation attempts are retained locally; this is not a zero-bug or arbitrary-strategy guarantee.",
+    "The v1.12 60-day results are historical evidence, not a new v1.13 endless-balance certification.",
+    "Original-game research supplies design leads, not copied assets/code or measured original balance thresholds."
+  ]
+}
