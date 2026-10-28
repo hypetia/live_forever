@@ -629,7 +629,7 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 				invulnerable = 1.6
 				_reset_route()
 				player_hurt.emit(Vector2(player_x,player_y),1.0 if player_x >= enemy["x"] else -1.0,damage)
-				player_x = clampf(player_x + (1 if player_x >= enemy["x"] else -1) * 42, 90 if floor_level == 0 else upper_left(), right_edge(floor_level))
+				player_x = interior.stop_x(location_id,player_x,clampf(player_x + (1 if player_x >= enemy["x"] else -1) * 42, 90 if floor_level == 0 else upper_left(), right_edge(floor_level)),floor_level) if environment_active else clampf(player_x + (1 if player_x >= enemy["x"] else -1) * 42, 90 if floor_level == 0 else upper_left(), right_edge(floor_level))
 				feedback = "被扑咬！生命-%d（护甲已计入），伤势与感染上升；R用药。" % damage
 				event_reported.emit(feedback)
 			enemy["mode"] = "chase"
@@ -647,6 +647,7 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 	var room_muffle := 0.35 if environment_active and same_floor and interior.barrier(location_id,float(enemy["x"]),player_x,floor_level)>=0 else 1.0
 	var hears: bool = noise >= 15 and hearing_distance < room_muffle*noise*4*float(weather()["hearing"])*(EnemyMind.hearing(self,enemy) if environment_active and interior.enabled else 1.0)*(1 if same_floor else 0.75)
 	if environment_active and interior.enabled: EnemyMind.observe(self,enemy,sees,hears,delta)
+	var distraction: Dictionary = {}
 	if sees or hears:
 		enemy["suspicion"] = minf(100,float(enemy["suspicion"])+delta*((90 if distance < 100 else 55) if sees else 35))
 		enemy["target"] = player_x if sees or not environment_active else clampf(roundf(player_x/100)*100,90 if floor_level==0 else upper_left(),right_edge(floor_level))
@@ -654,7 +655,7 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 		enemy["memory"] = memory_duration(enemy)
 		if enemy["mode"] == "patrol": enemy["mode"] = "investigate"
 	else:
-		var distraction := heard_decoy(enemy)
+		distraction = heard_decoy(enemy)
 		if not distraction.is_empty():
 			enemy["target"] = distraction["x"]
 			enemy["target_floor"] = distraction["floor"]
@@ -672,6 +673,7 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 		enemy["timer"] = EnemyCatalog.stats(kind)["windup"]
 		return
 	if environment_active and interior.enabled and EnemyMind.retreat(self,enemy,delta): return
+	if environment_active and interior.enabled and EnemyMind.investigate(self,enemy,delta,sees or hears or not distraction.is_empty()): return
 	if enemy["mode"] in ["chase","investigate"]:
 		if enemy["memory"] <= 0:
 			enemy["mode"] = "patrol"
@@ -764,7 +766,7 @@ static func validate_snapshot(data: Variant, actors: Array, id: String = "street
 	if not _keys(data, fields): return "探索字段不完整"
 	var room_error := InteriorState.validate(data["interior"],id,data)
 	if not room_error.is_empty(): return room_error
-	var mind_error := EnemyMind.validate(data["minds"],data["enemies"])
+	var mind_error := EnemyMind.validate(data["minds"],data["enemies"],id)
 	if not mind_error.is_empty(): return mind_error
 	if not _n(data["lure_cooldown"],0,3) or not data["decoys"] is Array or data["decoys"].size() > 3: return "诱饵记录无效"
 	if not data["active"] and (not data["decoys"].is_empty() or data["lure_cooldown"] != 0): return "未外出却保留声源"

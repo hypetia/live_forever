@@ -65,7 +65,7 @@ func _run() -> void:
 		record(game.cards.all(func(card): return design.encloses(card.get_global_rect())), "complete roster cards fit at %dx%d" % [size.x, size.y])
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png(output.path_join("shelter_%dx%d.png" % [size.x, size.y]))
-		for page in ["starts","people"]:
+		for page in ["starts","people","cooperate"]:
 			game.chronicle_view.show_page(page)
 			record(game.paused and game.chronicle_view.opened and design.encloses(game.chronicle_view.window.get_global_rect()),"new scenario / personal history page fits at %dx%d: %s" % [size.x,size.y,page])
 			game.chronicle_view.close()

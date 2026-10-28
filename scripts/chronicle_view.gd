@@ -14,9 +14,9 @@ func _ready() -> void:
  var shade:=ColorRect.new();shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT);shade.color=Color(0,0,0,.65);root.add_child(shade)
  window=Panel.new();window.position=Vector2(170,100);window.size=Vector2(1100,690);window.theme=GameUi.theme();window.add_theme_stylebox_override('panel',GameUi.box(GameUi.PANEL));root.add_child(window)
  var row:=HBoxContainer.new();row.position=Vector2(24,15);row.size=Vector2(1050,44);window.add_child(row)
- for pair in [['starts','开局与分工 F2'],['people','人物志 F3'],['infected','感染档案']]:
-  var b:=Button.new();b.text=pair[1];b.custom_minimum_size=Vector2(240,40);b.focus_mode=Control.FOCUS_NONE;row.add_child(b);b.pressed.connect(func():page=pair[0];refresh())
- var close_button:=Button.new();close_button.text='返回 Esc';close_button.custom_minimum_size=Vector2(220,40);row.add_child(close_button);close_button.pressed.connect(close)
+ for pair in [['starts','开局与分工 F2'],['people','人物志 F3'],['infected','感染档案'],['cooperate','同伴分工 F4']]:
+  var b:=Button.new();b.text=pair[1];b.custom_minimum_size=Vector2(203,40);b.focus_mode=Control.FOCUS_NONE;row.add_child(b);b.pressed.connect(func():page=pair[0];refresh())
+ var close_button:=Button.new();close_button.text='返回 Esc';close_button.custom_minimum_size=Vector2(185,40);row.add_child(close_button);close_button.pressed.connect(close)
  var scroll:=ScrollContainer.new();scroll.position=Vector2(25,73);scroll.size=Vector2(1050,590);scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED;window.add_child(scroll)
  body=VBoxContainer.new();body.size_flags_horizontal=Control.SIZE_EXPAND_FILL;body.add_theme_constant_override('separation',14);scroll.add_child(body)
  root.hide()
@@ -46,7 +46,19 @@ func refresh() -> void:
    button('开始「'+c['name']+'」',func():
     game.next_scenario=id;close();game._dialog_pause_before=game.paused;game.paused=true;game.new_dialog.dialog_text='以「'+c['name']+'」替换当前战役？\n队伍、物资、地图和剧情将重新开始。';game.new_dialog.popup_centered())
   var b:=CheckBox.new();b.text='夜袭亲自参战（关闭后使用原有战术结算）';b.button_pressed=game.chronicle.manual_defense;b.disabled=game.cycle.phase!='day';body.add_child(b);b.toggled.connect(func(value: bool):game.chronicle.manual_defense=value)
+ elif page=='cooperate':
+  text('让每个人知道自己能帮什么忙',27)
+  text('先满足自己的急迫需要，再空闲协作。以下两项默认关闭，完成实际操作才产生收益；医护与伤员均有180秒医疗冷却。')
+  for actor: Survivor in game.survivors:
+   var record: Dictionary = game.self_care.members[actor.person.persona]
+   text(actor.display_name+' · '+actor.speciality,23)
+   var disabled: bool = game.cycle.phase!='day' or actor.health<=0 or not game.self_care.enabled(actor)
+   for pair in [['shared_cooking','主动为队伍备餐（含本人）· 消耗生食、水和燃料'],['medical','空闲时走近伤员护理 · 完成4秒治疗后消耗药品1']]:
+    var toggle:=CheckBox.new();toggle.text=pair[1];toggle.button_pressed=record[pair[0]];toggle.disabled=disabled or (pair[0]=='medical' and actor.speciality!='医护');body.add_child(toggle)
+    toggle.toggled.connect(func(value: bool):game.self_care.set_cooperation(game,actor,pair[0],value))
+  text('手动命令始终优先。伤员移动、医护受伤、缺药或日落会取消未完成护理；不会远程回血。多人授权备餐时优先厨师，同一时刻不重复开锅。')
  elif page=='people':
+  button('同伴分工与协作 F4',func():page='cooperate';refresh())
   text('不是代号：每个人都带着一段未完的过去',26)
   text('选择一条信念，亲自勘查目标并生还，再让本人回到工作台完成专属计划。没有限时惩罚，也不会自动扣料。')
   for actor:Survivor in game.survivors:

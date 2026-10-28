@@ -430,7 +430,8 @@ func _draw_enemy(enemy: Dictionary, camera: float, state: ExpeditionState, index
 	if state.environment_active and not state.interior.visible(state,float(enemy["x"]),int(enemy["floor"])): return
 	var point := Vector2(float(enemy["x"])-camera,state.enemy_y(enemy))
 	if point.x < -100 or point.x > 1160: return
-	combat_effects.draw_enemy(self,enemy,index,point,state.elapsed)
+	var stationary: bool = state.environment_active and state.interior.enabled and (not state.minds[index]["search"].is_empty() and state.minds[index]["search"]["wait"]>0)
+	combat_effects.draw_enemy(self,enemy,index,point,state.elapsed,stationary)
 	if enemy["hp"] <= 0: return
 	var definition := EnemyCatalog.stats(enemy["kind"])
 	var direction: float = enemy["direction"]
@@ -459,56 +460,18 @@ func _draw_enemy(enemy: Dictionary, camera: float, state: ExpeditionState, index
 
 
 func _draw_player(point: Vector2, actor: Survivor, state: ExpeditionState) -> void:
-	if not state.interior.action.is_empty() and state.interior.action["kind"] == "vault": point.y -= sin(float(state.interior.action["elapsed"])*PI)*27
-	if combat_effects.player_time > 0:
-		var recoil := sin((1-combat_effects.player_time/0.4)*PI)
-		point += Vector2(combat_effects.player_direction*9*recoil,4*recoil)
 	var crouch := 20.0 if state.sneaking else 0.0
-	var stride := sin(state.elapsed * 10) * 6 if state.moving else 0.0
-	var tint := actor.tint.lightened(0.35) if state.invulnerable > 0 and int(state.elapsed * 12) % 2 else actor.tint
-	if combat_effects.player_time > 0.24: tint = tint.lerp(Color("f2ad9a"),0.7)
+	var context:=CharacterMotion.field_context(state,actor,combat_effects.player_time)
+	var tint:=actor.tint.lightened(.35) if state.invulnerable>0 and int(state.elapsed*12)%2 else actor.tint
+	if combat_effects.player_time>.24:tint=tint.lerp(Color('f2ad9a'),.7)
+	var pose:=CharacterMotion.pose(context['mode'],state.elapsed,context['progress'],state.facing,str(actor.weapon_item.get('kind','')))
+	pose['tool']=context.get('tool',false)
+	CharacterMotion.draw(self,point,actor,pose,true,tint,Transform2D(0.0,game.world_scale(),0.0,game.world_offset()+combat_effects.shake()))
 	if quiet:
-		var ring := PackedVector2Array()
-		for i in range(33): ring.append(point+Vector2(cos(i*TAU/32)*20,sin(i*TAU/32)*5-2))
-		draw_polyline(ring,Color("b8a781"),1,true)
-	else: draw_arc(point+Vector2(0,-3),23,0,TAU,40,GOLD,1,true)
-	draw_line(point + Vector2(-5, -24 + crouch * 0.5), point + Vector2(-8 + stride, -3), Color("31403b"), 7, true)
-	draw_line(point + Vector2(5, -24 + crouch * 0.5), point + Vector2(10 - stride, -3), Color("31403b"), 7, true)
-	draw_colored_polygon(PackedVector2Array([point + Vector2(-10, -55 + crouch), point + Vector2(10, -55 + crouch), point + Vector2(13, -22 + crouch * 0.5), point + Vector2(-12, -22 + crouch * 0.5)]), tint)
-	if quiet and not actor.coat_item.is_empty():
-		var coat_color := Color("827362") if actor.coat_item["durability"] > 0 else Color("59544e")
-		draw_rect(Rect2(point+Vector2(-13,-52+crouch),Vector2(26,36-crouch*0.5)),coat_color)
-		draw_line(point+Vector2(0,-52+crouch),point+Vector2(0,-16+crouch*0.5),Color("bca78b"),2,true)
-		draw_line(point+Vector2(-11,-55+crouch),point+Vector2(11,-55+crouch),Color("c5bba6"),5,true)
-	if quiet and not actor.armor_item.is_empty():
-		var armor_color := Color("687e79") if actor.armor_item["kind"] == "vest" else Color("9a896c")
-		if actor.armor_item["durability"] <= 0: armor_color = Color("62544f")
-		draw_rect(Rect2(point+Vector2(-11,-50+crouch),Vector2(22,23-crouch*0.3)),armor_color)
-		for y in [-44,-35]: draw_line(point+Vector2(-9,y+crouch),point+Vector2(9,y+crouch),armor_color.darkened(0.4),2,true)
-	draw_circle(point + Vector2(combat_effects.player_direction*5*sin(combat_effects.player_time/0.4*PI) if combat_effects.player_time > 0 else 0, -65 + crouch), 9, Color("e0b2a1") if combat_effects.player_time > 0.24 else Color("c7b294"))
-	PersonalityArt.face(self,actor.person.persona,point+Vector2(0,-65+crouch),.9)
-	if quiet:
-		var slots := EquipmentArt.slots(actor)
-		var held: Dictionary = slots[0]
-		var kind: String = held["kind"]
-		var angle := -0.25
-		var cooldown := float(actor.weapon().get("cooldown",1.1))
-		if held["broken"] or state.climb_target != -1: angle = 1.15
-		elif state.attack_windup > 0: angle = -0.1 if kind in ["pistol","spear"] else -1.4
-		elif state.attack_cooldown > maxf(0,cooldown-0.25): angle = 0.0 if kind in ["pistol","spear"] else lerpf(-1.2,0.6,clampf((cooldown-state.attack_cooldown)/0.25,0,1))
-		var hand := point+Vector2(22*state.facing,(-58 if kind == "pistol" and state.climb_target == -1 else -38)+crouch)
-		if kind == "spear" and not held["broken"] and state.climb_target == -1:
-			if state.attack_windup > 0: hand.x -= state.facing*12
-			elif state.attack_cooldown > cooldown-0.25: hand.x += state.facing*18*sin(clampf((cooldown-state.attack_cooldown)/0.25,0,1)*PI)
-		if combat_effects.player_time > 0:
-			hand += Vector2(-state.facing*10,-8)
-			angle = -1.0
-		draw_line(point+Vector2(8*state.facing,-48+crouch),hand,tint.lightened(0.1),6,true)
-		EquipmentArt.weapon(self,kind,hand,state.facing,angle,1,held["broken"])
-	elif state.attack_cooldown <= 0.76:
-		draw_line(point + Vector2(8 * state.facing, -48 + crouch), point + Vector2(23 * state.facing, -30 + crouch), tint.lightened(0.1), 6, true)
-	if not quiet and state.bag["tools"] > 0 and state.attack_cooldown <= 0.76:
-		draw_line(point + Vector2(23 * state.facing, -32 + crouch), point + Vector2(25 * state.facing, -52 + crouch), Color("c4c9b4"), 3, true)
+		var ring:=PackedVector2Array()
+		for i in range(33):ring.append(point+Vector2(cos(i*TAU/32)*20,sin(i*TAU/32)*5-2))
+		draw_polyline(ring,Color('b8a781'),1,true)
+	else:draw_arc(point+Vector2(0,-3),23,0,TAU,40,GOLD,1,true)
 	draw_rect(Rect2(point + Vector2(-26, -111 + crouch), Vector2(52, 5)), Color("21332e"))
 	draw_rect(Rect2(point + Vector2(-26, -111 + crouch), Vector2(52 * actor.health / 100, 5)), Color("9ab997"))
 	draw_colored_polygon(PackedVector2Array([point + Vector2(-5, -89 + crouch), point + Vector2(5, -89 + crouch), point + Vector2(0, -83 + crouch)]), GOLD)

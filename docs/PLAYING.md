@@ -1,8 +1,18 @@
 # 正常游戏：白天生活，夜间分工，清晨结算
 
-[下载Windows游戏](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.11.0/live_forever_v21_windows_x64.zip) · [全部下载](../downloads/README.md)
+[下载Windows游戏](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.12.0/live_forever_v22_windows_x64.zip) · [全部下载](../downloads/README.md)
 
 解压整个文件夹，双击LiveForever.exe。游戏离线运行，不需要Godot、Python、账号或服务器。验收包是另一个工具，只有主动运行windows_acceptance.cmd才会自动控制人物测试。
+
+## v1.12：同伴协作与动作
+
+F4打开协作安排，按人单独授权“为饥饿同伴备餐”和“医护走近伤员护理”。默认关闭；不影响原有基本自理。多人愿意备餐时优先厨师，同时只准备一锅，保护手动任务已需要的原料。厨师自己不饿也可以替别人做饭，不会自动吃掉替别人准备的饭。
+
+医护先满足自己的急迫需要，在空闲且获得授权时寻找需要治疗的静止同伴，实际走近并工作4秒，完成才消耗药品1。遵守双方180秒医疗冷却；同一伤员只安排一名医护。伤员移动、缺药、医护受伤、手动接管或日落均能中止，未完成不收费。治疗保留各医护专长、照护经验与关系变化。
+
+敌人到达最后感知的位置后会观察，再搜索以该位置为中心的有限路线，调查预算耗尽后回巡逻。隐藏玩家的位置不会改写该计划；真正的新声音或视线会打断旧调查。动作表现跟随实际行动进度；血迹、死亡与命中反馈继续来自实际判定。
+
+[详细规则与动画预览](COOPERATION_MOTION_V22.md)
 
 ## v1.11：房间、守家与个人计划
 

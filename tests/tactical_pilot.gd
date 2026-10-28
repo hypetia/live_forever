@@ -11,6 +11,10 @@ func setup(scene: Node2D) -> void:
  desired={'raw_food':14,'water':18,'fuel':18,'materials':24,'medicine':7,'tools':4,'meals':0}
  for actor:Survivor in game.survivors:
   if actor.person.persona in ['lin','he','gu']:elective_person=actor.person.persona;break
+ if style=='cooperative':
+  for a:Survivor in game.survivors:
+   if a.speciality=='医护':game.self_care.set_cooperation(game,a,'medical',true)
+   if a.person.persona in ['he','lin']:game.self_care.set_cooperation(game,a,'shared_cooking',true)
 
 func tick(delta: float) -> void:
  if game.cycle.phase=='dawn' and game.expansion.endless:
@@ -114,7 +118,7 @@ func _manage_expansion() -> void:
  if coats<game.survivors.size() and game.expansion.day(game)>=7:
   if game.inventory.can_take(GearCatalog.ITEMS['coat']['cost']):game.expansion.start_job(game,'coat')
   return
- if style=='fortify':
+ if style in ['fortify','cooperative']:
   for kind in ['gate','mesh','stakes','alarm']:
    if game.residence.security[kind]<1 and game.inventory.amount('materials')>=int(ResidenceSystem.PROJECTS[kind]['cost'].get('materials',0))+6:
     if game.expansion.start_job(game,kind):return
@@ -189,3 +193,17 @@ func _next_site(field: ExpeditionState) -> int:
   var definition:Dictionary=ChronicleCatalog.ARCS[elective_person]
   if arc['stage']==1 and definition['map']==field.location_id and not visited.has(int(definition['site'])) and field.elapsed<175:return int(definition['site'])
  return super._next_site(field)
+
+func _manage_needs() -> void:
+ if style!='cooperative':super._manage_needs();return
+ for actor: Survivor in game.survivors:
+  if actor.health<=0 or game._external_busy(actor.survivor_id) or not actor.orders.is_empty():continue
+  if actor.hunger>=55:
+   if game.inventory.amount('meals')>0:game.scheduler.submit(actor,'eat')
+   elif not game.survivors.any(func(a):return a.orders.has('cook')) and game.inventory.can_take(TaskCatalog.TASKS['cook']['cost']):game.scheduler.submit(actor,'cook');game.scheduler.submit(actor,'eat')
+  elif actor.health<80 or actor.infection>=20 or actor.illness>=30:
+   var medic_available: bool = game.survivors.any(func(m):return m!=actor and m.health>70 and m.speciality=='医护' and game.self_care.members[m.person.persona]['medical'] and game.simulation_time-m.person.last_aid>=180 and game.simulation_time-actor.person.last_aid>=180)
+   var eligible: bool = actor.health<=70 or actor.injury>=35 or actor.infection>=25 or actor.illness>=35
+   if (not medic_available or not eligible) and game.inventory.amount('medicine')>0:game.scheduler.submit(actor,'heal')
+ if game.upkeep.pending_event>=0:game.upkeep.resolve_event(game.inventory.can_take(ShelterProgress.EVENT_COSTS[game.upkeep.pending_event]) and game.inventory.amount('materials')>=8,game.inventory)
+ if game.upkeep.integrity<30 and game.inventory.amount('materials')>=4:policy._order('repair')

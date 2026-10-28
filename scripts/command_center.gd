@@ -286,7 +286,7 @@ func _create_people_page() -> void:
 		routine_toggle = _check(left, "基本自理：吃饭、喝水、休息", true, func(value: bool): game.self_care.set_enabled(game,game.survivors[game.selected_id],value))
 		routine_toggle.tooltip_text = "默认开启。空闲时饱腹或水分≤35、精神≤30，自行走到餐桌、水桶或空床。手动命令优先，取消后让出8秒；不擅自用药、工具或生食。关闭会中止本人自理。"
 		cooking_toggle = _check(left,"缺饭时自行做饭（消耗燃料）",false,func(value: bool): game.survivors[game.selected_id].person.routine = value)
-		cooking_toggle.tooltip_text = "独立开关，默认关闭。允许此人在需要吃饭却没有熟食时，实际走到灶台制作基础饭食，再去餐桌吃。已有饭菜在制作时会等待，不重复开锅。"
+		cooking_toggle.tooltip_text = "独立开关，默认关闭。允许此人在需要吃饭却没有熟食时，实际走到灶台制作基础饭食，再去餐桌吃。已有饭菜在制作时会等待，不重复开锅。F4可另行授权为同伴备餐及医护照护。"
 	else:
 		routine_toggle = _check(left, "自动照料：饮水、吃饭、做饭、休息", false, func(value: bool): game.survivors[game.selected_id].person.routine = value)
 		routine_toggle.tooltip_text = "饮水按需要即时使用；做饭、吃饭、睡觉只在空闲时排队。可能消耗食物、水、燃料；不自动花药品或工具。外出前授权的留守照料会继续。随时可关闭。"

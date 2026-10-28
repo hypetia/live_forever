@@ -10,6 +10,8 @@ func _run() -> void:
  var game:Node2D=load('res://scenes/campaign.tscn').instantiate();game.persistence_enabled=false;root.add_child(game);game.set_process(false)
  game.chronicle.apply_scenario(game,scenario)
  var pilot:=Pilot.new();pilot.style=style;pilot.setup(game)
+ var cooperation: Dictionary={'aid':0,'cook':0}
+ game.self_care.cooperation_completed.connect(func(kind: String,_id: int,_target: int):cooperation[kind]+=1)
  var records:Array=[];var previous_day:=0;var steps:=0;var issue:=''
  var stamp:=Time.get_ticks_msec()
  while not game.game_over and game.expansion.day(game)<=until and (game.expansion.outcome.is_empty() or until>35) and steps<1000000:
@@ -25,7 +27,7 @@ func _run() -> void:
    if not issue.is_empty():break
  var won:bool=game.expansion.outcome=='victory'
  var okay:bool=issue.is_empty() and not game.game_over and game.survivors.all(func(a):return a.health>0) and ((won and until==35) or (until!=35 and game.expansion.day(game)>until))
- var report:Dictionary={'passed':okay,'scenario':scenario,'style':style,'until':until,'victory':won,'issue':issue,'steps':steps,'wall_seconds':(Time.get_ticks_msec()-stamp)/1000.0,'records':records,'snapshot':SaveSystem.capture(game),'no_inventory_grants':true,'no_teleports':true,'no_health_need_enemy_or_mission_overrides':true,'live_defenses':pilot.siege_count}
+ var report:Dictionary={'cooperation':cooperation,'passed':okay,'scenario':scenario,'style':style,'until':until,'victory':won,'issue':issue,'steps':steps,'wall_seconds':(Time.get_ticks_msec()-stamp)/1000.0,'records':records,'snapshot':SaveSystem.capture(game),'no_inventory_grants':true,'no_teleports':true,'no_health_need_enemy_or_mission_overrides':true,'live_defenses':pilot.siege_count}
  var file:=FileAccess.open(output,FileAccess.WRITE);file.store_string(JSON.stringify(report,' '));file.close()
  print('TACTICAL BALANCE ', 'PASS' if okay else 'FAIL',' ',scenario,'/',style,' day ',game.expansion.day(game),' issue ',issue,' file ',output)
  game.free();await create_timer(.1).timeout;quit(0 if okay else 1)

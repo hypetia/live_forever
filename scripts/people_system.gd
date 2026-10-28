@@ -259,8 +259,12 @@ func drink(game: Node2D, actor_id: int) -> bool:
 
 
 func aid(game: Node2D, target_id: int) -> bool:
-	if game.expedition.active or game.game_over or target_id < 0 or target_id >= game.survivors.size() or target_id == game.selected_id: return false
-	var medic: Survivor = game.survivors[game.selected_id]
+	return aid_by(game,game.selected_id,target_id)
+
+
+func aid_by(game: Node2D, medic_id: int, target_id: int) -> bool:
+	if game.expedition.active or game.game_over or target_id < 0 or target_id >= game.survivors.size() or medic_id < 0 or medic_id >= game.survivors.size() or target_id == medic_id: return false
+	var medic: Survivor = game.survivors[medic_id]
 	var target: Survivor = game.survivors[target_id]
 	if medic.health <= 0 or target.health <= 0 or medic.speciality != "医护": return false
 	if target.metabolism < 1 and target.hunger >= 80 and target.injury <= 0 and target.infection <= 0 and target.illness <= 0: return false

@@ -32,7 +32,7 @@ func _draw() -> void:
 	draw_arc(Vector2(27,28),12,PI,TAU,16,Color("303431"),6,true)
 	draw_colored_polygon(PackedVector2Array([Vector2(30,24),Vector2(40,32),Vector2(36,37),Vector2(29,38)]),Color(0.2,0.22,0.2,0.25))
 	draw_line(Vector2(26,30),Vector2(31,30),Color("55554b"),1,true)
-	draw_string(font,Vector2(61,24),actor.display_name,HORIZONTAL_ALIGNMENT_LEFT,-1,15,Color("ded9c9"))
+	draw_string(font,Vector2(61,24),actor.display_name.get_slice("「",0) if size.x<200 else actor.display_name,HORIZONTAL_ALIGNMENT_LEFT,-1,15,Color("ded9c9"))
 	draw_string(font,Vector2(size.x-18,20),str(member_id+1),HORIZONTAL_ALIGNMENT_LEFT,-1,10,Color("7e887b"))
 	PersonalityArt.face(self,actor.person.persona,Vector2(28,29),1.05)
 	var col_width := (size.x - 70) / 2

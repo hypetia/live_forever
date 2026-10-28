@@ -4,9 +4,12 @@ var game: Node2D
 var hud: CanvasLayer
 var toolbar: HBoxContainer
 var pause_panel: Panel
+var effects:=CombatEffects.new()
+var previous_elapsed:=-1.0
 var wave_label: Label
 func _ready() -> void:
  z_index=20
+ game.siege.enemy_hit.connect(func(index: int,at: Vector2,direction: float,damage: int,lethal: bool):effects.hit(index,at,direction,damage,lethal))
  hud=CanvasLayer.new();hud.layer=9;add_child(hud)
  wave_label=Label.new();wave_label.position=Vector2(390,90);wave_label.size=Vector2(700,40);wave_label.theme=GameUi.theme();wave_label.add_theme_font_size_override('font_size',24);hud.add_child(wave_label)
  toolbar=HBoxContainer.new();toolbar.position=Vector2(745,814);toolbar.add_theme_constant_override('separation',5);hud.add_child(toolbar)
@@ -17,9 +20,13 @@ func _ready() -> void:
  var l:=Label.new();l.text='防守暂停\n守夜同伴会协战；选择人物可亲自接管。';l.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;box.add_child(l)
  for pair in [['继续防守 · 空格',func():game.toggle_pause()],['保存 F6',func():game.save_game()],['读取存档 F9',func():game.request_load()],['退出',func():game.exit_dialog.popup_centered()]]:
   var b:=Button.new();b.text=pair[0];b.custom_minimum_size=Vector2(410,42);box.add_child(b);b.pressed.connect(pair[1])
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
  hud.visible=game.siege.active;visible=game.siege.active
- if not visible:return
+ if not visible:
+  effects.clear();previous_elapsed=-1;return
+ if game.siege.elapsed<previous_elapsed:effects.clear()
+ previous_elapsed=game.siege.elapsed
+ if not game.paused:effects.step(delta*game.speed)
  pause_panel.visible=game.paused
  wave_label.text='基地防守  %d/%d  ·  弹药%d  ·  门%d%% / 窗%d%%' % [game.siege.wave,game.siege.waves(),game.expansion.ammo,roundi(game.siege.gate/game.siege.gate_max*100),roundi(game.siege.window/game.siege.window_max*100)]
  if game.siege.elapsed>=180:wave_label.text+=' · 尸群撤退中'
@@ -32,26 +39,24 @@ func _draw() -> void:
   draw_rect(Rect2(p+Vector2(-12,-103),Vector2(24 if not open else 7,103)),Color('765f42') if pair[1]>0 else Color('413b33'))
   draw_rect(Rect2(p+Vector2(-33,-125),Vector2(66,6)),Color('2d302d'))
   draw_rect(Rect2(p+Vector2(-33,-125),Vector2(66*float(pair[1])/float(pair[2]),6)),Color('bcaa79') if pair[1]>float(pair[2])*.3 else Color('c47e65'))
- for e in s.enemies:
+ effects.draw_marks(self,0)
+ for index in range(s.enemies.size()):
+  var e: Dictionary=s.enemies[index]
   if e['escaped']:continue
-  var p:=Vector2(e['x'],e['y']);var color:Color=EnemyCatalog.stats(e['kind'])['color']
-  if e['hp']<=0:draw_line(p+Vector2(-20,-5),p+Vector2(24,-5),color.darkened(.3),8,true);draw_circle(p+Vector2(3,-2),13,Color(.35,.06,.05,.35));continue
-  var scale:float=EnemyCatalog.stats(e['kind'])['scale'];var direction:float=e['direction']
-  var sway:=sin(s.elapsed*7+float(e['x']))*5
-  draw_line(p+Vector2(-7,-25)*scale,p+Vector2(-9+sway,0),Color('303933'),7*scale,true)
-  draw_line(p+Vector2(6,-25)*scale,p+Vector2(8-sway,0),Color('303933'),7*scale,true)
-  draw_rect(Rect2(p+Vector2(-13,-58)*scale,Vector2(26,36)*scale),Color('c78672') if e['hurt']>0 else color)
-  draw_circle(p+Vector2(0,-69)*scale,9*scale,color.lightened(.12))
-  var arm:=Vector2(25*direction,-40 if e['mode']=='windup' else -32)
-  draw_line(p+Vector2(6*direction,-49)*scale,p+arm*scale,color,6*scale,true)
-  var width:=55*scale
-  draw_rect(Rect2(p+Vector2(-width*.5,-96*scale),Vector2(width,5)),Color('272d2c'))
-  draw_rect(Rect2(p+Vector2(-width*.5,-96*scale),Vector2(width*float(e['hp'])/float(EnemyCatalog.stats(e['kind'])['health']),5)),Color('d5806a'))
-  if e['mode']=='windup':draw_arc(p+Vector2(0,-37),35,-PI/2,PI/2,24,Color('e1b56d'),3,true)
+  var point:=Vector2(e['x'],e['y']);var visual: Dictionary=e.duplicate()
+  visual['climb_target']=0 if not point.y in [430.0,640.0] else -1
+  if e['mode'] in ['approach','hunt']:visual['mode']='chase'
+  if e['mode']=='breach':visual['mode']='windup';visual['timer']=fposmod(s.elapsed,.8)
+  effects.draw_enemy(self,visual,index,point,s.elapsed)
+  if e['hp']<=0:continue
+  var scale: float=EnemyCatalog.stats(e['kind'])['scale'];var width:=55*scale
+  draw_rect(Rect2(point+Vector2(-width*.5,-96*scale),Vector2(width,5)),Color('272d2c'))
+  draw_rect(Rect2(point+Vector2(-width*.5,-96*scale),Vector2(width*float(e['hp'])/float(EnemyCatalog.stats(e['kind'])['health']),5)),Color('d5806a'))
+  if e['mode']=='windup':draw_arc(point+Vector2(0,-37),35,-PI/2,PI/2,24,Color('e1b56d'),3,true)
+ effects.draw_particles(self,0)
  for id in s.participants:
   var actor:Survivor=game.survivors[id]
   if actor.health<=0:continue
-  if not actor.weapon_item.is_empty():EquipmentArt.weapon(self,actor.weapon_item['kind'],actor.position+Vector2(21*actor.facing,-39),actor.facing,-.6 if s.strikes.has(str(id)) else -.1)
   if s.actions.has(str(id)):
    var a:Dictionary=s.actions[str(id)];draw_arc(actor.position+Vector2(0,-96),17,-PI/2,-PI/2+TAU*float(a['elapsed'])/2.5,30,Color('d3bd88'),3,true)
  for mark in s.hit_marks:

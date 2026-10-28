@@ -1,5 +1,6 @@
 class_name SiegeState
 extends RefCounted
+signal enemy_hit(index: int,at: Vector2,direction: float,damage: int,lethal: bool)
 ## A paid, physical night defense in the actual occupied shelter. The normal
 ## dawn raid is replaced, never run a second time after this encounter.
 var active := false
@@ -162,6 +163,7 @@ func tick(game: Node2D,delta: float) -> void:
     if e['mode']=='windup':e['mode']='hunt'
     if damage==0 and (is_equal_approx(float(e['y']),430) or is_equal_approx(float(e['y']),640)):
      e['x']=clampf(float(e['x'])+float(s['facing'])*18,100,970);e['route'].clear()
+    if damage>0:enemy_hit.emit(int(s['enemy']),Vector2(e['x'],e['y']),float(s['facing']),damage,e['hp']<=0)
     hit_marks.append({'x':float(e['x']),'y':float(e['y'])-35,'time':.45,'blood':damage>0})
    if not actor.weapon_item.is_empty():actor.weapon_item['durability']=maxi(0,int(actor.weapon_item['durability'])-int(weapon.get('wear',1)))
   strikes.erase(key)

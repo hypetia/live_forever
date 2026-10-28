@@ -3,7 +3,7 @@ extends RefCounted
 ## Validated snapshots, checksummed JSON, atomic replacement and one backup.
 ## Only data is loaded: no resource paths, scripts or executable expressions.
 
-const VERSION := 18
+const VERSION := 19
 const MAX_BYTES := 2 * 1024 * 1024
 const STATIONS := ["workbench", "stove", "table", "bed"]
 const FLOAT_FIELDS := ["work_elapsed", "work_duration", "hunger", "fatigue", "health", "injury", "infection", "illness", "cold_exposure", "movement_clock", "facing"]
@@ -418,6 +418,8 @@ func _read_file(filename: String) -> Dictionary:
 		data = migrate_v16(data)
 	if int(envelope["version"]) <= 17:
 		data = migrate_v17(data)
+	if int(envelope["version"]) <= 18:
+		data = migrate_v18(data)
 	var error := validate(data)
 	if not error.is_empty():
 		return {"ok": false, "message": error}
@@ -734,4 +736,22 @@ static func migrate_v17(data: Variant) -> Variant:
 		var interior := InteriorState.new();interior.setup(id,true)
 		field["interior"] = interior.snapshot();field["minds"] = []
 		for index in range(field["enemies"].size()): field["minds"].append(EnemyMind.make(id,index))
+	return migrate_v18(upgraded)
+
+static func migrate_v18(data: Variant) -> Variant:
+	if not data is Dictionary or not data.get("self_care") is Dictionary or not data.get("expedition") is Dictionary or not data.get("other_regions") is Dictionary:return null
+	var upgraded: Dictionary = data.duplicate(true)
+	if not upgraded["self_care"].is_empty():
+		if not upgraded["self_care"].get("members") is Dictionary:return null
+		for record in upgraded["self_care"]["members"].values():
+			if not record is Dictionary:return null
+			for key in ["shared_cooking","medical"]:
+				if not record.has(key):record[key]=false
+			if not record.has("aid"):record["aid"]={}
+	var fields: Array = [upgraded["expedition"]]+upgraded["other_regions"].values()
+	for field in fields:
+		if not field is Dictionary or not field.get("minds") is Array:return null
+		for mind in field["minds"]:
+			if not mind is Dictionary:return null
+			if not mind.has("search"):mind["search"]={}
 	return upgraded

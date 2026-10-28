@@ -47,12 +47,20 @@ var self_care_wait := ""
 const MOVE_SPEED := 150.0
 const FONT := preload("res://assets/fonts/interface.otf")
 var visual_time := 0.0
+var visual_health := -1.0
+var death_age := 1.0
+var hurt_age := 0.0
 
 
 func _process(delta: float) -> void:
 	if not is_visible_in_tree(): return
 	var game := get_parent().get_parent()
-	if not game.paused: visual_time += delta * game.speed
+	if visual_health>0 and health<=0: death_age=0.0
+	elif visual_health>0 and visual_health-health>=1: hurt_age=.4
+	visual_health=health
+	if not game.paused:
+		visual_time += delta * game.speed
+		death_age=minf(1,death_age+delta*game.speed);hurt_age=maxf(0,hurt_age-delta*game.speed)
 	queue_redraw()
 
 
@@ -77,7 +85,7 @@ func advance_route(delta: float) -> void:
 func status_text() -> String:
 	if manual_walking: return "移动中"
 	if not self_care_kind.is_empty():
-		var labels := {"drink":"自行饮水","eat":"自行吃饭","cook_eat":"自行备餐","sleep":"自行休息"}
+		var labels := {"drink":"自行饮水","eat":"自行吃饭","cook_eat":"自行备餐","sleep":"自行休息","cook_shared":"为同伴备餐","aid":"照护同伴"}
 		return labels.get(self_care_kind,"") + (" · 行走中" if not route.is_empty() else " · 等待设施" if state == TaskState.WAITING else "")
 	if not activity.is_empty(): return "%s · %d%%" % [activity["label"], roundi(activity["progress"] * 100)]
 	match state:
@@ -128,8 +136,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _draw() -> void:
 	if health <= 0:
-		draw_line(Vector2(-23, -8), Vector2(22, -8), Color("57615d"), 10, true)
-		draw_circle(Vector2(26, -8), 7, Color("72756a"))
+		CharacterMotion.draw(self,Vector2.ZERO,self,CharacterMotion.pose('dead',visual_time,CharacterMotion.death_progress(death_age,get_parent().get_parent().game_over),facing))
 		return
 	var quiet: bool = get_parent().get_parent().has_method("_compact_card")
 	var stride := sin(movement_clock) * 7.0 if state in [TaskState.MOVING, TaskState.RETURNING] or manual_walking else 0.0
@@ -145,37 +152,10 @@ func _draw() -> void:
 			draw_polyline(ring,Color("b8a781"),1,true)
 		else: draw_arc(Vector2(0, -3),25,0,TAU,40,Color("d6b584"),1.5,true)
 		draw_colored_polygon(PackedVector2Array([Vector2(-5, -89), Vector2(5, -89), Vector2(0, -83)]), Color("e4bf86"))
-	# Original geometric placeholder characters; coat, pack, limbs and head.
-	if (state == TaskState.WORKING and not orders.is_empty() and orders[0] == "sleep") or activity.get("kind", "") == "sleep":
-		draw_set_transform(Vector2(-40, -23), PI / 2)
-	draw_line(Vector2(-5, -24), Vector2(-7 + stride, -3), Color("242d30"), 7, true)
-	draw_line(Vector2(6, -24), Vector2(9 - stride, -3), Color("242d30"), 7, true)
-	draw_line(Vector2(-11 + stride, -2), Vector2(-2 + stride, -2), Color("9b9e92"), 3, true)
-	draw_line(Vector2(5 - stride, -2), Vector2(14 - stride, -2), Color("9b9e92"), 3, true)
-	draw_rect(Rect2(-17 * facing - 4, -53, 11, 28), tint.darkened(0.45))
-	draw_colored_polygon(PackedVector2Array([Vector2(-10, -56), Vector2(10, -56), Vector2(13, -23), Vector2(-12, -23)]), tint)
-	var working := state == TaskState.WORKING or not activity.is_empty()
-	var eating := working and not orders.is_empty() and orders[0] == "eat"
-	var hand := Vector2(12 * facing, -58 + sin(visual_time * 2) * 3) if eating else Vector2(21 * facing, -40 + sin(visual_time * 5) * 7 if working else -26 + sin(visual_time * 1.4) * 2)
-	if working and not orders.is_empty() and orders[0] in ["repair", "craft"]:
-		draw_line(hand, hand + Vector2(9 * facing, -12), Color("a1a78f"), 3, true)
-		draw_line(hand + Vector2(4 * facing, -12), hand + Vector2(14 * facing, -12), Color("a1a78f"), 4, true)
-	if working and not orders.is_empty() and orders[0] == "heal":
-		draw_line(hand + Vector2(-5, -3), hand + Vector2(5, -3), Color("ecdbba"), 3)
-		draw_line(hand + Vector2(0, -8), hand + Vector2(0, 2), Color("ecdbba"), 3)
-	if activity.get("kind", "") == "music":
-		draw_circle(Vector2(6,-32),10,Color("a58a5b"))
-		draw_circle(Vector2(17,-37),7,Color("a58a5b"))
-		draw_line(Vector2(18,-38),Vector2(41,-49),Color("bca177"),4,true)
-		draw_circle(Vector2(9,-34),3,Color("343832"))
-	draw_line(Vector2(7 * facing, -50), hand, tint.lightened(0.1), 6, true)
-	draw_circle(hand, 3, Color("bdab91"))
-	draw_rect(Rect2(-3, -61, 7, 9), Color("ad987e"))
-	draw_circle(Vector2(0, -66), 9, Color("c7b294"))
-	draw_arc(Vector2(0, -68), 9, PI, TAU, 16, Color("333b3b"), 5, true)
-	PersonalityArt.face(self,person.persona,Vector2(0,-66),.9)
-	draw_line(Vector2(-8, -59), Vector2(8, -56), tint.darkened(0.35), 4, true)
-	draw_set_transform(Vector2.ZERO)
+	var game := get_parent().get_parent()
+	var context:=CharacterMotion.shelter_context(self,game)
+	if hurt_age>0:context={'mode':'hurt','progress':1-hurt_age/.4}
+	CharacterMotion.draw(self,Vector2.ZERO,self,CharacterMotion.pose(context['mode'],game.simulation_time,context['progress'],facing,str(weapon_item.get('kind',''))),game.has_method('siege_snapshot') and game.siege.active)
 	if selected or health < 60:
 		draw_rect(Rect2(-26, -117, 52, 5), Color("172320"))
 		draw_rect(Rect2(-26, -117, 52 * health / 100.0, 5), Color("d48f75") if health < 40 else Color("9dbb9b"))

@@ -1,23 +1,32 @@
-# Live Forever · 留一盏灯 v1.11.0
+# Live Forever · 留一盏灯 v1.12.0
 
-单人僵尸生存游戏：白天经营、制作、改造并照顾同伴，夜间亲自潜入九张地图搜刮；尸群来袭时可接管任一守家角色防守。v1.11加入房间遮蔽与门窗路线、三个不同开局、六名原创特色角色与专属计划、九处感染者往事，以及持续消耗装备与安防的长期循环。保留35日撤离战役、无尽生存、迁居和前哨。采用原创简化画面。
+单人僵尸生存游戏：白天经营、制作、改造并照顾同伴，夜间亲自潜入搜刮、抵御尸群。v1.12加入可授权的共享备餐与现场医护、有限记忆驱动的敌人搜索，以及覆盖日常、潜入和战斗的关节动画。保留九地图、三个开局、六名人物及个人线、35日撤离战役、无尽生存、迁居和前哨。采用原创简化画面。
 
 ## 下载后直接玩
 
 | 用途 | GitHub直接下载 | 使用方法 |
 | --- | --- | --- |
-| Windows 64位游戏 | [live_forever_v21_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.11.0/live_forever_v21_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
-| Linux x86_64游戏 | [live_forever_v21_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.11.0/live_forever_v21_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
-| Windows一键验收工具 | [live_forever_v21_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.11.0/live_forever_v21_windows_acceptance.zip) | 主动运行 `windows_acceptance.cmd`，默认约30分钟 |
-| v1.11.0完整源码 | [live_forever_shelter_m21.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.11.0/live_forever_shelter_m21.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
+| Windows 64位游戏 | [live_forever_v22_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.12.0/live_forever_v22_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
+| Linux x86_64游戏 | [live_forever_v22_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.12.0/live_forever_v22_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
+| Windows一键验收工具 | [live_forever_v22_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.12.0/live_forever_v22_windows_acceptance.zip) | 主动运行 `windows_acceptance.cmd`，默认约30分钟 |
+| v1.12.0完整源码 | [live_forever_shelter_m22.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.12.0/live_forever_shelter_m22.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
 
 普通游戏不需要Godot、Python、登录、服务器或持续联网。验收工具是单独的程序，不会在正常游戏中替你操作。Windows包按官方模板导出；**尚未在Windows真实设备完成验收**。
 
-[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.11.0) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
+[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.12.0) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
 
-运行包、验收包、版本源码ZIP托管在`downloads-v1.11.0`分支，开发源码在`main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
+运行包、验收包、版本源码ZIP托管在`downloads-v1.12.0`分支，开发源码在`main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
 
 ## 新版怎样玩
+
+**F4安排同伴协作。** 可单独授权替饥饿同伴备餐，或让医护空闲时走近伤员护理。两项默认关闭，优先自身需要与玩家命令；备餐真实消耗原料，护理需到场工作4秒，完成才扣药1。伤员离开、医护受伤、缺药或日落会中止，不会远程回血。基本自理仍默认开启。
+
+**动作有明确阶段。** 行走／奔跑／潜行、爬梯、搜刮、开门拆窗与翻越、吃喝烹饪、护理、近战／射击／换弹、受击与倒地均有对应动作。武器在准备→接触→恢复间连续变化，命中与血迹由真实判定触发；爬梯、翻窗、搜刮时会收拢武器。
+
+[新规则、动作与验证范围](docs/COOPERATION_MOTION_V22.md)
+
+![实际引擎录制的自主护理；伤势为展示夹具，行走、治疗与扣药实际发生](docs/v22-autonomous-aid.gif)
+
 
 **F2选开局，F3看人物志与感染档案。** 三个开局分别是残灯旅社、断桥最后一餐、白霜救护站，具有不同队伍、库存、装备、初始建设与气候。替换战役须确认；读档不会再次发放初始物资。六名人物各有原有技能、行为偏好、两种个人信念和需要实地勘查的专属工程；完成才解锁相应能力。
 
@@ -90,7 +99,7 @@
 
 ## 存档与验证
 
-旧档无需重开。schema18增加房间、感染者行为、人物志与实时防守，兼容schema1–17；schema17增加基本自理，兼容schema1–16，保留实际任务和物资；schema16加入街区经营、声源与轮值预留，兼容schema1–15；schema15增加地点状况、持久通路与清障，兼容schema1–14；schema14加入堆叠规则，兼容schema1–13，保留实际件数、装备与敌人AI；schema13增加敌人的原巡逻楼层、目标记忆和攀爬进度，兼容schema1–12；schema10保留家园、迁居、安防、勘察与演奏记录，增加可恢复的返程安排，继续保存装备归属／耐久、弹匣与换弹进度、疾病／寒冷、炉火、工作台在制项目、地图和战役进度，兼容schema1–9。旧版在途物资继续保留，新增战役从导入当天计日；不会因读取旧档反复发装备。系统用户目录和旧版本一致，首次写入保留备份。建议解压到新文件夹，不覆盖正在运行的旧程序。
+旧档无需重开。schema19保存协作授权、未完成现场护理与敌人搜索计划，兼容schema1–18；schema18增加房间、感染者行为、人物志与实时防守，兼容schema1–17；schema17增加基本自理，兼容schema1–16，保留实际任务和物资；schema16加入街区经营、声源与轮值预留，兼容schema1–15；schema15增加地点状况、持久通路与清障，兼容schema1–14；schema14加入堆叠规则，兼容schema1–13，保留实际件数、装备与敌人AI；schema13增加敌人的原巡逻楼层、目标记忆和攀爬进度，兼容schema1–12；schema10保留家园、迁居、安防、勘察与演奏记录，增加可恢复的返程安排，继续保存装备归属／耐久、弹匣与换弹进度、疾病／寒冷、炉火、工作台在制项目、地图和战役进度，兼容schema1–9。旧版在途物资继续保留，新增战役从导入当天计日；不会因读取旧档反复发装备。系统用户目录和旧版本一致，首次写入保留备份。建议解压到新文件夹，不覆盖正在运行的旧程序。
 
 [v1.11战术与角色](docs/TACTICS_CHARACTERS_V21.md) · [v1.10人物自理](docs/AUTONOMY_V20.md) · [v1.9街区、前哨与诱饵](docs/DISTRICTS_V19.md) · [v1.8地图与路线](docs/MAP_ENVIRONMENTS_V18.md) · [v1.7背包堆叠](docs/BACKPACK_STACKS_V17.md) · [原作文件静态研究](docs/TWOM_BINARY_REFERENCE_20261028.md) · [REA工具验证](docs/REA_RESEARCH_V17.md) · [原作公开资料研究](docs/TWOM_PUBLIC_RESEARCH.md) · [v1.6敌人AI、攻击与安防](docs/AI_SECURITY_V16.md) · [v1.5事件、界面与战斗](docs/DIRECTOR_UI_COMBAT_V15.md) · [v1.4设施升级](docs/FACILITIES_V14.md) · [v1.3.3离场与装备](docs/DEPARTURE_EQUIPMENT_V133.md) · [v1.3.2白天键盘修复](docs/KEYBOARD_V132.md) · [v1.3.1交互修复与验证](docs/INTERACTIONS_V131.md) · [v1.3角色、家园与验证](docs/HOMES_V13.md) · [v1.2界面说明](docs/PRESENTATION_V12.md) · [装备、气候、九地图和战役规则](docs/EXPANSION_V11.md) · [Windows检查方法](docs/WINDOWS_ACCEPTANCE.md) · [下载索引](downloads/README.md) · [许可](licenses/README.md)
 
@@ -100,7 +109,7 @@ python tests/run_checks.py --graphics --artifacts /tmp/live-forever-checks
 python tools/build_desktop.py --acceptance --output builds --logs builds/logs
 ```
 
-本轮验证详见[v1.11报告](docs/v21-validation.json)。三个开局×两种普通经营路线在35日窗口内全员撤离，另各进行60天无尽生存检查；逐日校验实际存档。历史核心场景失败策略仍保留，可用`--legacy-prototype-long-runs`显式复现，默认检查当前完整战役。
+本轮验证详见[v1.12报告](docs/v22-validation.json)。三个开局×三种经营路线在35日窗口内全员撤离，另各进行60天无尽生存检查；协作路线中实际完成自主护理和共享备餐，逐日校验存档。历史核心场景失败策略仍保留，可用`--legacy-prototype-long-runs`显式复现，默认检查当前完整战役。
 
 开发需要Godot4.6.3、Python3；图形检查需要显示环境。普通玩家不需要这些工具。默认入口为`scenes/campaign.tscn`，`shelter.tscn`是底层回归测试场景。
 

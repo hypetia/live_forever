@@ -82,7 +82,7 @@ func _ready() -> void:
 	scheduler.production_rate = func(id: String): return facilities.rate(id)
 	facilities.sync(self)
 	expansion.sync(self)
-	get_window().title = "Live Forever · 留一盏灯 v1.11"
+	get_window().title = "Live Forever · 留一盏灯 v1.12"
 	chronicle.sync(self)
 	scheduler.task_finished.connect(func(id: int,task: String): chronicle.job(self,id,task))
 	self_care.sync(self)
@@ -424,6 +424,7 @@ func _day_step(step: float) -> void:
 	for id in policies: survivors[int(id)].person.routine = policies[id]
 	_tick_external(step)
 	expansion.tick_day(self, step)
+	self_care.tick_support(self,step)
 	chronicle.tick_day(self,step)
 	self_care.sync(self)
 	residence.noise = maxf(0, residence.noise - step * 0.006)
@@ -1019,12 +1020,12 @@ func cancel_selected() -> void:
 func _unhandled_key_input(event: InputEvent) -> void:
 	if is_instance_valid(chronicle_view) and chronicle_view.opened:
 		if event is InputEventKey and event.pressed and not event.echo:
-			if event.physical_keycode in [KEY_ESCAPE,KEY_F2,KEY_F3]: chronicle_view.close()
+			if event.physical_keycode in [KEY_ESCAPE,KEY_F2,KEY_F3,KEY_F4]: chronicle_view.close()
 			elif event.physical_keycode == KEY_F6: save_game()
 		get_viewport().set_input_as_handled();return
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.physical_keycode in [KEY_F2,KEY_F3]:
-			chronicle_view.show_page("starts" if event.physical_keycode==KEY_F2 else "people");get_viewport().set_input_as_handled();return
+		if event.physical_keycode in [KEY_F2,KEY_F3,KEY_F4]:
+			chronicle_view.show_page("starts" if event.physical_keycode==KEY_F2 else "cooperate" if event.physical_keycode==KEY_F4 else "people");get_viewport().set_input_as_handled();return
 		if cycle.phase == "siege":
 			match event.physical_keycode:
 				KEY_J: siege.attack(self,selected_id)
@@ -1253,7 +1254,7 @@ func place_build(type: String, slot: int) -> bool:
 
 
 func _external_busy(id: int) -> bool:
-	return (not chronicle.work.is_empty() and int(chronicle.work["actor"])==id) or shelter_keyboard.actor_id == id or expansion.jobs.any(func(job): return job["actor"] == id) or cycle.builds.any(func(build): return build["state"] == "blueprint" and build["actor"] == id) or cycle.actions.any(func(action): return action["actor"] == id)
+	return self_care.busy(self,id) or (not chronicle.work.is_empty() and int(chronicle.work["actor"])==id) or shelter_keyboard.actor_id == id or expansion.jobs.any(func(job): return job["actor"] == id) or cycle.builds.any(func(build): return build["state"] == "blueprint" and build["actor"] == id) or cycle.actions.any(func(action): return action["actor"] == id)
 
 
 func _cancel_external(id: int, refund: bool = true) -> void:

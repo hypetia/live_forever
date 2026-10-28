@@ -15,7 +15,7 @@ const LORE := {
 
 static func make(id: String,index: int) -> Dictionary:
  var role:int={'street':1,'clinic':2,'works':3,'residential':0,'market':1,'waterworks':3,'depot':0,'broadcast':2,'evac':3}[id] if index==2 else (LocationCatalog.ALL_IDS.find(id)+index)%4
- return {'role':role,'call':0.0,'ignore':0.0,'lure_x':0.0,'lure_floor':0,'spooked':0.0,'last_hp':-1,'investigations':0}
+ return {'role':role,'call':0.0,'ignore':0.0,'lure_x':0.0,'lure_floor':0,'spooked':0.0,'last_hp':-1,'investigations':0,'search':{}}
 
 static func record(field: ExpeditionState,enemy: Dictionary) -> Dictionary:
  var i:=field.enemies.find(enemy)
@@ -51,12 +51,10 @@ static func observe(field: ExpeditionState,enemy: Dictionary,sees: bool,hears: b
   for other in field.enemies:
    if other==enemy or other['hp']<=0:continue
    if absf(float(other['x'])-float(enemy['x']))<650:
+    record(field,other)['search'].clear()
     other['target']=enemy['x'];other['target_floor']=enemy['floor'];other['memory']=6.0
     other['suspicion']=maxf(other['suspicion'],65);other['mode']='investigate'
   field.combat_resolved.emit('howl',Vector2(enemy['x'],field.enemy_y(enemy)-70),0)
- if not sees and not hears and enemy['mode']=='investigate' and enemy['memory']<2 and enemy['memory']>0 and absf(float(enemy['x'])-float(enemy['target']))<35:
-  var low:=90.0 if enemy['floor']==0 else field.upper_left()
-  enemy['target']=clampf(float(enemy['target'])+sin(field.elapsed*2)*55,low,field.right_edge(enemy['floor']))
 
 static func retreat(field: ExpeditionState,enemy: Dictionary,delta: float) -> bool:
  var m:=record(field,enemy)
@@ -79,9 +77,52 @@ static func patrol(field: ExpeditionState,enemy: Dictionary,to: float,delta: flo
 static func label(field: ExpeditionState,index: int) -> String:
  return (str(NAMES[field.location_id])+' · ' if index==2 else '')+str(ROLES[field.minds[index]['role']])
 
-static func validate(data: Variant,enemies: Variant) -> String:
+static func validate(data: Variant,enemies: Variant,id: String='street') -> String:
  if not data is Array or not enemies is Array or data.size()!=enemies.size():return '感染者行为记录数量无效'
  for m in data:
-  if not CharacterState.keys(m,['role','call','ignore','lure_x','lure_floor','spooked','last_hp','investigations']):return '感染者行为字段无效'
+  if not CharacterState.keys(m,['role','call','ignore','lure_x','lure_floor','spooked','last_hp','investigations','search']):return '感染者行为字段无效'
   if not CharacterState.integer(m['role'],0,3) or not CharacterState.number(m['call'],0,14) or not CharacterState.number(m['ignore'],0,18) or not CharacterState.number(m['lure_x'],0,10000) or not CharacterState.integer(m['lure_floor'],0,1) or not CharacterState.number(m['spooked'],0,8) or not CharacterState.integer(m['last_hp'],-1,90) or not CharacterState.integer(m['investigations'],0,10000):return '感染者行为状态无效'
+  var search: Variant = m['search']
+  if not search is Dictionary:return '调查计划无效'
+  if not search.is_empty():
+   if not CharacterState.keys(search,['x','floor','time','step','wait','destinations']) or not CharacterState.integer(search['floor'],0,1) or not CharacterState.number(search['time'],0,6) or not CharacterState.number(search['wait'],0,1.1) or not search['destinations'] is Array or search['destinations'].is_empty() or search['destinations'].size()>3 or not CharacterState.integer(search['step'],0,search['destinations'].size()-1):return '调查阶段无效'
+   var map: Dictionary = LocationCatalog.area(id)
+   var low: float = 90 if search['floor']==0 else map['upper_left']
+   var high: float = float(map['width'])-(100 if search['floor']==0 else 150)
+   if not CharacterState.number(search['x'],low,high):return '调查记忆越界'
+   for x in search['destinations']:
+    if not CharacterState.number(x,low,high) or absf(float(x)-float(search['x']))>240:return '调查路线越界'
  return ''
+
+static func investigate(field: ExpeditionState,enemy: Dictionary,delta: float,sensed: bool) -> bool:
+ var mind:=record(field,enemy)
+ if mind.is_empty():return false
+ if sensed or enemy['hp']<=0:
+  mind['search'].clear();return false
+ if not enemy['mode'] in ['chase','investigate']:return false
+ var search: Dictionary = mind['search']
+ if search.is_empty():
+  if enemy['memory']<=0 or enemy['floor']!=enemy['target_floor'] or enemy['climb_target']!=-1 or absf(float(enemy['x'])-float(enemy['target']))>30:return false
+  var floor_id: int = enemy['floor'];var x: float = enemy['target']
+  var low: float = 90 if floor_id==0 else field.upper_left();var high: float = field.right_edge(floor_id)
+  var destinations: Array = []
+  for offset in [float(enemy['direction'])*120,-float(enemy['direction'])*120]:destinations.append(clampf(x+offset,low,high))
+  for wall in InteriorState.layout(field.location_id):
+   if wall['floor']==floor_id and absf(float(wall['x'])-x)<150:
+    destinations.append(clampf(float(wall['x'])+(70 if float(wall['x'])>x else -70),low,high));break
+  search.merge({'x':x,'floor':floor_id,'time':6.0,'step':0,'wait':1.1,'destinations':destinations})
+  enemy['memory']=6.1;enemy['mode']='investigate'
+ search['time']=maxf(0,float(search['time'])-delta)
+ if search['time']<=0:
+  search.clear();enemy['memory']=0.0;enemy['suspicion']=0.0;enemy['mode']='patrol';return false
+ if search['wait']>0:
+  search['wait']=maxf(0,float(search['wait'])-delta)
+  enemy['direction']=1.0 if search['wait']>.55 else -1.0
+  return true
+ var destination: float = search['destinations'][int(search['step'])]
+ enemy['target']=destination;enemy['target_floor']=search['floor']
+ if absf(float(enemy['x'])-destination)<20:
+  if int(search['step'])<search['destinations'].size()-1:search['step']=int(search['step'])+1;search['wait']=.8
+  else:search['time']=minf(float(search['time']),.8);search['wait']=.8
+ else:field._enemy_route(enemy,destination,int(search['floor']),48,delta)
+ return true
