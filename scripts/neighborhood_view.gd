@@ -77,31 +77,22 @@ func draw_field(canvas: Node2D,camera: float) -> void:
 		var running: bool=(id in ["generator","coldstore"] and system.clinic["mode"]=="running") or (id in ["pump","valve"] and system.water["mode"]=="running")
 		var metal:=Color("3f5757") if running else Color("55554d")
 		if stripped:metal=Color("303b3c");color=InteractionFeedback.EMPTY_EDGE
-		if id=="patient":
-			canvas.draw_line(p+Vector2(-27,-9),p+Vector2(26,-9),Color("7a8f83"),5,true)
-			canvas.draw_circle(p+Vector2(-21,-23),8,Color("bba68c"));canvas.draw_line(p+Vector2(-13,-20),p+Vector2(23,-13),Color("a799ba"),13,true)
+		if id=='patient':
+			RealismAssets.prop(canvas,0,Rect2(p-Vector2(62,77),Vector2(124,77)),Color(.81,.84,.78))
+			_draw_patient(canvas,p,false)
 		else:
-			canvas.draw_rect(Rect2(p+Vector2(-30,-68),Vector2(60,68)),metal)
-			canvas.draw_rect(Rect2(p+Vector2(-30,-68),Vector2(60,68)),color if near and visible_here else Color("667b76"),false,1.5)
-			if id=="generator":
-				for j in range(4):canvas.draw_line(p+Vector2(-20,-50+j*9),p+Vector2(2,-50+j*9),Color("213a3c"),4)
-				canvas.draw_circle(p+Vector2(17,-38),8,Color("263c3c"))
-				if running and system.clinic["fuel"]>0 and system.clinic["cold"]>0:
-					canvas.draw_line(p+Vector2(17,-38),p+Vector2(17,-38)+Vector2.from_angle(f.elapsed*9)*7,Color("a4bb9d"),2,true)
-			elif id=="pump":
-				canvas.draw_arc(p+Vector2(0,-35),18,0,TAU,24,color,3,true)
-				canvas.draw_line(p+Vector2(-18,-35),p+Vector2(18,-35),color,2,true)
-				canvas.draw_line(p+Vector2(0,-53),p+Vector2(0,-17),color,2,true)
-				if running:
-					canvas.draw_line(p+Vector2(30,-18),p+Vector2(90,-18),Color("639ba9"),5,true)
-					canvas.draw_circle(p+Vector2(33+fposmod(f.elapsed*22,53),-18),2,Color("b6d3c8"))
-			elif id=="coldstore":
-				canvas.draw_rect(Rect2(p+Vector2(-23,-60),Vector2(46,51)),Color("506b6a") if running else Color("36474c"))
-				canvas.draw_line(p+Vector2(-8,-34),p+Vector2(8,-34),color,4,true);canvas.draw_line(p+Vector2(0,-42),p+Vector2(0,-26),color,4,true)
-			else:
-				for j in range(3):canvas.draw_circle(p+Vector2(-18+j*18,-40),4,Color("92bda3") if system.water["connected"] else Color("676b5c"))
-				if system.water["leak"] in [1,2]:
-					canvas.draw_colored_polygon(PackedVector2Array([p+Vector2(0,-59),p+Vector2(-8,-45),p+Vector2(8,-45)]),GameUi.WARNING)
+			var index:=12 if id=='pump' else 5 if id=='coldstore' else 13
+			var size:=Vector2(60,78) if id=='coldstore' else Vector2(80,68)
+			RealismAssets.prop(canvas,index,Rect2(p-Vector2(size.x*.5,size.y),size),Color(.87,.94,.86) if running else Color(.76,.79,.72),stripped)
+			if near and visible_here:canvas.draw_rect(Rect2(p-Vector2(size.x*.5,size.y),size).grow(2),color,false,1.2)
+			if id=='generator' and running and system.clinic['fuel']>0 and system.clinic['cold']>0:
+				canvas.draw_circle(p+Vector2(17,-38),3,Color('b8c98e'))
+			elif id=='pump' and running:
+				canvas.draw_line(p+Vector2(30,-18),p+Vector2(90,-18),Color('639ba9'),4,true)
+				canvas.draw_circle(p+Vector2(33+fposmod(f.elapsed*22,53),-18),2,Color('b6d3c8'))
+			elif id=='valve':
+				for j in range(3):canvas.draw_circle(p+Vector2(-18+j*18,-40),2,Color('92bda3') if system.water['connected'] else Color('676b5c'))
+				if system.water['leak'] in [1,2]:canvas.draw_colored_polygon(PackedVector2Array([p+Vector2(0,-59),p+Vector2(-8,-45),p+Vector2(8,-45)]),GameUi.WARNING)
 		if not visible_here:continue
 		var marker:=p+Vector2(0,-91)
 		canvas.draw_circle(marker,13,Color("15292c"))
@@ -113,8 +104,16 @@ func draw_field(canvas: Node2D,camera: float) -> void:
 			canvas.draw_line(marker+Vector2(-6,6),marker+Vector2(5,-6),color,3,true);canvas.draw_line(marker+Vector2(-1,-7),marker+Vector2(7,0),color,3,true)
 		if not system.work.is_empty() and NeighborhoodSystem.ACTIONS[system.work["id"]]["node"]==id:
 			canvas.draw_arc(marker,19,-PI/2,-PI/2+TAU*float(system.work["elapsed"])/float(NeighborhoodSystem.ACTIONS[system.work["id"]]["seconds"]),32,InteractionFeedback.READY,3,true)
-	if f.carrying_person:
-		var p:=Vector2(f.player_x-camera-f.facing*12,f.player_y-44)
-		canvas.draw_line(p+Vector2(0,-15),p+Vector2(0,14),Color("a799ba"),12,true)
-		canvas.draw_circle(p+Vector2(0,-23),7,Color("baa58c"))
-		canvas.draw_line(p+Vector2(0,11),p+Vector2(-f.facing*18,26),Color("768780"),6,true)
+	if f.carrying_person:_draw_patient(canvas,Vector2(f.player_x-camera-f.facing*18,f.player_y-24),true)
+
+func _draw_patient(canvas: Node2D,point: Vector2,carried: bool) -> void:
+	var f:ExpeditionState=game.expedition
+	var pose:=ActorVisual.remap(CharacterMotion.pose('patient' if carried else 'sleep',f.elapsed,.5,-f.facing if carried else 1.0))
+	if carried:
+		pose['hip']=Vector2(0,-24);pose['shoulder']=Vector2(f.facing*5,-51);pose['head']=Vector2(f.facing*10,-69)
+		pose['knee_l']=Vector2(-f.facing*19,-5);pose['knee_r']=Vector2(-f.facing*12,-8)
+		pose['left']=Vector2(-f.facing*9,2);pose['right']=Vector2(-f.facing*4,0)
+	var base:=Transform2D(0,game.world_scale(),0,game.world_offset()+(canvas.combat_effects.shake() if 'combat_effects' in canvas else Vector2.ZERO))
+	canvas.draw_set_transform_matrix(base*Transform2D(float(pose['rotation']),Vector2.ONE,0,point+pose['root']))
+	ActorVisual.draw(canvas,game.neighborhood.rescue['id'],pose,Color(.85,.87,.80),'rescued')
+	canvas.draw_set_transform_matrix(base)

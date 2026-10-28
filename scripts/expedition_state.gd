@@ -67,6 +67,8 @@ var medicine_cooldown := 0.0
 var climb_target := -1
 var climb_progress := 0.0
 var search_index := -1
+var migration_extra := 0
+var search_active := false # Transient actual work, never an input held across saves.
 var search_progress := 0.0
 var search_duration := 0.0
 var search_tool := false
@@ -114,6 +116,7 @@ func refresh_for_day(day: int) -> void:
 
 
 func _spawn_enemies(day: int) -> void:
+	migration_extra=0
 	population_day=day
 	enemies.clear()
 	minds.clear()
@@ -224,6 +227,7 @@ func reload(actor: Survivor) -> bool:
 
 
 func tick(delta: float, actor: Survivor, raw_controls: Dictionary) -> void:
+	search_active = false
 	if not active: return
 	var controls := interior.controls(self,actor,delta,raw_controls) if environment_active else raw_controls
 	if environment_active: interior.observe(self)
@@ -305,6 +309,7 @@ func tick(delta: float, actor: Survivor, raw_controls: Dictionary) -> void:
 
 
 func _reset_search() -> void:
+	search_active = false
 	search_index = -1
 	search_progress = 0
 	search_duration = 0
@@ -316,6 +321,8 @@ func _search(delta: float, actor: Survivor) -> void:
 	if index == -1:
 		feedback = "靠近箱柜，按住 E 搜索。W/S 在梯子旁上下楼。"
 		return
+	var contact_x := float(site_definitions()[index]["x"]) - player_x
+	if absf(contact_x) > 2: facing = signf(contact_x)
 	if used_capacity() >= capacity and not manual_loot:
 		feedback = "背包已满；可丢弃一份物资腾出空间，或回入口撤退。"
 		return
@@ -332,6 +339,7 @@ func _search(delta: float, actor: Survivor) -> void:
 		search_tool = site["locked"] and bag["tools"] > 0
 		search_duration = 3.0 if search_tool else float(site_definitions()[index]["seconds"]) + (4.0 if site["locked"] else 0.0)
 	noise_burst = maxf(noise_burst, 70 if site["locked"] else 42)
+	search_active = delta > 0
 	search_progress += delta * (0.8 if sneaking else 1.0)
 	feedback = "搜索 %s · %d%%（移动或松开 E 会暂停）" % [site_definitions()[index]["name"], int(search_progress / search_duration * 100)]
 	if search_progress + 0.000001 < search_duration:
@@ -707,7 +715,7 @@ func snapshot() -> Dictionary:
 		"interior":interior.snapshot(),"minds":minds.duplicate(true),
 		"decoys":decoys.duplicate(true),"lure_cooldown":lure_cooldown,
 		"condition":condition,"route_open":route_open,"route_progress":route_progress,"route_tool":route_tool,
-		"stacked": stacked, "extra_slots": extra_slots, "reserve_ammo": reserve_ammo, "magazine": magazine, "reload_remaining": reload_remaining, "discovered": discovered.duplicate(), "capacity": capacity, "manual_loot": manual_loot, "loot_site": loot_site,
+		"migration_extra":migration_extra,"stacked": stacked, "extra_slots": extra_slots, "reserve_ammo": reserve_ammo, "magazine": magazine, "reload_remaining": reload_remaining, "discovered": discovered.duplicate(), "capacity": capacity, "manual_loot": manual_loot, "loot_site": loot_site,
 		"active": active, "actor_id": actor_id, "attempts": attempts, "last_refresh_day": last_refresh_day, "population_day":population_day,
 		"return_speed": return_speed, "player_x": player_x, "player_y": player_y, "floor": floor_level,
 		"facing": facing, "sneaking": sneaking, "sprinting": sprinting, "moving": moving,
@@ -720,6 +728,8 @@ func snapshot() -> Dictionary:
 
 
 func restore_validated(data: Dictionary) -> void:
+	migration_extra=int(data.get("migration_extra",0))
+	search_active = false
 	_exit_interact_held = false
 	for property in ["lure_cooldown", "condition", "route_open", "route_progress", "route_tool", "stacked", "extra_slots", "reserve_ammo", "magazine", "reload_remaining", "capacity", "manual_loot", "loot_site", "active", "facing", "sneaking", "sprinting", "moving", "return_speed", "player_x", "player_y", "noise", "noise_burst", "elapsed", "invulnerable", "attack_cooldown", "attack_windup", "medicine_cooldown", "climb_progress", "search_progress", "search_duration", "search_tool", "feedback"]:
 		set(property, data[property])
@@ -774,6 +784,7 @@ static func validate_snapshot(data: Variant, actors: Array, id: String = "street
 	var upper: float = definition["upper_left"]
 	var width: float = definition["width"]
 	var fields := ["interior", "minds", "decoys", "lure_cooldown", "condition", "route_open", "route_progress", "route_tool", "stacked", "extra_slots", "reserve_ammo", "magazine", "reload_remaining", "discovered", "capacity", "manual_loot", "loot_site", "active", "actor_id", "attempts", "last_refresh_day", "population_day", "return_speed", "player_x", "player_y", "floor", "facing", "sneaking", "sprinting", "moving", "noise", "noise_burst", "elapsed", "invulnerable", "attack_cooldown", "attack_windup", "medicine_cooldown", "climb_target", "climb_progress", "search_index", "search_progress", "search_duration", "search_tool", "feedback", "bag", "sites", "enemies"]
+	if data is Dictionary and data.has("migration_extra"):fields.append("migration_extra")
 	if not _keys(data, fields): return "探索字段不完整"
 	var room_error := InteriorState.validate(data["interior"],id,data)
 	if not room_error.is_empty(): return room_error
@@ -847,7 +858,8 @@ static func validate_snapshot(data: Variant, actors: Array, id: String = "street
 		var duration := 3.0 if data["search_tool"] else float(site_defs[search]["seconds"]) + (4.0 if site["locked"] else 0.0)
 		if not data["active"] or target != -1 or site_defs[search]["floor"] != level or data["search_progress"] >= duration or not is_equal_approx(data["search_duration"], duration): return "搜索动作与容器不符"
 		if data["search_tool"] and (not site["locked"] or data["bag"]["tools"] < 1): return "破锁没有实际工具"
-	if not data["enemies"] is Array or data["enemies"].size() != (definition["guards"].size() + (1 if int(data["population_day"]) % 3 == 0 else 0)): return "感染者数量与迁入日期不符"
+	if not _i(data.get("migration_extra",0),0,1):return "迁移感染者数量无效"
+	if not data["enemies"] is Array or data["enemies"].size() != (definition["guards"].size() + (1 if int(data["population_day"]) % 3 == 0 else 0) + int(data.get("migration_extra",0))): return "感染者数量与迁入日期不符"
 	for enemy in data["enemies"]:
 		if not _keys(enemy, ["x", "floor", "min", "max", "direction", "mode", "suspicion", "target", "timer", "cooldown", "brace", "hp", "kind", "home_floor", "target_floor", "memory", "climb_target", "climb_progress"]): return "感染者字段无效"
 		if not _i(enemy["floor"], 0, 1) or not enemy["mode"] in MODES or not enemy["kind"] in ["walker", "runner", "brute"] or not _i(enemy["hp"], 0, EnemyCatalog.stats(enemy["kind"])["health"]) or not enemy["direction"] in [-1.0, 1.0]: return "感染者状态无效"

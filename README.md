@@ -1,27 +1,35 @@
-# Live Forever · 封锁区：余生 v1.16.0
+# Live Forever · 封锁区：余生 v1.17.0
 
-单人僵尸生存游戏：白天经营、制作、改造并照顾同伴，夜间亲自潜入搜刮、抵御尸群。v1.13把诊所、供水站与基地连成持续变化的街区：保全或拆取冷链、持续供水与分流、背负救援及共同经历。保留同伴协作、记忆搜索和关节动画。保留九地图、三个开局、十二名人物及个人线、35日撤离战役、无尽生存、迁居和前哨。采用原创简化画面。
+v1.17.0升级了人物、家具与场景的2D美术，并整合营地局势、同伴关系、自主配菜、食物疾病和生产循环。新素材共约9MB；继续采用2D图集与轻量骨骼动画。进入游戏后窗口标题会显示 `v1.17.0`。
+
+单人僵尸生存游戏：白天经营、制作和照顾同伴，夜间亲自潜入搜刮、抵御尸群。保留九张地图、三个开局、十二名角色及个人线、35日撤离战役、无尽生存、迁居和前哨。体验本次营地新机制请新开战役。
+
+![v1.17实际游戏画面](docs/realism-shelter.png)
+
+[画面升级与实际截图](docs/REALISM_ART.md) · [营地玩法说明](docs/CAMP_LIFE.md) · [本版验证记录](docs/realism-validation.json)
 
 ## 下载后直接玩
 
-v1.16.0采用玩家选定的12人：里昂、瑞克、电影版爱丽丝、柯南、詹姆斯·邦德、阿笠博士、特斯拉、黑杰克、端木蓉、小当家、小熊维尼、米老鼠。每局3人开局，最多5名活人在队。米老鼠在现有互助交易中额外争取水2、燃料1；维尼强化共餐安慰，并能到餐桌准备每天一次的分享点心。F3查看角色图鉴与个人任务。Windows一键验收包同步更新；Windows真机仍待验收。
+本版采用玩家选定的12人：里昂、瑞克、电影版爱丽丝、柯南、詹姆斯·邦德、阿笠博士、特斯拉、黑杰克、端木蓉、小当家、小熊维尼、米老鼠。每局3人开局，最多5名活人在队。米老鼠在现有互助交易中额外争取水2、燃料1；维尼强化共餐安慰，并能到餐桌准备每天一次的分享点心。F3查看角色图鉴与个人任务。Windows一键验收包同步更新；Windows真机仍待验收。
 
 | 用途 | GitHub直接下载 | 使用方法 |
 | --- | --- | --- |
-| Windows 64位游戏 | [live_forever_v1.16.0_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.16.0/live_forever_v1.16.0_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
-| Linux x86_64游戏 | [live_forever_v1.16.0_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.16.0/live_forever_v1.16.0_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
-| Windows一键验收工具 | [live_forever_v1.16.0_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.16.0/live_forever_v1.16.0_windows_acceptance.zip) | 主动运行 `windows_acceptance.cmd`，默认约30分钟 |
-| v1.16.0完整源码 | [live_forever_v1.16.0_source.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.16.0/live_forever_v1.16.0_source.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
+| Windows 64位游戏（约44MB） | [live_forever_v1.17.0_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.17.0/live_forever_v1.17.0_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
+| Linux x86_64游戏（约35MB） | [live_forever_v1.17.0_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.17.0/live_forever_v1.17.0_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
+| Windows一键验收工具 | [live_forever_v1.17.0_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.17.0/live_forever_v1.17.0_windows_acceptance.zip) | 主动运行 `windows_acceptance.cmd`，默认约30分钟 |
+| v1.17.0完整源码 | [live_forever_v1.17.0_source.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.17.0/live_forever_v1.17.0_source.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
 
 普通游戏不需要Godot、Python、登录、服务器或持续联网。验收工具是单独的程序，不会在正常游戏中替你操作。Windows包按官方模板导出；**尚未在Windows真实设备完成验收**。
 
-[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.16.0) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
+[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.17.0) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
 
-v1.16.0 运行包和对应源码托管在 `downloads-v1.16.0`；同版验收包在 `downloads-v1.16.0`，开发源码在 `main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
+v1.17.0 运行包和对应源码托管在 `downloads-v1.17.0`；同版验收包在 `downloads-v1.17.0`，开发源码在 `main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
 
-[本版角色与验证范围](docs/SELECTED_ROSTER_V27.md)
+[角色设定说明（沿用）](docs/SELECTED_ROSTER_V27.md)
 
 ## 新版怎样玩
+
+**F5管理营地。** 查看两天后的局势，安排种植、肉菜饭、保鲜、净水、病床休养和草药护理。角色能主动陪伴、望风与补充蔬菜；连续守夜会产生分工争议，轮换承诺由实际夜间岗位兑现。
 
 **诊所与水厂会记住行动。** 点击现场设备或靠近按E，选择保全、拆取、持续生产与分流；施工有进度，完成才扣料。普通容器在这两张地图搜空后保持空。水厂可把水送回基地，也可支持诊所制作护理用品。
 

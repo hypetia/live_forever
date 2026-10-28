@@ -52,6 +52,7 @@ func sync(game: Node2D) -> void:
 				actor.set(str(GearCatalog.ITEMS[item["kind"]]["slot"]) + "_item", item)
 
 	if game.has_method("districts_snapshot"): game.districts.sync(game)
+	if "camp" in game and game.camp.enabled:game.camp.food.sync_sites(game)
 
 func grant(kind: String, owner: String = "") -> void:
 	gear.append({"id": next_id, "kind": kind, "durability": GearCatalog.ITEMS[kind]["durability"], "owner": owner})
@@ -80,6 +81,8 @@ func reserved_slots(game: Node2D) -> int:
 
 func refresh_slots(field: ExpeditionState, actor: Survivor) -> void:
 	field.extra_slots = equipped_slots(actor) + ceili((field.reserve_ammo + field.magazine) / 8.0) + carried.size() + (2 if field.carrying_person else 0)
+	var game:Node=actor.get_parent().get_parent() if is_instance_valid(actor.get_parent()) else null
+	if is_instance_valid(game) and "camp" in game and game.camp.enabled:field.extra_slots+=game.camp.food.slots()
 
 func unlocked(game: Node2D, id: String) -> bool:
 	match id:
@@ -169,13 +172,13 @@ func tick_day(game: Node2D, delta: float) -> void:
 			continue
 		if not actor.route.is_empty() or actor.position.distance_to(job_position(job["kind"])) > 10: continue
 		var station := FacilitySystem.station_for(job["kind"])
-		if not station.is_empty() and (used_stations.has(station) or job != jobs.filter(func(work): return FacilitySystem.station_for(work["kind"]) == station)[0] or game.scheduler.facilities[station].occupant_id >= 0):
+		if not station.is_empty() and (game.camp.reserves(station) or used_stations.has(station) or job != jobs.filter(func(work): return FacilitySystem.station_for(work["kind"]) == station)[0] or game.scheduler.facilities[station].occupant_id >= 0):
 			actor.feedback = "等待厨房空闲" if station == "stove" else "等待工作台空闲"
 			continue
 		if not station.is_empty(): used_stations.append(station)
 		var rate: float = game.facilities.rate(station) if not station.is_empty() and not FacilitySystem.RECIPES.get(job["kind"],{}).has("from") else 1.0
-		job["elapsed"] = minf(job["duration"], job["elapsed"] + delta * (1.0 if job["kind"] in ["music","picnic"] else CharacterAbilities.factor(actor,"work")) * actor.effort_factor() * actor.person.bonus("craft") * rate)
-		actor.activity = {"kind": "music" if job["kind"] == "music" else "eat" if job["kind"] == "picnic" else "build", "label": job["label"], "progress": job["elapsed"] / job["duration"]}
+		job["elapsed"] = minf(job["duration"], job["elapsed"] + delta * (game.camp.relations.work_factor(game,actor) if game.camp.enabled else 1.0) * (1.0 if job["kind"] in ["music","picnic"] else CharacterAbilities.factor(actor,"work")) * actor.effort_factor() * actor.person.bonus("craft") * rate)
+		actor.activity = {"kind": "music" if job["kind"] == "music" else "eat" if job["kind"] == "picnic" else "cook" if FacilitySystem.RECIPES.get(job["kind"],{}).has("output") else "build", "label": job["label"], "progress": job["elapsed"] / job["duration"]}
 		if job["elapsed"] >= job["duration"]:
 			finish(game, job)
 			jobs.erase(job)
@@ -187,11 +190,20 @@ static func job_position(kind: String) -> Vector2:
 func reserves_station(game: Node2D, station: String) -> bool:
 	return jobs.any(func(job): return FacilitySystem.station_for(job["kind"]) == station and game.survivors[int(job["actor"])].route.is_empty() and game.survivors[int(job["actor"])].position.distance_to(job_position(job["kind"])) <= 10)
 
-func start_job(game: Node2D, kind: String, item_id: int = -1) -> bool:
-	if game.cycle.phase != "day" or game.survivors[game.selected_id].health <= 0: return false
+func start_job(game: Node2D, kind: String, item_id: int = -1, actor_id: int = -1, automatic: bool = false) -> bool:
+	if actor_id<0:actor_id=game.selected_id
+	if actor_id>=game.survivors.size() or game.cycle.phase!='day' or game.survivors[actor_id].health<=0:return false
+	var actor:Survivor=game.survivors[actor_id]
+	if automatic:
+		if not KitchenPlan.ADVANCED.has(kind) or not game.self_care.enabled(actor) or not game.self_care.members[actor.person.persona]['shared_cooking']:return false
+		if actor.state!=Survivor.TaskState.IDLE or not actor.orders.is_empty() or not actor.route.is_empty() or actor.manual_walking or game._external_busy(actor_id):return false
+	elif actor_id!=game.selected_id and ResidenceSystem.PROJECTS.has(kind):return false
 	var recipe := GearCatalog.recipe(kind)
 	if kind == "repair": recipe = {"name": "修理装备", "cost": {"materials": 2}, "seconds": 18.0}
 	if recipe.is_empty(): return false
+	var station_id:=FacilitySystem.station_for(kind)
+	if game.camp.enabled and game.camp.food.jobs.any(func(j):return game.camp.food.station(j['kind'])==station_id and int(j['actor'])!=actor_id):return false
+	if game.camp.enabled and game.camp.relations.reserves_station(station_id) and not game.camp.relations.busy(actor_id):return false
 	var facility_error: String = game.facilities.job_error(game,kind)
 	if not facility_error.is_empty():
 		game._log(facility_error)
@@ -213,11 +225,13 @@ func start_job(game: Node2D, kind: String, item_id: int = -1) -> bool:
 	if not game.inventory.can_take(recipe["cost"]):
 		game._log("物资不足：" + ShelterInventory.describe(recipe["cost"]))
 		return false
-	var actor: Survivor = game.survivors[game.selected_id]
 	var route: Array[Vector2] = game.scheduler.navigation.route_between(actor.position, job_position(kind))
 	if route.is_empty(): return false
-	game._cancel_external(actor.survivor_id)
-	game.scheduler.cancel(actor)
+	if automatic:
+		if not KitchenPlan.can_pay(game,recipe["cost"]):return false
+	else:
+		game._cancel_external(actor.survivor_id)
+		game.scheduler.cancel(actor)
 	if not game.inventory.try_take(recipe["cost"], recipe["name"]): return false
 	jobs.append({"actor": actor.survivor_id, "kind": kind, "item": item_id, "elapsed": 0.0, "duration": recipe["seconds"], "cost": recipe["cost"].duplicate(), "label": recipe["name"]})
 	actor.route = route
@@ -245,6 +259,7 @@ func finish(game: Node2D, job: Dictionary) -> void:
 		parts.erase(GearCatalog.PROJECTS[kind]["part"])
 		if kind == "beacon": parts.erase("power_cell")
 		stage += 1
+	if KitchenPlan.ADVANCED.has(kind):game.self_care.finished(game,int(job["actor"]),"cook")
 	sync(game)
 	game._log(job["label"] + "完成。")
 
@@ -290,9 +305,9 @@ func dawn(game: Node2D, duration: float, report: Array[String]) -> void:
 		if warm_nights >= 2:
 			stage = 2
 			report.append("寒潮准备完成：水厂路线已开放。")
-	if pump_on and stage >= 3 and game.residence.convoy.is_empty() and game.inventory.try_take({"fuel": 1}, "净水泵每日运行"):
-		game.inventory.deposit({"water": 3}, "净水泵产水")
-		report.append("净水泵消耗燃料1，获得水3。")
+	if pump_on and stage >= 3 and game.residence.convoy.is_empty() and (not game.camp.enabled or game.camp.situation.water_output(night_day,3)>0) and game.inventory.try_take({"fuel": 1}, "净水泵每日运行"):
+		game.inventory.deposit({"water":game.camp.situation.water_output(night_day,3) if game.camp.enabled else 3}, "净水泵产水")
+		report.append("净水泵消耗燃料1，获得水%d。" % [game.camp.situation.water_output(night_day,3) if game.camp.enabled else 3])
 	if outcome.is_empty() and stage >= 4 and parts.has("route") and day(game) >= 28:
 		var alive: int = game.survivors.filter(func(actor): return actor.health > 0).size()
 		var cost := {"meals": alive, "water": alive * 2, "fuel": 2}
@@ -369,7 +384,7 @@ static func validate(data: Variant, world: Dictionary) -> String:
 		var equipped := 0
 		for item in data["gear"]:
 			if item["owner"] == owner and GearCatalog.ITEMS[item["kind"]]["slot"] != "coat": equipped += 1
-		var expected: int = equipped + ceili((field["reserve_ammo"] + field["magazine"]) / 8.0) + data["carried"].size()
+		var expected: int = CampLife.cargo_slots_from(world.get("camp",{})) + equipped + ceili((field["reserve_ammo"] + field["magazine"]) / 8.0) + data["carried"].size()
 		if world.get("neighborhood",{}).get("rescue",{}).get("state","")=="carried": expected+=2
 		if expected != field["extra_slots"]: return "装备弹药与背包负重不符"
 	elif not data["carried"].is_empty() or field["reserve_ammo"] != 0 or field["magazine"] != 0 or field["reload_remaining"] != 0:

@@ -25,9 +25,11 @@ static func profile(id: String) -> Dictionary:
 static func zones(id: String, condition: int) -> Array:
  return MAPS[id]["zones"].filter(func(z: Array): return int(z[4]) == -1 or int(z[4]) == condition)
 static func surface(id: String, condition: int, x: float, level: int) -> Dictionary:
+ return SURFACES.get(surface_kind(id,condition,x,level),{"pace":1.0,"noise":1.0,"quiet":1.0})
+static func surface_kind(id: String, condition: int, x: float, level: int) -> String:
  for z: Array in zones(id,condition):
-  if level == int(z[2]) and x >= float(z[0]) and x <= float(z[1]): return SURFACES[z[3]]
- return {"pace":1.0,"noise":1.0,"quiet":1.0}
+  if level == int(z[2]) and x >= float(z[0]) and x <= float(z[1]): return str(z[3])
+ return "gravel"
 static func route_seconds(id: String, tool: bool) -> float:
  return float(MAPS[id]["tool_time"] if tool else MAPS[id]["force_time"])
 static func route_hint(id: String) -> String:

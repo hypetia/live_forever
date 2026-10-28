@@ -1,0 +1,35 @@
+{
+  "status": "unpublished workspace polish",
+  "automated_checks": {
+    "test_animation_polish": 40,
+    "test_selected_cast": 39,
+    "test_cooperation_motion": 86,
+    "test_door_stability": 13,
+    "test_combat_feedback": 18,
+    "test_siege": 25,
+    "test_saves": 74,
+    "test_long_term": 97
+  },
+  "automated_check_total": 392,
+  "gui_checks": 12,
+  "runtime_input_files": 73,
+  "binary_sha256": {
+    "windows": "c619df289a3510d5773a7a81d2844b41d54687b688e40461a0ac5d3bbf850189",
+    "linux": "6d225d7252654d0c26a688bcf39300f15dc2319294a66784970c2fd3f4b45ac5"
+  },
+  "linux_native_cold_start_close_restart": {
+    "rounds": [
+      {
+        "round": 1,
+        "cold_wm_delete_atom": 0,
+        "close_and_restart": "passed"
+      }
+    ],
+    "game_runtime_patched_for_probe": false,
+    "binary_sha256": "6d225d7252654d0c26a688bcf39300f15dc2319294a66784970c2fd3f4b45ac5"
+  },
+  "windows_hardware_tested": false,
+  "audible_audio_reviewed": false,
+  "full_campaign_replayed": false,
+  "github_uploaded": false
+}

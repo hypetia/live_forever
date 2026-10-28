@@ -30,7 +30,7 @@ static func entries(items: Dictionary, stacked: bool = true) -> Array[Dictionary
 			remaining -= count
 	return result
 
-static func carried(field: ExpeditionState, actor: Survivor, parts: Array) -> Array[Dictionary]:
+static func carried(field: ExpeditionState, actor: Survivor, parts: Array,provisions: Array=[]) -> Array[Dictionary]:
 	var result := entries(field.bag,field.stacked)
 	for item in [actor.weapon_item,actor.armor_item]:
 		if not item.is_empty(): result.append({"kind":"gear","key":item["kind"],"count":1,"limit":1,"durability":item["durability"]})
@@ -41,5 +41,6 @@ static func carried(field: ExpeditionState, actor: Survivor, parts: Array) -> Ar
 		rounds -= count
 	if field.carrying_person:
 		for index in range(2):result.append({"kind":"rescue","key":"rescue","count":1,"limit":1})
+	result.append_array(provisions)
 	for key in parts: result.append({"kind":"part","key":key,"count":1,"limit":1})
 	return result

@@ -221,9 +221,10 @@ func dawn(game: Node2D,report: Array[String]) -> void:
 		elif water["leak"]==1:
 			water["leak"]=2;report.append("预警的水厂接头开始泄漏，日产水由6降至3；更换一次即可永久解决这项隐患。")
 		var produced:=3 if water["leak"]==2 else 6
+		if game.camp.enabled:produced=game.camp.situation.water_output(last_day,produced,true)
 		var delivered:=0
 		if water["connected"] and water["target"]=="home":
-			delivered=1 if water["leak"]==2 else 3
+			delivered=mini(produced,1 if water["leak"]==2 else 3)
 			game.inventory.deposit({"water":delivered},"水厂经已接通管线供水")
 		elif water["connected"] and water["target"]=="clinic":delivered=mini(2,produced)
 		water["stock"]=mini(18,int(water["stock"])+produced-delivered)

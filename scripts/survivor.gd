@@ -50,6 +50,7 @@ var visual_time := 0.0
 var visual_health := -1.0
 var death_age := 1.0
 var hurt_age := 0.0
+var motion := MotionPlayback.new()
 
 
 func _process(delta: float) -> void:
@@ -61,6 +62,12 @@ func _process(delta: float) -> void:
 	if not game.paused:
 		visual_time += delta * game.speed
 		death_age=minf(1,death_age+delta*game.speed);hurt_age=maxf(0,hurt_age-delta*game.speed)
+	var step:=motion.sample(position,0.0 if game.paused else delta*game.speed,facing)
+	if not game.paused and health>0 and is_instance_valid(game.game_audio):
+		var context:=CharacterMotion.shelter_context(self,game)
+		if step['step'] and context['mode'] in ['walk','run']:game.game_audio.foley_cue('foot_wood',.4 if not selected else .65)
+		var sound:=motion.action_sound(context['mode'],visual_time,context['progress'])
+		if not sound.is_empty():game.game_audio.foley_cue(sound,.4)
 	queue_redraw()
 
 
@@ -129,7 +136,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not is_visible_in_tree(): return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		var local_point: Vector2 = get_global_transform_with_canvas().affine_inverse() * event.position
-		if Rect2(-22, -76, 44, 80).has_point(local_point):
+		if Rect2(-24, -106, 48, 110).has_point(local_point):
 			clicked.emit(self)
 			get_viewport().set_input_as_handled()
 
@@ -139,9 +146,8 @@ func _draw() -> void:
 		CharacterMotion.draw(self,Vector2.ZERO,self,CharacterMotion.pose('dead',visual_time,CharacterMotion.death_progress(death_age,get_parent().get_parent().game_over),facing))
 		return
 	var quiet: bool = get_parent().get_parent().has_method("_compact_card")
-	var stride := sin(movement_clock) * 7.0 if state in [TaskState.MOVING, TaskState.RETURNING] or manual_walking else 0.0
 	draw_ellipse_shadow()
-	if quiet and not selected and Rect2(-22,-76,44,80).has_point(get_local_mouse_position()):
+	if quiet and not selected and Rect2(-24,-106,48,110).has_point(get_local_mouse_position()):
 		var hover_ring := PackedVector2Array()
 		for i in range(33): hover_ring.append(Vector2(cos(i*TAU/32)*22,sin(i*TAU/32)*6-2))
 		draw_polyline(hover_ring,Color("c5cec7"),1.5,true)
@@ -151,11 +157,16 @@ func _draw() -> void:
 			for i in range(33): ring.append(Vector2(cos(i*TAU/32)*20,sin(i*TAU/32)*5-2))
 			draw_polyline(ring,Color("b8a781"),1,true)
 		else: draw_arc(Vector2(0, -3),25,0,TAU,40,Color("d6b584"),1.5,true)
-		draw_colored_polygon(PackedVector2Array([Vector2(-5, -89), Vector2(5, -89), Vector2(0, -83)]), Color("e4bf86"))
+		draw_colored_polygon(PackedVector2Array([Vector2(-5, -ActorVisual.height(person.persona)-10), Vector2(5, -ActorVisual.height(person.persona)-10), Vector2(0, -ActorVisual.height(person.persona)-4)]), Color("e4bf86"))
 	var game := get_parent().get_parent()
 	var context:=CharacterMotion.shelter_context(self,game)
 	if hurt_age>0:context={'mode':'hurt','progress':1-hurt_age/.4}
-	CharacterMotion.draw(self,Vector2.ZERO,self,CharacterMotion.pose(context['mode'],game.simulation_time,context['progress'],facing,str(weapon_item.get('kind',''))),game.has_method('siege_snapshot') and game.siege.active)
+	var playback:=motion.snapshot();playback['injury']=injury;playback['stationary']=context.get('stationary',false)
+	var pose:=CharacterMotion.pose(context['mode'],visual_time,context['progress'],context.get('facing',facing),str(weapon_item.get('kind','')),playback)
+	pose['stationary']=context.get('stationary',false)
+	if context.has('partner_x'):
+		pose['front'].x=clampf(float(context['partner_x'])-float(pose['facing'])*18,-38,38)
+	CharacterMotion.draw(self,Vector2.ZERO,self,pose,game.has_method('siege_snapshot') and game.siege.active)
 	if selected or health < 60:
 		draw_rect(Rect2(-26, -117, 52, 5), Color("172320"))
 		draw_rect(Rect2(-26, -117, 52 * health / 100.0, 5), Color("d48f75") if health < 40 else Color("9dbb9b"))

@@ -14,6 +14,8 @@ var districts := DistrictSystem.new()
 var neighborhood := NeighborhoodSystem.new()
 var neighborhood_view: NeighborhoodView
 var self_care := SelfCareSystem.new()
+var camp := CampLife.new()
+var camp_view: CampManagement
 var chronicle := CampaignChronicle.new()
 var siege := SiegeState.new()
 var chronicle_view: ChronicleView
@@ -80,11 +82,12 @@ func _ready() -> void:
 	get_window().theme = GameUi.theme()
 	director.event_reported.connect(_log)
 	scheduler.external_busy = _external_busy
-	scheduler.station_reserved = func(id: String): return expansion.reserves_station(self,id)
+	scheduler.station_reserved = func(id: String): return expansion.reserves_station(self,id) or camp.reserves(id)
+	scheduler.actor_rate = func(actor: Survivor):return camp.relations.work_factor(self,actor) if camp.enabled else 1.0
 	scheduler.production_rate = func(id: String): return facilities.rate(id)
 	facilities.sync(self)
 	expansion.sync(self)
-	get_window().title = "封锁区：余生 v1.16.0"
+	get_window().title = "封锁区：余生 · v1.17.0"
 	neighborhood.sync(self)
 	chronicle.sync(self)
 	scheduler.task_finished.connect(func(id: int,task: String): chronicle.job(self,id,task))
@@ -92,6 +95,12 @@ func _ready() -> void:
 	scheduler.task_finished.connect(func(id: int,task: String): self_care.finished(self,id,task))
 	scheduler.tasks_cancelled.connect(func(id: int): self_care.manual(self,id))
 	scheduler.task_failed.connect(func(id: int): self_care.failed(self,id))
+	scheduler.task_started.connect(func(id: int,task: String):camp.task_started(self,id,task))
+	scheduler.task_finished.connect(func(id: int,task: String):camp.task_finished(self,id,task))
+	scheduler.tasks_cancelled.connect(func(id: int):
+		if camp.enabled:camp.food.meal_cancelled(id))
+	scheduler.survivor_lost.connect(func(id: int):
+		if camp.enabled:camp.food.meal_cancelled(id,false))
 	for actor in survivors:
 		actor.metabolism = 0.4
 		if actor.feedback == "等待你的安排": actor.feedback = "空闲"
@@ -155,6 +164,7 @@ func _ready() -> void:
 	residence_view = ResidenceInterface.new()
 	residence_view.game = self
 	add_child(residence_view)
+	camp_view=CampManagement.new();camp_view.game=self;add_child(camp_view)
 	briefing = CampaignBriefing.new()
 	briefing.game = self
 	add_child(briefing)
@@ -421,6 +431,7 @@ func advance_simulation(delta: float) -> void:
 			if cycle.phase == "scavenge" and not cycle.late_warned and cycle.night_end - simulation_time < 30:
 				cycle.late_warned = true
 				_log("距天亮不足一小时，尽快回到入口。天亮后会强制沿路撤离。")
+		if camp.enabled and expedition.active:camp.food.tick_field(self,step)
 		remaining -= step
 		if survivors.all(func(actor): return actor.health <= 0):
 			game_over = true
@@ -447,6 +458,7 @@ func _day_step(step: float) -> void:
 	expansion.tick_day(self, step)
 	self_care.tick_support(self,step)
 	chronicle.tick_day(self,step)
+	camp.tick(self,step)
 	self_care.sync(self)
 	residence.noise = maxf(0, residence.noise - step * 0.006)
 	for actor in survivors:
@@ -536,6 +548,7 @@ func start_expedition(take_tool: bool = false, take_medicine: bool = false) -> b
 	if id < 0:
 		if not districts.reserve_shift(self): return false
 		expansion.reserve_heat(self)
+		if camp.enabled:camp.situation.reserve_power(self)
 		if not siege.begin(self,[]): _settle_night([])
 		return true
 	var equipment := cycle.loadout.duplicate()
@@ -544,6 +557,7 @@ func start_expedition(take_tool: bool = false, take_medicine: bool = false) -> b
 		inventory.deposit(equipment,"未能预留前哨轮值，撤销出发物资")
 		return false
 	expansion.reserve_heat(self)
+	if camp.enabled:camp.situation.reserve_power(self)
 	select_survivor(id)
 	expedition.refresh_for_day(cycle.night_day)
 	scheduler.cancel(survivors[id])
@@ -562,6 +576,7 @@ func start_expedition(take_tool: bool = false, take_medicine: bool = false) -> b
 	expedition.reserve_ammo -= expedition.magazine
 	expedition.reload_remaining = 0
 	expansion.refresh_slots(expedition, survivors[id])
+	if camp.enabled:camp.situation.prepare_trip(self)
 	districts.begin_trip(self)
 	neighborhood.begin_trip(self)
 	director.begin_trip(self)
@@ -646,6 +661,7 @@ func confirm_departure() -> void:
 
 
 func _on_expedition_returned(id: int, cargo: Dictionary, survived: bool) -> void:
+	if camp.enabled:camp.food.returned(self,survived and survivors[id].health>0)
 	neighborhood.trip_return(self,survived and survivors[id].health > 0)
 	chronicle.trip_return(self,survived and survivors[id].health > 0,id)
 	districts.trip_return(self,survived and survivors[id].health > 0)
@@ -698,6 +714,7 @@ func _settle_night(lines: Array) -> void:
 	expansion.dawn(self, minutes, report)
 	districts.dawn(self,report)
 	neighborhood.dawn(self,report)
+	camp.dawn(self,report)
 	residence.finish_move(self, report)
 	residence.noise *= 0.4
 	# Morning boundaries are processed once; disable routine orders in the report.
@@ -772,11 +789,11 @@ func _resolve_raid(report: Array[String]) -> void:
 
 
 func raid_chance(day: int) -> int:
-	return 0 if day < 3 else mini(95,residence.attack_chance(55 if day < 8 else 70)+roundi(districts.alert))
+	return 0 if day < 3 else mini(95,residence.attack_chance(55 if day < 8 else 70)+roundi(districts.alert)+(10 if camp.enabled and camp.situation.active(day,"migration") and not camp.situation.diverted(day) else 0))
 
 
 func raid_threat(day: int) -> float:
-	return minf(2.0,1.0+day*.035)+districts.alert/40.0
+	return minf(2.0,1.0+day*.035)+districts.alert/40.0+(camp.situation.raid_bonus(day,cycle.roles.count("guard"))-(.05 if camp.situation.recon_day==day else 0) if camp.enabled else 0)
 
 
 func raid_defense(preview: bool = false) -> float:
@@ -891,6 +908,7 @@ func _expedition_controls() -> Dictionary:
 
 
 func _day_keyboard_allowed() -> bool:
+	if is_instance_valid(camp_view) and camp_view.opened:return false
 	if is_instance_valid(chronicle_view) and chronicle_view.opened: return false
 	if is_instance_valid(district_view) and district_view.opened: return false
 	if is_instance_valid(briefing) and briefing.opened: return false
@@ -916,6 +934,7 @@ func _route_controls(x: float, floor_level: int, retreat: bool) -> Dictionary:
 
 
 func _process(delta: float) -> void:
+	if camp.enabled and expedition.active and expedition.loot_site>=0:camp.food.open_cache(self)
 	_updating_frame = true
 	super._process(delta)
 	_updating_frame = false
@@ -1045,6 +1064,14 @@ func cancel_selected() -> void:
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
+	if is_instance_valid(camp_view) and camp_view.opened:
+		if event is InputEventKey and event.pressed and not event.echo:
+			if event.physical_keycode in [KEY_ESCAPE,KEY_F5]:camp_view.close()
+			elif event.physical_keycode==KEY_F6:save_game()
+		get_viewport().set_input_as_handled();return
+	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode==KEY_F5:
+		if camp.enabled:camp_view.show_page("situation")
+		get_viewport().set_input_as_handled();return
 	if is_instance_valid(neighborhood_view) and neighborhood_view.opened:
 		if event is InputEventKey and event.pressed and not event.echo:
 			if event.physical_keycode==KEY_ESCAPE: neighborhood_view.close()
@@ -1170,6 +1197,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if is_instance_valid(neighborhood_view) and neighborhood_view.opened: return
+	if is_instance_valid(camp_view) and camp_view.opened:return
 	if is_instance_valid(chronicle_view) and chronicle_view.opened: return
 	if is_instance_valid(district_view) and district_view.opened: return
 	if is_instance_valid(security_view) and security_view.opened: return
@@ -1298,10 +1326,11 @@ func place_build(type: String, slot: int) -> bool:
 
 
 func _external_busy(id: int) -> bool:
-	return self_care.busy(self,id) or (not chronicle.work.is_empty() and int(chronicle.work["actor"])==id) or shelter_keyboard.actor_id == id or expansion.jobs.any(func(job): return job["actor"] == id) or cycle.builds.any(func(build): return build["state"] == "blueprint" and build["actor"] == id) or cycle.actions.any(func(action): return action["actor"] == id)
+	return camp.busy(id) or self_care.busy(self,id) or (not chronicle.work.is_empty() and int(chronicle.work["actor"])==id) or shelter_keyboard.actor_id == id or expansion.jobs.any(func(job): return job["actor"] == id) or cycle.builds.any(func(build): return build["state"] == "blueprint" and build["actor"] == id) or cycle.actions.any(func(action): return action["actor"] == id)
 
 
 func _cancel_external(id: int, refund: bool = true) -> void:
+	camp.cancel(self,id,refund)
 	self_care.manual(self,id)
 	chronicle.cancel(self,id)
 	siege.cancel(id)
@@ -1314,6 +1343,12 @@ func _cancel_external(id: int, refund: bool = true) -> void:
 	for action in cycle.actions.duplicate():
 		if action["actor"] == id: cycle.actions.erase(action)
 	survivors[id].activity.clear()
+	var actor:Survivor=survivors[id]
+	if actor.orders.is_empty() and actor.state==Survivor.TaskState.RETURNING:
+		if actor.position.y in [430.0,640.0]:actor.route.clear();actor.state=Survivor.TaskState.IDLE
+		else:
+			var landing:=ShelterNavigation.TOP_STAIR if scheduler.navigation.floor_at(actor.position)==1 else ShelterNavigation.BOTTOM_STAIR
+			actor.route=scheduler.navigation.route_between(actor.position,landing)
 	_props_signature = ""
 
 
@@ -1390,6 +1425,7 @@ func _sync_props() -> void:
 
 func _draw_house_details() -> void:
 	super._draw_house_details()
+	if camp.enabled:_draw_camp_production()
 	if cycle.builds.any(func(build): return build["slot"] == 4): draw_rect(Rect2(850, 520, 125, 120), Color("26302c"))
 	if not placement.is_empty():
 		for index in range(CampaignCycle.SLOTS.size()):
@@ -1454,3 +1490,38 @@ func _draw_day_intent() -> void:
 		from = to
 	draw_arc(actor.route.back()-Vector2(0,2),12,0,TAU,24,Color("d6b584"),1.5,true)
 	draw_set_transform(Vector2.ZERO)
+
+
+func camp_snapshot() -> Dictionary:return camp.snapshot(self)
+func restore_camp(data: Dictionary) -> void:
+	camp.restore(data)
+	if camp.enabled:camp.food.sync_sites(self)
+	if is_instance_valid(camp_view):camp_view.dismiss_loaded()
+
+
+func _draw_camp_production() -> void:
+	for index in range(int(camp.food.infrastructure['plots'])):
+		var point:=Vector2(260+index*80,640)
+		RealismAssets.prop(self,10,Rect2(point-Vector2(34,30),Vector2(68,30)))
+		draw_rect(Rect2(point-Vector2(30,24),Vector2(60,8)),Color('292b21'))
+		if index<camp.food.plots.size():
+			var crop:Dictionary=camp.food.plots[index]
+			var grown:bool=expansion.day(self)>=int(crop['ready'])
+			CampFoodCatalog.draw_icon(self,crop['kind'],point-Vector2(0,32 if grown else 23),24 if grown else 12)
+	if camp.food.infrastructure['trap']:
+		draw_rect(Rect2(114,610,37,25),Color('544c3d'))
+		for x in range(118,151,7):draw_line(Vector2(x,609),Vector2(x,635),Color('a29878'),2)
+	if camp.food.infrastructure['pantry']:
+		draw_rect(Rect2(760,363,42,67),Color('55645c'))
+		draw_rect(Rect2(764,367,34,59),Color('263732'))
+		for y in [385,407]:draw_line(Vector2(765,y),Vector2(797,y),Color('a8a28a'),2)
+	if camp.situation.resilience['generator']:
+		draw_rect(Rect2(432,590,46,34),Color('6b7057'))
+		for x in range(438,471,6):draw_line(Vector2(x,600),Vector2(x,618),Color('282c29'),2)
+		draw_circle(Vector2(471,595),3,Color('c4b26a') if camp.situation.powered_day==cycle.night_day else Color('3c423a'))
+
+
+func _advance_world_step(step: float) -> void:
+	super._advance_world_step(step)
+	# The same disease rate applies when the player skips the remaining daytime.
+	if camp.enabled and cycle.phase=='day':camp.food.tick_health(self,step)

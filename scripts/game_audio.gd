@@ -10,6 +10,8 @@ var fullscreen := false
 var effects: AudioStreamPlayer
 var wind: AudioStreamPlayer
 var music: AudioStreamPlayer
+var foley: AudioStreamPlayer
+var _last_foley := 0
 var sounds: Dictionary = {}
 var _last_cue := 0
 var settings_path := SETTINGS_PATH
@@ -35,10 +37,12 @@ func _ready() -> void:
 	add_child(effects)
 	wind = AudioStreamPlayer.new()
 	add_child(wind)
+	foley = AudioStreamPlayer.new()
+	add_child(foley)
 	music = AudioStreamPlayer.new()
 	add_child(music)
 	if sound_bank.is_empty():
-		for kind in ["work", "danger", "return", "notice", "hit", "push", "miss", "blocked", "shot"]: sound_bank[kind] = _tone(kind)
+		for kind in ["work", "danger", "return", "notice", "hit", "push", "miss", "blocked", "shot", "hurt", "foot_wood", "foot_gravel", "door", "search", "cook", "hammer", "chop", "latch", "glass_break", "foot_water", "foot_snow", "foot_metal", "foot_glass"]: sound_bank[kind] = _tone(kind)
 		sound_bank["wind"] = _wind()
 	sounds = sound_bank
 	wind.stream = sound_bank["wind"]
@@ -49,6 +53,7 @@ func _ready() -> void:
 func apply_preferences(save: bool = true) -> void:
 	if not enabled and is_instance_valid(effects): effects.stop()
 	if not enabled and is_instance_valid(music): music.stop()
+	if not enabled and is_instance_valid(foley): foley.stop()
 	if is_instance_valid(music): music.volume_db = linear_to_db(maxf(volume * 0.25, 0.0001))
 	if is_instance_valid(effects): effects.volume_db = linear_to_db(maxf(volume * 0.38, 0.0001))
 	if is_instance_valid(wind):
@@ -87,7 +92,26 @@ func _tone(kind: String) -> AudioStreamWAV:
 		if kind in ["hit", "push", "miss", "blocked", "shot"]:
 			var pitch := 65.0 if kind == "shot" else 115.0 if kind == "hit" else 165.0 if kind == "push" else 390.0 if kind == "miss" else 90.0
 			value = sin(TAU * (pitch * t - 160 * t * t)) * exp(-t * 32) * 0.5 * minf(t * 700, 1)
-		bytes.encode_s16(sample * 2, int(value * 32767))
+		if kind in ["hurt","foot_wood","foot_gravel","door","search","cook","hammer","chop","latch","glass_break","foot_water","foot_snow","foot_metal","foot_glass"]:
+			# Deterministic broadband transients, distinct from UI notification notes.
+			var noise:=sin(float(sample*sample+sample*157)*12.9898)*43758.5453
+			noise=(noise-floor(noise))*2-1
+			var attack:=minf(1,t*900)
+			if kind=="hurt":value=(sin(TAU*(84*t-95*t*t))*.55+noise*.28)*exp(-t*24)*attack
+			elif kind=="foot_wood":value=(sin(TAU*105*t)*.55+noise*.16)*exp(-t*48)*attack
+			elif kind=="foot_gravel":value=(sin(TAU*72*t)*.28+noise*.42)*exp(-t*36)*attack
+			elif kind=="foot_water":value=(sin(TAU*(150*t-220*t*t))*.38+noise*.19)*exp(-t*27)*attack
+			elif kind=="foot_snow":value=noise*.23*exp(-t*26)*attack
+			elif kind=="foot_metal":value=(sin(TAU*700*t)*.23+sin(TAU*1700*t)*.09+noise*.14)*exp(-t*30)*attack
+			elif kind=="foot_glass":value=(noise*.38+sin(TAU*2600*t)*.08)*exp(-t*31)*attack
+			elif kind=="door":value=(sin(TAU*185*t)*.35+noise*.3)*exp(-t*27)*attack
+			elif kind=="hammer":value=(sin(TAU*240*t)*.35+noise*.28)*exp(-t*42)*attack
+			elif kind=="chop":value=(sin(TAU*420*t)*.24+noise*.18)*exp(-t*64)*attack
+			elif kind=="latch":value=(sin(TAU*1200*t)*.25+sin(TAU*170*t)*.25+noise*.15)*exp(-t*58)*attack
+			elif kind=="glass_break":value=(sin(TAU*2400*t)*.1+noise*.6)*exp(-t*22)*attack
+			elif kind=="search":value=noise*.24*exp(-t*22)*sin(t*130)*attack
+			else:value=(sin(TAU*680*t)*.12+noise*.2)*exp(-t*32)*attack
+		bytes.encode_s16(sample * 2, int(clampf(value,-1,1) * 32767))
 	var sound := AudioStreamWAV.new()
 	sound.format = AudioStreamWAV.FORMAT_16_BITS
 	sound.mix_rate = rate
@@ -118,7 +142,7 @@ func _wind() -> AudioStreamWAV:
 
 
 func stop_audio() -> void:
-	for player in [effects, wind, music]:
+	for player in [effects, wind, music, foley]:
 		if is_instance_valid(player):
 			player.stop()
 			player.stream = null
@@ -169,3 +193,12 @@ func _plucked_phrase() -> AudioStreamWAV:
 	sound.loop_mode = AudioStreamWAV.LOOP_FORWARD
 	sound.loop_end = bytes.size()/2
 	return sound
+
+
+func foley_cue(kind: String, strength: float = .5, priority: bool = false) -> void:
+	if DisplayServer.get_name()=="headless" or not enabled or not is_instance_valid(foley) or not sounds.has(kind):return
+	if not priority and Time.get_ticks_msec()-_last_foley<110:return
+	foley.volume_db=linear_to_db(maxf(volume*.32*clampf(strength,0,1),.0001))
+	foley.stream=sounds[kind]
+	foley.play()
+	_last_foley=Time.get_ticks_msec()

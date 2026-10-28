@@ -33,7 +33,7 @@ func _run() -> void:
  expect(g.expansion.start_job(g,'picnic'),'Pooh starts the real eight-second table activity')
  expect(g.inventory.amount('meals')==int(stock['meals'])-1 and g.inventory.amount('water')==int(stock['water'])-1,'picnic reserves its real food and water')
  advance(g,3)
- expect(g.chronicle.meal_day==0 and patient.person.morale<41 and CharacterMotion.shelter_context(p,g)['mode']=='eat','partial preparation shows an eating pose without granting benefits')
+ expect(g.chronicle.meal_day==0 and patient.person.morale<41 and CharacterMotion.shelter_context(p,g)['mode']=='share','partial preparation shows the sharing pose without granting benefits')
  var midway:=SaveSystem.capture(g);var b:=fresh()
  expect(SaveSystem.apply_state(b,midway).is_empty(),'paid midpoint restores without losing ingredients or granting the effect')
  advance(g,6);advance(b,6)

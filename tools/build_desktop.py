@@ -59,7 +59,8 @@ def main():
                               'sha256': hashlib.sha256(destination.read_bytes()).hexdigest()}
     runtime = [*project.glob('scripts/*.gd'), *project.glob('scenes/*.tscn'),
                project / 'project.godot', project / 'assets/fonts/interface.otf',
-               project / 'assets/icon.svg', project / 'export_presets.cfg']
+               project / 'assets/icon.svg', project / 'export_presets.cfg',
+               *[p for p in (project / 'assets/art').glob('*') if p.is_file()]]
     hashes = {str(file.relative_to(project)): hashlib.sha256(file.read_bytes()).hexdigest() for file in runtime}
     acceptance = {}
     if args.acceptance:

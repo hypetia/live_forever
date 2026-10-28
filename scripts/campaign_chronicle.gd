@@ -30,6 +30,7 @@ func apply_scenario(game: Node2D,id: String) -> void:
  for actor: Survivor in game.survivors:
   actor.metabolism=.4;actor.hunger=40;actor.fatigue=25;actor.person.thirst=20
  game.self_care.members.clear();game.self_care.sync(game)
+ game.camp.start(game)
  if id=='infirmary':
   for item in [['bed',0],['heater',1]]:game.cycle.builds.append({'slot':item[1],'type':item[0],'state':'complete','actor':-1,'elapsed':CampaignCycle.RECIPES[item[0]]['seconds']})
   game.expansion.use_night_heat=true

@@ -82,6 +82,8 @@ func maintain(game: Node2D) -> void:
 func plan(game: Node2D) -> void:
 	sync(game)
 	if suspended or game._settling or game.cycle.phase != "day" or game.paused or game.game_over: return
+	# Give an authorized cook the first opportunity before personal fallback cooking.
+	_plan_support(game)
 	var actors: Array = game.survivors.duplicate()
 	actors.sort_custom(func(a: Survivor,b: Survivor): return urgency(a) > urgency(b) if not is_equal_approx(urgency(a),urgency(b)) else a.survivor_id < b.survivor_id)
 	for actor: Survivor in actors:
@@ -106,6 +108,7 @@ func plan(game: Node2D) -> void:
 				game._log("%s自理等待：%s。" % [actor.display_name,reason])
 		elif needs.is_empty(): notices.erase(actor.person.persona)
 	_plan_support(game)
+	game.camp.plan(game)
 
 func _try_need(game: Node2D, actor: Survivor, kind: String) -> String:
 	var record: Dictionary = members[actor.person.persona]
@@ -117,10 +120,11 @@ func _try_need(game: Node2D, actor: Survivor, kind: String) -> String:
 		if available(game,"meals") > 0:
 			if game.scheduler.navigation.route_between(actor.position,game.dining_table.work_position()).is_empty(): return "餐桌路线不通"
 			if not game.scheduler.submit(actor,"eat"): return "等待熟食"
+		elif KitchenPlan.pending(game): return "等待饭菜出锅"
 		elif actor.person.routine:
-			if game.survivors.any(func(a): return a.orders.has("cook")): return "等待饭菜出锅"
 			for resource in TaskCatalog.TASKS["cook"]["cost"]:
 				if available(game,resource) < TaskCatalog.TASKS["cook"]["cost"][resource]: return "做饭缺少"+ShelterInventory.NAMES[resource]
+			if not KitchenPlan.can_pay(game,TaskCatalog.TASKS["cook"]["cost"]): return "先留足饮用水"
 			if game.scheduler.navigation.route_between(actor.position,game.stove.work_position()).is_empty(): return "灶台路线不通"
 			if not game.scheduler.submit(actor,"cook"): return "等待灶台"
 			game.scheduler.submit(actor,"eat")
@@ -206,7 +210,7 @@ static func validate(data: Variant, world: Dictionary) -> String:
 			if patients.has(int(job["target"])): return "同一伤员被重复安排护理"
 			patients.append(int(job["target"]))
 		elif record["action"] == "cook_shared":
-			if not record["shared_cooking"] or actor["orders"] != ["cook"]: return "共享备餐计划无效"
+			if not record["shared_cooking"] or (actor["orders"] != ["cook"] and not world["expansion"]["jobs"].any(func(job):return int(job["actor"])==actor["id"] and KitchenPlan.ADVANCED.has(job["kind"])) and not world.get('camp',{}).get('food',{}).get('jobs',[]).any(func(job):return int(job['actor'])==actor['id'] and CampFoodCatalog.RECIPES[job['kind']].get('output',{}).has('meals'))): return "共享备餐计划无效"
 		elif record["action"] == "drink":
 			if not world["campaign"]["actions"].any(func(a): return a["actor"] == actor["id"] and a["kind"] == "drink"): return "自主饮水缺少现场行动"
 		elif record["action"] == "sleep":
@@ -250,18 +254,27 @@ func _plan_support(game: Node2D) -> void:
 				elif game.neighborhood.prefers(actor,patient):need+=5
 				if need>worst: target=patient;worst=need
 			if target!=null:
-				var path: Array[Vector2] = game.scheduler.navigation.route_between(actor.position,target.position)
+				# Leave room for the medic and patient to face each other.
+				var side:float=-1 if actor.position.x<=target.position.x else 1
+				var bedside:=Vector2(clampf(target.position.x+side*42,140,960),target.position.y)
+				if absf(bedside.x-target.position.x)<30:bedside.x=clampf(target.position.x-side*42,140,960)
+				var path: Array[Vector2] = game.scheduler.navigation.route_between(actor.position,bedside)
 				if not path.is_empty():
 					actor.route=path;actor.state=Survivor.TaskState.RETURNING
 					record["aid"]={"target":target.survivor_id,"elapsed":0.0,"health":actor.health};record["action"]="aid";actor.self_care_kind="aid";actor.feedback="前往照护同伴"
 					continue
-		if not record["shared_cooking"] or available(game,"meals")>0 or game.survivors.any(func(a):return a.orders.has("cook")): continue
-		if not game.survivors.any(func(a):return a.health>0 and a.hunger>=65): continue
-		var enough:=true
-		for key in TaskCatalog.TASKS["cook"]["cost"]:
-			if available(game,key)<int(TaskCatalog.TASKS["cook"]["cost"][key]):enough=false
-		if enough and not game.scheduler.navigation.route_between(actor.position,game.stove.work_position()).is_empty() and game.scheduler.submit(actor,"cook"):
-			record["action"]="cook_shared";actor.self_care_kind="cook_shared";actor.feedback="为同伴备餐"
+		if not record['shared_cooking'] or available(game,'meals')>0 or KitchenPlan.pending(game):continue
+		if KitchenPlan.hungry(game)<=0 or (actor.fatigue>=70 and actor.hunger<90):continue
+		if game.camp.enabled and game.camp.food.plan_shared(game,actor):
+			record['action']='cook_shared';actor.self_care_kind='cook_shared';continue
+		var kind:=KitchenPlan.choose(game,actor)
+		if kind.is_empty():continue
+		var started:=false
+		if kind=='cook':
+			if not game.scheduler.navigation.route_between(actor.position,game.stove.work_position()).is_empty():started=game.scheduler.submit(actor,'cook')
+		else:started=game.expansion.start_job(game,kind,-1,actor.survivor_id,true)
+		if started:
+			record['action']='cook_shared';actor.self_care_kind='cook_shared';actor.feedback='为同伴备餐'
 
 func _stop_aid(game: Node2D,actor: Survivor,record: Dictionary) -> void:
 	record["aid"].clear();actor.activity.clear()

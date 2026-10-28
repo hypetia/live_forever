@@ -299,9 +299,18 @@ def main():
         # no action in the field before the modal opens.
         exit_confirmation_sent = False
         while True:
+            save_file = next((profile / 'data').glob('godot/app_userdata/*/shelter_v1.json'))
+            revision = save_file.stat().st_mtime_ns
             press('Return')
             exit_confirmation_sent = True
-            returned = save()
+            # A queued render/save may leave the old field snapshot on disk.
+            # Wait for a real F6 response before sending another Enter, which
+            # would otherwise skip straight through the newly reached dawn.
+            response_deadline = time.monotonic() + 2.0
+            while True:
+                returned = save()
+                if save_file.stat().st_mtime_ns != revision or time.monotonic() >= response_deadline:
+                    break
             if not returned['expedition']['active']:
                 break
             assert returned['stock'] == looted['stock'], 'Cargo credited before exit confirmation'

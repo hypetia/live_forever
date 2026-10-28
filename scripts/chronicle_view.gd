@@ -59,7 +59,7 @@ func refresh() -> void:
    for pair in [['shared_cooking','主动为队伍备餐（含本人）· 消耗生食、水和燃料'],['medical','空闲时走近伤员护理 · 完成4秒治疗后消耗药品1']]:
     var toggle:=CheckBox.new();toggle.text=pair[1];toggle.button_pressed=record[pair[0]];toggle.disabled=disabled or (pair[0]=='medical' and actor.speciality!='医护');body.add_child(toggle)
     toggle.toggled.connect(func(value: bool):game.self_care.set_cooperation(game,actor,pair[0],value))
-  text('手动命令始终优先。伤员移动、医护受伤、缺药或日落会取消未完成护理；不会远程回血。多人授权备餐时优先厨师，同一时刻不重复开锅。')
+  text('手动命令始终优先。伤员移动、医护受伤、缺药或日落会取消未完成护理；不会远程回血。多人授权备餐时优先厨师，按缺饭人数利用升级配方；已有饭菜在做就等待，并给口渴者留饮水。')
  elif page=='roster':
   text('角色图鉴 · 12名候选／每局3人开局／最多5人在队',25)
   text('这里可提前比较全部角色。加入需要一级据点及生食2、水2、药品1；到访不等于自动入队。已故成员不会复活。')

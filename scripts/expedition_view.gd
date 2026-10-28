@@ -53,6 +53,9 @@ var _equipment_opened := false
 var combat_effects := CombatEffects.new()
 var effects_location := ""
 var effects_attempt := -1
+var motion := MotionPlayback.new()
+var motion_trip := ""
+var footfalls := SurfaceFootfalls.new()
 
 
 func _ready() -> void:
@@ -67,6 +70,7 @@ func _ready() -> void:
 		world.combat_resolved.connect(_on_combat_resolved)
 		world.enemy_damaged.connect(_on_enemy_damaged.bind(world))
 		world.player_hurt.connect(_on_player_hurt.bind(world))
+		world.interior.operation_finished.connect(_on_interior_finished.bind(world))
 	title_label = _label("", Vector2(32, 151), Vector2(680, 34), 22, INK)
 	alert_label = _label("", Vector2(730, 155), Vector2(650, 28), 15, GOLD)
 	gear_label = _label("", Vector2(1050, 151), Vector2(355, 42), 13, GOLD)
@@ -142,7 +146,12 @@ func _ready() -> void:
 		stack_grid.resource_hint = "点击丢弃1份，无法拾回"
 		stack_grid.activated = func(entry: Dictionary,_count: int):
 			if entry["kind"] == "resource": game.expedition_drop(entry["key"])
-		stack_grid.available = func(entry: Dictionary): return entry["kind"] == "resource"
+			elif entry["kind"]=="provision":
+				if entry["key"] in ["cans","drinks","preserved"] and not Input.is_physical_key_pressed(KEY_SHIFT):
+					if game.camp.food.use_cargo(game,entry["key"]):bag_open=false
+				else:
+					game.camp.food.take({entry["key"]:1},game.camp.food.cargo);game.expansion.refresh_slots(game.expedition,game.survivors[game.expedition.actor_id])
+		stack_grid.available = func(entry: Dictionary): return entry["kind"] in ["resource","provision"]
 		stack_panel.add_child(stack_grid)
 		var hint := Label.new()
 		hint.text = "点击丢弃1份 · 此处无法拾回"
@@ -227,11 +236,28 @@ func _process(delta: float) -> void:
 		hurt_time = maxf(0, hurt_time - delta)
 		impact_time = maxf(0, impact_time - delta)
 		combat_effects.step(delta)
+		footfalls.step(delta*game.speed)
 	visible = game.expedition.active
 	layer.visible = visible
 	if not visible:
 		search_held = false
+		motion.reset()
+		motion_trip = ""
+		footfalls.clear()
 		return
+	var state:ExpeditionState=game.expedition
+	var trip_key:="%s:%d:%d"%[state.location_id,state.attempts,state.actor_id]
+	if trip_key!=motion_trip:
+		motion.reset();footfalls.clear();motion_trip=trip_key
+	var sample:=motion.sample(Vector2(state.player_x,state.player_y),0.0 if game.paused else delta*game.speed,state.facing)
+	if not game.paused:
+		var context:=CharacterMotion.field_context(state,game.survivors[state.actor_id],combat_effects.player_time)
+		if sample['step'] and (context['mode'] in ['walk','run','sneak'] or (context['mode']=='reload' and state.moving)):
+			var material:=LocationEnvironment.surface_kind(state.location_id,state.condition,state.player_x,state.floor_level)
+			footfalls.contact(Vector2(state.player_x,state.player_y-1),material,state.sneaking)
+			game.game_audio.foley_cue(SurfaceFootfalls.sound(material),.18 if state.sneaking else .7 if state.sprinting else .45)
+		var sound:=motion.action_sound(context["mode"],state.elapsed)
+		if not sound.is_empty():game.game_audio.foley_cue(sound,.5)
 	refresh()
 	queue_redraw()
 
@@ -358,6 +384,7 @@ func _draw() -> void:
 			_text(point+Vector2(-47,27),definition["name"]+(" · 空" if empty else ""),12,MUTED if empty else GOLD)
 	if quiet: _draw_intent(state,camera)
 	if game.has_method("neighborhood_snapshot") and is_instance_valid(game.neighborhood_view):game.neighborhood_view.draw_field(self,camera)
+	footfalls.draw(self,camera)
 	combat_effects.draw_marks(self,camera)
 	if state.environment_active: state.interior.draw(self,state,camera)
 	for enemy_index in range(state.enemies.size()):
@@ -367,13 +394,6 @@ func _draw() -> void:
 	for cover in state.area()["covers"]:
 		var bottom: float = ExpeditionState.FLOOR_Y[int(cover[2])]
 		MapScenery.cover(self,Vector2(float(cover[0])-camera,bottom),float(cover[1])-float(cover[0]),state.location_id)
-	if state.attack_windup > 0 or (state.attack_cooldown > maxf(0, float(actor.weapon().get("cooldown", 1.1)) - 0.34)):
-		var swing := Vector2(state.player_x - camera, state.player_y - 38)
-		if swing.x >= 0 and swing.x <= 1065 and not actor.weapon().has("magazine") and actor.weapon_item.get("kind", "") != "spear" and combat_effects.player_time <= 0:
-			var angle := 0.0 if state.facing > 0 else PI
-			var windup := state.attack_windup > 0
-			var color := Color("cba96b") if windup else Color("f1dfb3")
-			draw_arc(swing, minf(92, float(actor.weapon().get("reach", 72))*0.7), angle - 0.85, angle + 0.85, 24, Color(color, 0.2) if windup else Color(color,0.55), 1.5 if windup else 2, true)
 	combat_effects.draw_particles(self,camera)
 	_draw_weather(state)
 	if SurvivalRules.is_night(game.simulation_time):
@@ -420,10 +440,16 @@ func _on_enemy_damaged(index: int, point: Vector2, direction: float, damage: int
 	queue_redraw()
 
 
+func _on_interior_finished(kind: String,_index: int,quiet_action: bool,field: ExpeditionState) -> void:
+	if field!=game.expedition or not field.active:return
+	if kind in ['door','window']:game.game_audio.foley_cue('glass_break' if kind=='window' and not quiet_action else 'latch',.65,true)
+
+
 func _on_player_hurt(point: Vector2, direction: float, damage: int, field: ExpeditionState) -> void:
 	if field != game.expedition: return
 	_sync_combat_effects(field)
 	combat_effects.hurt(point,direction)
+	game.game_audio.combat_cue("hurt")
 	hurt_time = 0.4
 	damage_amount = damage
 	queue_redraw()
@@ -468,9 +494,14 @@ func _draw_player(point: Vector2, actor: Survivor, state: ExpeditionState) -> vo
 	if game.has_method("neighborhood_snapshot") and not game.neighborhood.work.is_empty() and combat_effects.player_time<=0:
 		var job:Dictionary=game.neighborhood.work
 		context={"mode":"aid" if job["id"]=="rescue" else "search","progress":float(job["elapsed"])/float(NeighborhoodSystem.ACTIONS[job["id"]]["seconds"]),"tool":false}
+	if game.camp.enabled and not game.camp.food.field_action.is_empty():
+		var action:Dictionary=game.camp.food.field_action
+		context={'mode':'drink' if action['kind']=='drinks' else 'eat','progress':float(action['elapsed'])/(2 if action['kind']=='drinks' else 4),'tool':false}
 	var tint:=actor.tint.lightened(.35) if state.invulnerable>0 and int(state.elapsed*12)%2 else actor.tint
 	if combat_effects.player_time>.24:tint=tint.lerp(Color('f2ad9a'),.7)
-	var pose:=CharacterMotion.pose(context['mode'],state.elapsed,context['progress'],state.facing,str(actor.weapon_item.get('kind','')))
+	var playback:=motion.snapshot();playback['injury']=actor.injury;playback['burden']=clampf(float(state.used_capacity())/maxf(1,state.capacity)-.6,0,.4)/.4
+	var pose:=CharacterMotion.pose(context['mode'],state.elapsed,context['progress'],context.get('facing',state.facing),str(actor.weapon_item.get('kind','')),playback)
+	pose=CharacterMotion.contact_pose(pose,context)
 	pose['tool']=context.get('tool',false)
 	CharacterMotion.draw(self,point,actor,pose,true,tint,Transform2D(0.0,game.world_scale(),0.0,game.world_offset()+combat_effects.shake()))
 	if quiet:
@@ -480,7 +511,7 @@ func _draw_player(point: Vector2, actor: Survivor, state: ExpeditionState) -> vo
 	else:draw_arc(point+Vector2(0,-3),23,0,TAU,40,GOLD,1,true)
 	draw_rect(Rect2(point + Vector2(-26, -111 + crouch), Vector2(52, 5)), Color("21332e"))
 	draw_rect(Rect2(point + Vector2(-26, -111 + crouch), Vector2(52 * actor.health / 100, 5)), Color("9ab997"))
-	draw_colored_polygon(PackedVector2Array([point + Vector2(-5, -89 + crouch), point + Vector2(5, -89 + crouch), point + Vector2(0, -83 + crouch)]), GOLD)
+	draw_colored_polygon(PackedVector2Array([point + Vector2(-5, -ActorVisual.height(actor.person.persona)-10 + crouch), point + Vector2(5, -ActorVisual.height(actor.person.persona)-10 + crouch), point + Vector2(0, -ActorVisual.height(actor.person.persona)-4 + crouch)]), GOLD)
 
 
 func _draw_exit(side: int, state: ExpeditionState, camera: float) -> void:
@@ -672,7 +703,7 @@ func _refresh_quiet(state: ExpeditionState, actor: Survivor) -> void:
 	stack_panel.visible = bag_open
 	if bag_open:
 		stack_capacity.text = "背包 %d / %d格" % [state.used_capacity(),state.capacity]
-		stack_grid.render(BackpackStacks.carried(state,actor,game.expansion.carried),state.capacity)
+		stack_grid.render(BackpackStacks.carried(state,actor,game.expansion.carried,game.camp.food.cargo_entries() if game.camp.enabled else []),state.capacity)
 	search_bar.value = state.search_progress/state.search_duration*100 if state.search_duration > 0 else 0
 	retreat_button.disabled = false if quiet else game.paused
 	search_button.disabled = game.paused or (state.nearby_site() < 0 and not state.route_in_range() and game.neighborhood.nearby(game).is_empty()) or game.cycle.return_requested or game.cycle.phase == "returning"
@@ -724,6 +755,13 @@ func _refresh_quiet(state: ExpeditionState, actor: Survivor) -> void:
 		search_bar.position = game.world_offset()+Vector2(float(def["x"])-_camera(),ExpeditionState.FLOOR_Y[int(def["floor"])]-102)*game.world_scale()-Vector2(48,0)
 		search_bar.size = Vector2(96,7)
 
+	if game.camp.enabled and not game.camp.food.field_action.is_empty():
+		var action:Dictionary=game.camp.food.field_action
+		search_bar.visible=true
+		search_bar.value=100*float(action['elapsed'])/(2.0 if action['kind']=='drinks' else 4.0)
+		search_bar.position=game.world_offset()+Vector2(state.player_x-_camera(),state.player_y-85)*game.world_scale()-Vector2(48,0)
+		search_bar.size=Vector2(96,7)
+
 
 func _draw_site(index: int, state: ExpeditionState, camera: float) -> void:
 	var room_site: Dictionary = state.site_definitions()[index]
@@ -736,7 +774,7 @@ func _draw_site(index: int, state: ExpeditionState, camera: float) -> void:
 	var hovered: bool = state.site_hit_rect(index).has_point(mouse) and not game._loot_open
 	var info := InteractionFeedback.site(game,index,hovered)
 	var kind: String = LocationEnvironment.profile(state.location_id)["containers"][index]
-	MapScenery.container(self,point,kind,info["body"],info["edge"],not info["supplied"])
+	MapScenery.container(self,point,kind,info["body"],info["edge"],not info["supplied"],info["opened"])
 	if state.sites[index]["locked"] and info["supplied"]: draw_circle(point+Vector2(0,-23),5,info["edge"])
 	if hovered or info["target"]:
 		var tint := InteractionFeedback.READY if info["near"] else InteractionFeedback.DISTANT

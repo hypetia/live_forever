@@ -1,0 +1,99 @@
+{
+  "status": "unpublished gameplay improvements",
+  "automated_checks": {
+    "test_self_care": 87,
+    "test_kitchen_planning": 44,
+    "test_residence": 90,
+    "test_scene_polish": 40,
+    "test_facilities": 62,
+    "test_interactions": 89,
+    "test_tactical_campaign": 59,
+    "test_expedition_saves": 88,
+    "test_animation_polish": 40,
+    "test_selected_cast": 39,
+    "test_cooperation_motion": 86,
+    "test_door_stability": 13,
+    "test_combat_feedback": 18,
+    "test_siege": 25,
+    "test_saves": 74,
+    "test_long_term": 97
+  },
+  "automated_check_total": 951,
+  "gui_checks": 12,
+  "runtime_input_files": 75,
+  "binary_sha256": {
+    "windows": "fcff8e0f59d0024b0a2563afae43c1467074aeb424778d46eb653b3394320d6f",
+    "linux": "884304b139874fbb91237572ccff337107ab7c9e8fc46626603290d42ca6ac1c"
+  },
+  "campaign_cases": [
+    {
+      "scenario": "classic",
+      "until": 35,
+      "last_day": 29,
+      "victory": true,
+      "living": 3,
+      "live_defenses": 18,
+      "cooperation": {
+        "aid": 2,
+        "cook": 0
+      },
+      "wall_seconds": 78.593,
+      "report": "gameplay-campaign-classic.json",
+      "no_inventory_grants": true,
+      "no_teleports": true,
+      "no_health_need_enemy_or_mission_overrides": true
+    },
+    {
+      "scenario": "infirmary",
+      "until": 35,
+      "last_day": 29,
+      "victory": true,
+      "living": 3,
+      "live_defenses": 19,
+      "cooperation": {
+        "aid": 1,
+        "cook": 0
+      },
+      "wall_seconds": 79.802,
+      "report": "gameplay-campaign-infirmary.json",
+      "no_inventory_grants": true,
+      "no_teleports": true,
+      "no_health_need_enemy_or_mission_overrides": true
+    },
+    {
+      "scenario": "convoy",
+      "until": 60,
+      "last_day": 61,
+      "victory": true,
+      "living": 3,
+      "live_defenses": 43,
+      "cooperation": {
+        "aid": 0,
+        "cook": 0
+      },
+      "wall_seconds": 163.799,
+      "report": "gameplay-campaign-convoy.json",
+      "no_inventory_grants": true,
+      "no_teleports": true,
+      "no_health_need_enemy_or_mission_overrides": true
+    }
+  ],
+  "linux_native_cold_start_close_restart": {
+    "rounds": [
+      {
+        "round": 1,
+        "cold_wm_delete_atom": 0,
+        "close_and_restart": "passed"
+      }
+    ],
+    "game_runtime_patched_for_probe": false,
+    "binary_sha256": "884304b139874fbb91237572ccff337107ab7c9e8fc46626603290d42ca6ac1c"
+  },
+  "windows_hardware_tested": false,
+  "audible_audio_reviewed": false,
+  "github_uploaded": false,
+  "regressions_reproduced_before_fix": [
+    "advanced cooking ignored by ordinary autonomous cooks",
+    "last drinking water consumed by autonomous cooking"
+  ]
+}

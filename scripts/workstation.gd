@@ -17,7 +17,8 @@ var tier := 1
 
 func _process(delta: float) -> void:
 	if not is_visible_in_tree(): return
-	animation_time += delta
+	var game:=get_parent().get_parent()
+	if not game.paused: animation_time += delta*game.speed
 	hovered = interaction_rect().has_point(get_local_mouse_position())
 	queue_redraw()
 
@@ -47,81 +48,32 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _draw() -> void:
 	_draw_interaction()
-	if facility_id == "water":
-		draw_rect(Rect2(-22, -61, 45, 60), Color("4b6664"))
-		draw_rect(Rect2(-19, -59, 39, 9), Color("71867b"))
-		draw_line(Vector2(-12, -36), Vector2(5, -36), Color("a4b3a5"), 3)
-		return
-	if facility_id == "exit":
-		draw_rect(Rect2(-22, -87, 44, 87), Color("687563"))
-		draw_rect(Rect2(-17, -82, 34, 82), Color("1b2927"))
-		draw_circle(Vector2(9, -39), 3, Color("c2af83"))
-		return
-	if facility_id == "bed":
-		return # The mattress is drawn in the room, with the same coordinates.
-	if facility_id == "table":
-		draw_rect(Rect2(-58, -40, 112, 7), Color("877453"))
-		draw_line(Vector2(-48, -33), Vector2(-48, 0), Color("5c6558"), 6)
-		draw_line(Vector2(44, -33), Vector2(44, 0), Color("5c6558"), 6)
-		draw_circle(Vector2(-10, -44), 11, Color("c1b497"))
-		draw_circle(Vector2(-10, -44), 7, Color("927354"))
-		return
-	if facility_id == "stove":
-		_draw_stove()
-		return
-	# Pool of lamplight, battered worktop, vice and a simple hand tool.
-	for radius in range(110, 15, -10):
-		draw_circle(Vector2(10, -43), radius, Color(0.82, 0.59, 0.30, 0.009))
-	draw_rect(Rect2(-56, -43, 116, 8), Color("927453"))
-	draw_line(Vector2(-48, -36), Vector2(-52, -1), Color("5c6260"), 7, true)
-	draw_line(Vector2(50, -36), Vector2(54, -1), Color("5c6260"), 7, true)
-	draw_rect(Rect2(-45, -17, 91, 5), Color("4b504b"))
-	draw_rect(Rect2(-40, -53, 20, 10), Color("7c8580"))
-	draw_line(Vector2(-34, -58), Vector2(-34, -43), Color("9caaa0"), 3, true)
-	draw_line(Vector2(-1, -46), Vector2(16, -46), Color("b3aea0"), 3, true)
-	draw_line(Vector2(37, -44), Vector2(37, -85), Color("a9926a"), 3, true)
-	draw_line(Vector2(37, -85), Vector2(17, -85), Color("a9926a"), 3, true)
-	draw_colored_polygon(PackedVector2Array([Vector2(11, -84), Vector2(23, -84), Vector2(29, -73), Vector2(5, -73)]), Color("d5bd88"))
-	if tier >= 2:
-		draw_rect(Rect2(-46,-101,49,34),Color("485953"))
-		for x in [-38,-22,-7]: draw_line(Vector2(x,-95),Vector2(x+5,-76),Color("c5c0a2"),3,true)
-	if tier >= 3:
-		draw_rect(Rect2(-52,-77,8,33),Color("8a9b97"))
-		draw_rect(Rect2(-58,-84,25,10),Color("748b83"))
-		draw_line(Vector2(-35,-74),Vector2(-35,-57),Color("c7d6c7"),3,true)
-	if hovered:
-		draw_arc(Vector2(0, -5), 35, PI * 0.05, PI * 0.95, 40, Color(0.84, 0.69, 0.47, 0.5), 1.2, true)
+	if facility_id in ['water','table','stove','workbench']:_draw_painted()
+	elif facility_id=='exit':RealismAssets.door(self,Rect2(-22,-87,44,87))
+	# The bed is drawn once in the room at its actual interaction anchor.
 
 
-func _draw_stove() -> void:
-	for radius in range(78, 10, -8):
-		draw_circle(Vector2(-3, -35), radius, Color(0.87, 0.52, 0.25, 0.012))
-	draw_rect(Rect2(-37, -45, 79, 44), Color("59605a"))
-	draw_rect(Rect2(-42, -49, 89, 7), Color("92937c"))
-	draw_rect(Rect2(3, -32, 25, 22), Color("222e2e"))
-	if occupant_id != -1 or not _external_job().is_empty():
-		draw_rect(Rect2(8, -27, 15, 12), Color("db9b5f"))
-		draw_line(Vector2(-12 + sin(animation_time * 2) * 3, -79), Vector2(-15 + sin(animation_time * 2 + 1) * 4, -89), Color(0.8, 0.84, 0.75, 0.4), 2, true)
-		draw_line(Vector2(sin(animation_time * 2 + 1) * 3, -80), Vector2(4 + sin(animation_time * 2) * 4, -94), Color(0.8, 0.84, 0.75, 0.4), 2, true)
-	draw_rect(Rect2(-28, -69, 42, 20), Color("858c7a"))
-	draw_line(Vector2(-32, -69), Vector2(18, -69), Color("bec2a7"), 4, true)
-	draw_circle(Vector2(-7, -74), 3, Color("929a88"))
-	draw_line(Vector2(32, -50), Vector2(32, -92), Color("646f68"), 7, true)
-	if tier >= 2:
-		draw_line(Vector2(32,-92),Vector2(32,-126),Color("829388"),9,true)
-		draw_rect(Rect2(-43,-20,85,5),Color("899b87"))
-	if tier >= 3:
-		draw_rect(Rect2(17,-70,24,18),Color("a0ac93"))
-		draw_line(Vector2(14,-71),Vector2(44,-71),Color("d4dac3"),3,true)
-	if hovered:
-		draw_arc(Vector2(0, -3), 35, PI * 0.05, PI * 0.95, 32, Color(0.84, 0.69, 0.47, 0.5), 1.2, true)
+func cooking_state() -> Dictionary:
+	if facility_id!='stove':return {}
+	var game:=get_parent().get_parent()
+	if occupant_id>=0 and occupant_id<game.survivors.size():
+		var worker:Survivor=game.survivors[occupant_id]
+		if worker.state==Survivor.TaskState.WORKING and not worker.orders.is_empty() and worker.orders[0]=='cook':return {'actor':occupant_id,'progress':worker.progress()}
+	if 'camp' in game and game.camp.enabled:
+		for task in game.camp.food.jobs:
+			var recipe:Dictionary=CampFoodCatalog.RECIPES[task['kind']]
+			if recipe['station']=='stove' and recipe.get('heat',false) and float(task['elapsed'])>0:return {'actor':int(task['actor']),'progress':float(task['elapsed'])/float(recipe['seconds'])}
+	var job:=_external_job()
+	if not job.is_empty() and FacilitySystem.RECIPES.get(job['kind'],{}).has('output'):
+		return {'actor':int(job['actor']),'progress':float(job['elapsed'])/float(job['duration'])}
+	return {}
 
 
 func _draw_interaction() -> void:
 	var quiet: bool = get_parent().get_parent().has_method("_compact_card")
 	var job := _external_job()
 	if quiet and not hovered and occupant_id < 0 and job.is_empty(): return
-	var point := Vector2(0, -118)
+	var point := Vector2(34,-112) if facility_id=="stove" else Vector2(0,-118)
 	var game := get_parent().get_parent()
 	var actor: Survivor = game.survivors[game.selected_id]
 	var ready := interaction_ready(actor)
@@ -167,3 +119,38 @@ func interaction_rect() -> Rect2:
 func interaction_ready(actor: Survivor) -> bool:
 	var target := position if facility_id == "water" else work_position()
 	return facility_id != "exit" and actor.position.distance_to(target) <= 1.0
+
+
+func _draw_painted() -> void:
+	if facility_id=='water':
+		RealismAssets.prop(self,12,Rect2(-29,-52,58,52))
+		draw_line(Vector2(-17,-17),Vector2(12,-17),Color('738f92'),3,true)
+	elif facility_id=='table':
+		RealismAssets.prop(self,3,Rect2(-59,-51,118,51))
+		draw_arc(Vector2(-8,-43),8,0,TAU,20,Color('c0b49c'),2,true)
+	elif facility_id=='workbench':
+		RealismAssets.prop(self,1,Rect2(-60,-61,120,61))
+		for radius in range(78,10,-9):draw_circle(Vector2(23,-53),radius,Color(.87,.71,.42,.007))
+		draw_line(Vector2(34,-52),Vector2(34,-91),Color('8c7b5d'),2,true)
+		draw_line(Vector2(34,-91),Vector2(15,-91),Color('9b8964'),2,true)
+		draw_colored_polygon(PackedVector2Array([Vector2(11,-92),Vector2(22,-92),Vector2(27,-83),Vector2(5,-83)]),Color('c7b98a'))
+		if tier>=2:
+			draw_rect(Rect2(-41,-102,43,28),Color('35413b'))
+			for x in [-33,-20,-7]:draw_line(Vector2(x,-98),Vector2(x+4,-78),Color('a0a392'),2,true)
+		if tier>=3:RealismAssets.prop(self,8,Rect2(-39,-54,31,19))
+	else:
+		RealismAssets.prop(self,2,Rect2(-23,-65,90,65),Color.WHITE,false,true)
+		var cooking:=cooking_state()
+		if not cooking.is_empty():
+			var progress:float=cooking['progress'];var heat:=smoothstep(.15,.32,progress)
+			if heat>0:
+				for radius in range(42,4,-6):draw_circle(Vector2(-6,-45),radius,Color(.97,.56,.20,.008*heat))
+				for i in range(4):
+					var phase:=fposmod(animation_time*.6+i*.24,1)
+					draw_arc(Vector2(-8+sin(phase*4+i)*6,-60-phase*25),3+phase*4,0,PI,12,Color(.85,.85,.78,(1-phase)*.35*heat),1.2,true)
+			if progress<.3:
+				draw_rect(Rect2(-38,-43,24,4),Color('a88b5e'))
+				for i in range(4):draw_circle(Vector2(-34+i*5,-45),2,Color('8e9b68') if i%2 else Color('a47a68'))
+			elif progress>.82:draw_arc(Vector2(-27,-45),9,0,PI,14,Color('c6b492'),4,true)
+		if tier>=2:draw_line(Vector2(52,-46),Vector2(52,-105),Color('777f73'),7,true)
+		if tier>=3:RealismAssets.prop(self,8,Rect2(31,-54,29,17))

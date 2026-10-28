@@ -1023,7 +1023,8 @@ func _draw_house_details() -> void:
 	# Water store, coats, a broken radio and electrical wiring.
 	for x in [239, 261]:
 		draw_line(Vector2(x, 339), Vector2(x, 354), Color("a39271"), 2)
-		draw_colored_polygon(PackedVector2Array([Vector2(x - 8, 354), Vector2(x + 8, 354), Vector2(x + 14, 390), Vector2(x - 12, 390)]), Color("536558"))
+		var fabric:=RealismAssets.figure_frame('xu');fabric.position+=fabric.size*Vector2(.31,.23);fabric.size*=Vector2(.38,.45)
+		RealismAssets.region_quad(self,RealismAssets.PEOPLE,PackedVector2Array([Vector2(x-8,354),Vector2(x+8,354),Vector2(x+14,390),Vector2(x-12,390)]),fabric,Color(.85,.88,.77))
 	draw_polyline(PackedVector2Array([Vector2(117, 306), Vector2(390, 306), Vector2(390, 317), Vector2(865, 308), Vector2(865, 475)]), Color("1b2221"), 2)
 	draw_rect(Rect2(881, 489, 42, 10), Color("6f725a"))
 	draw_circle(Vector2(912, 494), 3, GOLD)

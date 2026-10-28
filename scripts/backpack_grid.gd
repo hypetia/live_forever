@@ -36,8 +36,10 @@ func render(entries: Array[Dictionary], capacity: int) -> void:
 				continue
 			if entry["kind"] == "resource" and not first_resources.has(entry["key"]): first_resources[entry["key"]] = cell
 			var name: String = ShelterInventory.NAMES.get(entry["key"],GearCatalog.ITEMS.get(entry["key"],GearCatalog.PARTS.get(entry["key"],{})).get("name","弹药"))
+			if entry["kind"]=="provision":name=CampFoodCatalog.ITEMS[entry["key"]]["name"]
 			if entry["kind"]=="rescue": name="背负伤员 · 占用2格，抵达出口后加入队伍"
 			cell.tooltip_text = "%s · 本格%d / %d" % [name,entry["count"],entry["limit"]]
+			if entry["kind"] == "provision":cell.tooltip_text+="\n食材保鲜日期随转移保留；在外出背包可使用罐头、肉干和饮料。"
 			if entry["kind"] == "resource": cell.tooltip_text += "\n"+resource_hint
 			elif entry["kind"] == "gear": cell.tooltip_text += "\n随身装备 · 耐久%d · 不能放入物资容器" % entry["durability"]
 			elif entry["kind"] == "ammo": cell.tooltip_text += "\n包括弹匣中的子弹"
@@ -62,6 +64,7 @@ func _icon(cell: Button, entry: Dictionary) -> void:
 	var point := Vector2(52,29)
 	var color := GameUi.MUTED if cell.disabled else GameUi.ACCENT
 	match str(entry["kind"]):
+		"provision":CampFoodCatalog.draw_icon(cell,entry["key"],point,24)
 		"resource": HudIcons.draw(cell,entry["key"],point,27,color)
 		"gear": EquipmentArt.icon(cell,{"slot":GearCatalog.ITEMS[entry["key"]]["slot"],"kind":entry["key"],"broken":entry["durability"] <= 0},point)
 		"ammo":

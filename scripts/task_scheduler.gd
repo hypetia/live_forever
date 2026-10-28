@@ -4,6 +4,7 @@ extends RefCounted
 ## occupant; all facilities share the transactional inventory.
 
 signal event_reported(message: String)
+signal task_started(actor_id: int,task: String)
 signal task_finished(actor_id: int, task: String)
 signal survivor_lost(actor_id: int)
 signal tasks_cancelled(actor_id: int)
@@ -16,6 +17,7 @@ var navigation := ShelterNavigation.new()
 var external_busy := Callable()
 var station_reserved := Callable()
 var production_rate := Callable()
+var actor_rate := Callable()
 var upkeep: ShelterProgress
 const MAX_ORDERS := 3
 
@@ -131,7 +133,7 @@ func step(delta: float) -> void:
 		var recovery_task := actor.orders[0] in ["eat", "sleep", "heal"]
 		var skill_bonus := actor.person.bonus("care" if actor.orders[0] == "heal" else "craft") if actor.orders[0] not in ["eat", "sleep"] else 1.0
 		var station_rate := float(production_rate.call(TaskCatalog.TASKS[actor.orders[0]]["facility"])) if production_rate.is_valid() and not recovery_task else 1.0
-		actor.work_elapsed += delta * skill_bonus * station_rate * (CharacterAbilities.factor(actor,"work") if not recovery_task else 1.0) * (1.0 if recovery_task else actor.effort_factor() * (upkeep.efficiency() if upkeep != null else 1.0))
+		actor.work_elapsed += delta * (float(actor_rate.call(actor)) if actor_rate.is_valid() and not recovery_task else 1.0) * skill_bonus * station_rate * (CharacterAbilities.factor(actor,"work") if not recovery_task else 1.0) * (1.0 if recovery_task else actor.effort_factor() * (upkeep.efficiency() if upkeep != null else 1.0))
 		actor.queue_redraw()
 		if actor.work_elapsed >= actor.work_duration:
 			_finish(actor)
@@ -161,6 +163,7 @@ func _try_start(station: Workstation) -> void:
 	actor.state = Survivor.TaskState.WORKING
 	actor.work_elapsed = 0.0
 	actor.facing = 1.0
+	task_started.emit(actor.survivor_id,actor.orders[0])
 	event_reported.emit("%s开始%s%s。" % [actor.display_name, definition["label"], "，消耗%s" % ShelterInventory.describe(actor.held_cost) if not actor.held_cost.is_empty() else station.display_name])
 
 

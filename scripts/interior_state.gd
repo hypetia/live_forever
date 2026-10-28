@@ -1,5 +1,6 @@
 class_name InteriorState
 extends RefCounted
+signal operation_finished(kind: String,index: int,quiet: bool)
 ## Persistent physical partitions. Neither visibility nor collisions know a
 ## hidden actor's current position; room reveals are separate from live sight.
 static var _layouts: Dictionary = {}
@@ -133,6 +134,7 @@ func controls(field: ExpeditionState,actor: Survivor,delta: float,input: Diction
      if field.bag['tools']<1:action.clear();return result
      field.bag['tools']-=1
     doors[n]['window']=1 if action['quiet'] else 2
+   operation_finished.emit(kind,n,bool(action['quiet']))
    action.clear()
   return result
  if index>=0 and press and not held:
@@ -141,6 +143,8 @@ func controls(field: ExpeditionState,actor: Survivor,delta: float,input: Diction
   if bool(input.get('window',false)):kind='window' if doors[index]['window']==0 else 'vault'
   if kind=='door' and doors[index]['hp']<=0:return result
   var x:float=layout(field.location_id)[index]['x']
+  var contact_x:=x+(28 if kind=='window' else 6)-field.player_x
+  if absf(contact_x)>2:field.facing=signf(contact_x)
   var from:=field.player_x;var to:=x+(44 if from<x else -44)
   action={'door':index,'kind':kind,'elapsed':0.0,'health':actor.health,'from':from,'to':to,'quiet':kind=='window' and field.bag['tools']>0 and not bool(input.get('sprint',false))}
   field._reset_route();field._reset_search()
@@ -162,6 +166,13 @@ func enemy_move(field: ExpeditionState,enemy: Dictionary,to: float,delta: float)
  if doors[n]['hp']<=0:doors[n]['open']=true
  return a
 
+func visual_open(index: int) -> float:
+ var opened:=1.0 if doors[index]['open'] or doors[index]['hp']<=0 else 0.0
+ if not action.is_empty() and int(action['door'])==index and action['kind']=='door':
+  var progress:=smoothstep(.12,1.0,float(action['elapsed'])/1.2)
+  return 1-progress if doors[index]['open'] else progress
+ return opened
+
 func draw(canvas: Node2D,field: ExpeditionState,camera: float) -> void:
  if not enabled:return
  var points:=layout(field.location_id)
@@ -180,12 +191,22 @@ func draw(canvas: Node2D,field: ExpeditionState,camera: float) -> void:
   var p:=Vector2(float(points[n]['x'])-camera,ExpeditionState.FLOOR_Y[points[n]['floor']])
   var color:=Color('b8c6ad') if nearby(field)==n else Color('69746b')
   canvas.draw_rect(Rect2(p+Vector2(-7,-190),Vector2(14,68)),Color('38443f'))
-  canvas.draw_rect(Rect2(p+Vector2(-6,-122),Vector2(12 if doors[n]['open'] else 20,122)),Color('343c38') if doors[n]['open'] else Color('796947'))
+  var opened:=visual_open(n)
+  var leaf_width:=lerpf(20,4,opened);var depth:=opened*17
+  canvas.draw_rect(Rect2(p+Vector2(-6,-122),Vector2(20,122)),Color('172222'))
+  if doors[n]['hp']>0:
+   RealismAssets.door(canvas,Rect2(p+Vector2(-6,-122),Vector2(24,122)),opened,Color(.82,.85,.78))
+  else:
+   for shard in range(3):canvas.draw_line(p+Vector2(-12+shard*11,-2),p+Vector2(2+shard*12,-7-shard%2*4),Color('796947'),4,true)
   canvas.draw_line(p+Vector2(-12,-126),p+Vector2(17,-126),color,3)
-  canvas.draw_circle(p+Vector2(10,-57),3,color)
+  if doors[n]['hp']>0:canvas.draw_circle(p+Vector2(-9+leaf_width,-57-depth),3,color)
   canvas.draw_rect(Rect2(p+Vector2(24,-125),Vector2(40,57)),Color('21353e'),true)
   canvas.draw_rect(Rect2(p+Vector2(24,-125),Vector2(40,57)),color,false,2)
-  if doors[n]['window']==0:canvas.draw_line(p+Vector2(25,-122),p+Vector2(62,-70),Color('869c9d'),2)
+  var lifting:=0.0
+  if not action.is_empty() and int(action['door'])==n and action['kind']=='window' and action['quiet']:lifting=smoothstep(.3,1.0,float(action['elapsed'])/3.0)
+  if doors[n]['window']==0:
+   canvas.draw_rect(Rect2(p+Vector2(26,-123-lifting*35),Vector2(36,53)),Color(.4,.55,.57,.2))
+   canvas.draw_line(p+Vector2(25,-122-lifting*35),p+Vector2(62,-70-lifting*35),Color('869c9d'),2)
   else:canvas.draw_line(p+Vector2(24,-68),p+Vector2(64,-68),Color('bcaa79'),3)
   if doors[n]['window']==2:
    for shard in range(4):canvas.draw_colored_polygon(PackedVector2Array([p+Vector2(21+shard*10,-1),p+Vector2(28+shard*10,-1),p+Vector2(25+shard*10,-6)]),Color('8da2a2'))

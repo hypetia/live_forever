@@ -285,6 +285,7 @@ func aid_by(game: Node2D, medic_id: int, target_id: int) -> bool:
 		target.illness = maxf(0, target.illness - 10)
 	target.person.stress = maxf(0, target.person.stress - 10)
 	target.person.trauma = maxf(0, target.person.trauma - 5)
+	if "camp" in game and game.camp.enabled:game.camp.food.treat(target,35,30)
 	medic.person.last_aid = game.simulation_time
 	target.person.last_aid = game.simulation_time
 	medic.person.gain("care", 8)

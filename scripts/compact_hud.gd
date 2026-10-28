@@ -83,6 +83,7 @@ void fragment(){
 			box.content_margin_top = 3
 			box.content_margin_bottom = 3
 			button.add_theme_stylebox_override(state,box)
+	game.interface.button(root,"营地 F5",Vector2(1005,748),Vector2(105,36),func():game.camp_view.show_page("situation"))
 	refresh()
 
 func _process(delta: float) -> void:
@@ -162,6 +163,9 @@ func refresh() -> void:
 			card.size = Vector2(280,94)
 		card.tooltip_text = game.survivors[index].display_name+"\n"+Vitals.summary(game.survivors[index])+"\n保暖+%d℃" % game.survivors[index].warmth()+"\n双击查看人物详情 P"
 		card.tooltip_text += "\n"+game.self_care.summary(game.survivors[index])
+		if game.camp.enabled and game.camp.food.conditions.has(game.survivors[index].person.persona):
+			var c:Dictionary=game.camp.food.conditions[game.survivors[index].person.persona]
+			card.tooltip_text+='\n营养%d · 发热%d · 肠胃%d · 营地 F5'%[roundi(c['nutrition']),roundi(c['fever']),roundi(c['gut'])]
 		card.queue_redraw()
 	game.interface.build_button.position = Vector2(1220,798)
 	game.interface.build_button.size = Vector2(86,36)

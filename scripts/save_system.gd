@@ -32,6 +32,7 @@ static func capture(game: Node2D) -> Dictionary:
 	for id in game.regions:
 		if id != game.expedition.location_id: other_regions[id] = game.regions[id].snapshot()
 	return {
+		"camp": game.camp_snapshot() if game.has_method("camp_snapshot") else {},
 		"neighborhood": game.neighborhood_snapshot() if game.has_method("neighborhood_snapshot") else {},
 		"chronicle": game.chronicle_snapshot() if game.has_method("chronicle_snapshot") else {},
 		"siege": game.siege_snapshot() if game.has_method("siege_snapshot") else {},
@@ -113,6 +114,7 @@ static func validate(data: Variant) -> String:
 	required.append("chronicle")
 	required.append("siege")
 	required.append("neighborhood")
+	if data.has("camp"): required.append("camp")
 	if not _exact_keys(data, required):
 		return "存档缺少字段或包含未知字段"
 	var region_ids: Array = LocationCatalog.IDS if data["expansion"] is Dictionary and data["expansion"].is_empty() else LocationCatalog.ALL_IDS
@@ -270,6 +272,8 @@ static func validate(data: Variant) -> String:
 	if not chronicle_error.is_empty(): return chronicle_error
 	var siege_error := SiegeState.validate(data["siege"],data)
 	if not siege_error.is_empty(): return siege_error
+	var camp_error := CampLife.validate(data.get("camp",{}),data)
+	if not camp_error.is_empty():return camp_error
 	var care_error := SelfCareSystem.validate(data["self_care"],data)
 	if not care_error.is_empty(): return care_error
 	var director_error := CampaignDirector.validate(data["director"],data)
@@ -358,6 +362,7 @@ static func apply_state(game: Node2D, data: Dictionary) -> String:
 	if game.has_method("restore_siege"): game.restore_siege(data["siege"])
 	if game.has_method("restore_self_care"): game.restore_self_care(data["self_care"])
 	if game.has_method("restore_neighborhood"): game.restore_neighborhood(data["neighborhood"])
+	if game.has_method("restore_camp"):game.restore_camp(data.get("camp",{}))
 	game.expedition_view.reset_feedback()
 	game.select_survivor(int(data["selected_id"]))
 	game._refresh_log()

@@ -23,11 +23,13 @@ static func pending_action(game: Node2D, index: int) -> bool:
 static func site(game: Node2D, index: int, hovered: bool = false) -> Dictionary:
 	var field: ExpeditionState = game.expedition
 	var supplied := field.site_has_supplies(index)
+	if "camp" in game and game.camp.enabled:supplied=supplied or game.camp.food.cache_has(field,index)
 	var accent := Color(str(field.area()["accent"]))
 	var target: bool = game.interface.has_move_target and game.interface.target_site == index
 	var progress := field.search_progress / field.search_duration if field.search_index == index and field.search_duration > 0 else 0.0
+	var opened := 1.0 if not supplied or field.discovered.has(index) else smoothstep(.85,1.0,progress) if field.sites[index]["locked"] else smoothstep(0,.25,progress)
 	return {"supplied": supplied, "near": field.site_in_range(index), "hovered": hovered, "target": target,
-		"pending": pending_action(game,index), "progress": progress,
+		"pending": pending_action(game,index), "progress": progress, "opened":opened,
 		"body": accent.darkened(0.2) if supplied else EMPTY_BODY,
 		"edge": accent if supplied else EMPTY_EDGE}
 

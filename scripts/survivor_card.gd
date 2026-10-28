@@ -23,18 +23,10 @@ func _draw() -> void:
 	var selected: bool = game.selected_id == member_id
 	var font := Survivor.FONT
 	draw_style_box(selected_frame if selected else normal_frame, Rect2(Vector2.ZERO,size))
-	# Hand-drawn bust, cropped by the card rather than a block of statistics.
 	draw_rect(Rect2(8,8,42,size.y-16),Color("1b2426"))
-	draw_colored_polygon(PackedVector2Array([Vector2(10,68),Vector2(14,45),Vector2(26,39),Vector2(42,44),Vector2(49,68)]),actor.tint.darkened(0.12))
-	draw_line(Vector2(17,48),Vector2(13,69),actor.tint.darkened(0.4),6,true)
-	draw_rect(Rect2(25,34,8,13),Color("9d876e"))
-	draw_circle(Vector2(28,29),12,Color("bca68a"))
-	draw_arc(Vector2(27,28),12,PI,TAU,16,Color("303431"),6,true)
-	draw_colored_polygon(PackedVector2Array([Vector2(30,24),Vector2(40,32),Vector2(36,37),Vector2(29,38)]),Color(0.2,0.22,0.2,0.25))
-	draw_line(Vector2(26,30),Vector2(31,30),Color("55554b"),1,true)
+	ActorVisual.portrait(self,actor.person.persona,Rect2(9,10,40,size.y-20))
 	draw_string(font,Vector2(61,24),actor.display_name.get_slice("「",0) if size.x<200 else actor.display_name,HORIZONTAL_ALIGNMENT_LEFT,-1,15,Color("ded9c9"))
 	draw_string(font,Vector2(size.x-18,20),str(member_id+1),HORIZONTAL_ALIGNMENT_LEFT,-1,10,Color("7e887b"))
-	PersonalityArt.face(self,actor.person.persona,Vector2(28,29),1.05)
 	var col_width := (size.x - 70) / 2
 	for index in range(Vitals.KEYS.size()):
 		var key: String = Vitals.KEYS[index]
@@ -50,6 +42,10 @@ func _draw() -> void:
 	if actor.injury >= 30 or actor.infection >= 20 or actor.illness >= 30:
 		HudIcons.draw(self,"medicine",Vector2(41,17),10,Color("ce927b"))
 
+	if 'camp' in game and game.camp.enabled and game.camp.food.conditions.has(actor.person.persona):
+		var c:Dictionary=game.camp.food.conditions[actor.person.persona]
+		if c['nutrition']<25:HudIcons.draw(self,'raw_food',Vector2(16,77),10,Color('d7ad6f'))
+		if c['fever']>=40 or c['gut']>=35:HudIcons.draw(self,'medicine',Vector2(41,77),10,Color('d5836c'))
 
 func _make_custom_tooltip(for_text: String) -> Object:
 	var label := Label.new()
