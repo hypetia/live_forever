@@ -6,7 +6,7 @@ extends RefCounted
 const PHASES := ["day", "planning", "scavenge", "returning", "siege", "dawn"]
 const ROLES := ["scavenge", "guard", "bed", "floor", "dead", "outpost"]
 const ROLE_NAMES := ["外出搜刮", "留守警戒", "床上睡眠", "地铺睡眠", "已故", "前哨轮值"]
-const BAGS := {"lin": 12, "xu": 10, "chen": 14, "he": 12, "gu": 10, "tang": 14, "lara": 16, "joel": 12, "ellie": 12, "jill": 14, "liu": 14, "wick": 12}
+const BAGS := {"lin": 12, "xu": 10, "chen": 14, "he": 12, "gu": 10, "tang": 14, "goku": 14, "conan": 10, "batman": 14, "sherlock": 12, "harry": 12, "neo": 12}
 const SLOTS := [Vector2(330, 640), Vector2(650, 640), Vector2(190, 430), Vector2(755, 430), Vector2(905, 640)]
 const RECIPES := {
 	"heater": {"name": "取暖炉", "cost": {"materials": 5, "tools": 1}, "seconds": 40.0, "hint": "点燃消耗燃料1，室内升温18℃持续8小时；夜间可提前预留燃料。"},

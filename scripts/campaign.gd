@@ -84,7 +84,7 @@ func _ready() -> void:
 	scheduler.production_rate = func(id: String): return facilities.rate(id)
 	facilities.sync(self)
 	expansion.sync(self)
-	get_window().title = "封锁区：余生 v1.15.0"
+	get_window().title = "封锁区：余生 v1.15.1"
 	neighborhood.sync(self)
 	chronicle.sync(self)
 	scheduler.task_finished.connect(func(id: int,task: String): chronicle.job(self,id,task))
@@ -673,7 +673,7 @@ func _settle_night(lines: Array) -> void:
 	for actor in survivors:
 		if actor.health <= 0: continue
 		var before := actor.fatigue
-		actor.hunger = minf(100, actor.hunger + minutes * 0.04 * (1.1 if actor.person.persona == "he" else 1.0))
+		actor.hunger = minf(100, actor.hunger + minutes * 0.04 * CharacterAbilities.needs_multiplier(actor,"hunger"))
 		actor.person.thirst = minf(100, actor.person.thirst + minutes * 0.018)
 		var role := cycle.roles[actor.survivor_id]
 		if not residence.convoy.is_empty(): role = "guard"

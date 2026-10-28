@@ -29,11 +29,11 @@ func _run() -> void:
  await process_frame;await process_frame
  var wick_button:Button
  for child in game.chronicle_view.body.get_children():
-  if child is Button and child.text.begins_with('接纳 约翰'):wick_button=child
+  if child is Button and child.text.begins_with('接纳 尼奥'):wick_button=child
  check(is_instance_valid(wick_button) and not wick_button.disabled,'last arrival has a reachable eligible recruitment control')
  var raw_before:int=game.inventory.amount('raw_food')
  if is_instance_valid(wick_button):await click_at(wick_button.get_global_rect().get_center())
- check(game.survivors.back().person.persona=='wick' and game.inventory.amount('raw_food')==raw_before-2,'actual last catalogue button recruits Wick and pays the joining cost')
+ check(game.survivors.back().person.persona=='neo' and game.inventory.amount('raw_food')==raw_before-2,'actual last catalogue button recruits Neo and pays the joining cost')
  await process_frame;RenderingServer.force_draw();root.get_texture().get_image().save_png(output.path_join('catalogue.png'))
  game.chronicle_view.close();game._process(0)
  await process_frame;RenderingServer.force_draw();root.get_texture().get_image().save_png(output.path_join('expanded-team.png'))

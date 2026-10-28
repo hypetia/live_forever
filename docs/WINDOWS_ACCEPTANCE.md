@@ -1,6 +1,6 @@
 # Windows 真机验收
 
-**[从GitHub下载Windows一键验收包](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.15.0/live_forever_v1.15.0_windows_acceptance.zip)** · [全部下载](../downloads/README.md)
+**[从GitHub下载Windows一键验收包](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.15.1/live_forever_v1.15.1_windows_acceptance.zip)** · [全部下载](../downloads/README.md)
 
 当前开发环境为Linux。Windows运行包已导出和校验，但本文件不代表已经做过Windows真机测试。Windows验收包使用相同游戏程序、独立LiveForeverAcceptance.exe和内置PowerShell，不需要安装Godot或Python；测试不会读取你的正常存档。
 

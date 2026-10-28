@@ -1,23 +1,23 @@
-# Live Forever · 封锁区：余生 v1.15.0
+# Live Forever · 封锁区：余生 v1.15.1
 
 单人僵尸生存游戏：白天经营、制作、改造并照顾同伴，夜间亲自潜入搜刮、抵御尸群。v1.13把诊所、供水站与基地连成持续变化的街区：保全或拆取冷链、持续供水与分流、背负救援及共同经历。保留同伴协作、记忆搜索和关节动画。保留九地图、三个开局、十二名人物及个人线、35日撤离战役、无尽生存、迁居和前哨。采用原创简化画面。
 
 ## 下载后直接玩
 
-v1.15.0将角色池从6人扩至12人。克里斯与灰原哀分别承担战地急救和药学护理；新增劳拉、乔尔、艾莉、吉尔、刘培强、约翰·威克。原有斯塔克、里昂、小当家、杰克船长保留。F3进入全部角色图鉴，查看参照作品、实际能力、背包与到访条件；每局3人开局，最多5名活人在队。六位新人各有两条个人信念、实地勘查与付费制作的专属计划。Windows一键验收包同步更新；Windows真机仍待验收。
+v1.15.1保留12人角色池并重做六位新人。漫威角色仅保留斯塔克；新人来自六部不同作品。克里斯与灰原哀分别承担战地急救和药学护理；六位新人改为孙悟空（《龙珠》）、柯南、蝙蝠侠、福尔摩斯（现代版《神探夏洛克》）、哈利·波特、尼奥（《黑客帝国》）。原有斯塔克、里昂、小当家、杰克船长保留。F3进入全部角色图鉴，查看参照作品、实际能力、背包与到访条件；每局3人开局，最多5名活人在队。六位新人各有两条个人信念、实地勘查与付费制作的专属计划。Windows一键验收包同步更新；Windows真机仍待验收。
 
 | 用途 | GitHub直接下载 | 使用方法 |
 | --- | --- | --- |
-| Windows 64位游戏 | [live_forever_v1.15.0_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.15.0/live_forever_v1.15.0_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
-| Linux x86_64游戏 | [live_forever_v1.15.0_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.15.0/live_forever_v1.15.0_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
-| Windows一键验收工具 | [live_forever_v1.15.0_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.15.0/live_forever_v1.15.0_windows_acceptance.zip) | 主动运行 `windows_acceptance.cmd`，默认约30分钟 |
-| v1.15.0完整源码 | [live_forever_v1.15.0_source.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.15.0/live_forever_v1.15.0_source.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
+| Windows 64位游戏 | [live_forever_v1.15.1_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.15.1/live_forever_v1.15.1_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
+| Linux x86_64游戏 | [live_forever_v1.15.1_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.15.1/live_forever_v1.15.1_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
+| Windows一键验收工具 | [live_forever_v1.15.1_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.15.1/live_forever_v1.15.1_windows_acceptance.zip) | 主动运行 `windows_acceptance.cmd`，默认约30分钟 |
+| v1.15.1完整源码 | [live_forever_v1.15.1_source.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.15.1/live_forever_v1.15.1_source.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
 
 普通游戏不需要Godot、Python、登录、服务器或持续联网。验收工具是单独的程序，不会在正常游戏中替你操作。Windows包按官方模板导出；**尚未在Windows真实设备完成验收**。
 
-[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.15.0) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
+[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.15.1) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
 
-v1.15.0 运行包和对应源码托管在 `downloads-v1.15.0`；同版验收包在 `downloads-v1.15.0`，开发源码在 `main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
+v1.15.1 运行包和对应源码托管在 `downloads-v1.15.1`；同版验收包在 `downloads-v1.15.1`，开发源码在 `main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
 
 [本版角色与验证范围](docs/ROSTER_V26.md)
 
@@ -103,7 +103,7 @@ v1.15.0 运行包和对应源码托管在 `downloads-v1.15.0`；同版验收包�
 
 ## 角色、安防与迁居
 
-人物具有独立专长：里昂近战+40%和低脚步声，小当家同料做3份饭，克里斯擅长急救与护卫，乔尔擅长维修和演奏，灰原哀处理伤病更彻底，杰克船长恢复更快、邻里交换得到更多物资。P页显示实际效果；现有工艺／照护／探索成长和情绪、关系机制继续保留。
+人物具有独立专长：里昂近战+40%和低脚步声，小当家同料做3份饭，克里斯擅长急救与护卫，福尔摩斯擅长开路和演奏，灰原哀处理伤病更彻底，杰克船长恢复更快、邻里交换得到更多物资。P页显示实际效果；现有工艺／照护／探索成长和情绪、关系机制继续保留。
 
 家园不是随意切换的菜单：先深入住宅或货运站勘察、活着返回；在H准备清理工具，再去新址消灭附近上下层感染者、确认并带回记录；最早第5天打包运输补给，整夜全员转移，途中消耗精神、受冷并可能遇袭。迁居后至少休整5天。内巷更暖且隐蔽，货场更坚固但更冷、更易吸引尸群。旧址固定设施拆解回收部分材料，新址等级和安防重新建设；库存、装备和战役设备随队转移。
 

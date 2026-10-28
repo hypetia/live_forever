@@ -1,9 +1,9 @@
 {
-  "version": "1.15.0",
-  "logical_checks": 781,
-  "roster_checks": 246,
+  "version": "1.15.1",
+  "logical_checks": 787,
+  "roster_checks": 252,
   "gui_checks": 13,
-  "font_runtime_chinese_glyphs": 1218,
+  "font_runtime_chinese_glyphs": 1224,
   "windows_hardware_tested": false,
   "full_campaign_rerun": false,
   "new_quest_finale_evidence_fixture": true,
@@ -11,7 +11,7 @@
     "scripts/campaign_interface.gd": "bc74a3e3a3f069ac77aaf10332ed0489ee0425b8e99ed289ea730b70539d49b3",
     "scripts/combat_geometry.gd": "f52e5697d1022c98c167cb3cfdb6ea9c319f389ebfa84d084e29806b2d0eb310",
     "scripts/campaign_director.gd": "ae539159e404b3f3ba9230eba3124a0a2800e5ebdc1eb09f870fc705466e9d9c",
-    "scripts/residence_system.gd": "e95e3c1b9c5feb930d97c60d0d8ba9a68abdf1bcb0b3421adf2e6119cff80aec",
+    "scripts/residence_system.gd": "454cd27782bb87eb94bf1b97f3e509d27b2d392732625a869ba763b25cf595c4",
     "scripts/map_scenery.gd": "686da47eb8bfe4153632c61556bd02447a39d01d9bd47ecc999945082f261dbc",
     "scripts/scene_art.gd": "b001662dc2382940594d9d800ca44c557b4921bb8f814aa63ffd0f53daf8a4bf",
     "scripts/combat_effects.gd": "55bfc63348574c7e5ec9d1d9d7458cfd9d756ba7dfed7740277825b2e0ef1bab",
@@ -27,25 +27,25 @@
     "scripts/neighborhood_system.gd": "fac8f5a0ebb613a06ab1841aae78fc2b3e9299fa6eb697acaade96ad4fd911dc",
     "scripts/enemy_mind.gd": "c4312a73a8b4d2a9893814e3935c12cb7efd39623a2c411584aa964e8d45b2a8",
     "scripts/workstation.gd": "5fce83f45b7a88bb4bea4482f96c0d67792dd9c2389aa4b98dd67626c45684e6",
-    "scripts/chronicle_catalog.gd": "a93df480aac73dc53a7ad7873b243b31b167fece47d395039fdf710d7b7235e2",
-    "scripts/personality_art.gd": "9edf700dc2c61197760afc38412f382a0eff839d1e738f9fd05a32bb2fe07641",
+    "scripts/chronicle_catalog.gd": "2c7c8e3fea6ffb08976380d3961bbb30bb97626bb56bf879d621d87d23adb2d4",
+    "scripts/personality_art.gd": "7fc262ed8fb8d82ede4f4da991dfb480e6da768e003d0e73b09aebda1de31284",
     "scripts/character_state.gd": "35404e57a7523bac8c339df11e314eaeb9b759bf7b814a38c253e2af44877ef7",
-    "scripts/survival_rules.gd": "df99c7811d874226dccc785c25f1ff205faf2a08c74b243a659a5ea90cc03934",
+    "scripts/survival_rules.gd": "3a1d62d0c725570e286e4745489ed6a8f5b71b431e033a483ba0c11ac9cde15b",
     "scripts/vitals.gd": "93c5927c6ed1028e0cf58fa20ebc9215c08ae73df544e8416202af55f3c52281",
     "scripts/game_audio.gd": "d7d2030467fb34aff5310544324dbc75a6c126b52511424c635698b98bab77a1",
     "scripts/command_center.gd": "1fe3b0cfd5f1666d3d5bb088388ddd4e2644666454dbe989f9f82c56b1c8f035",
     "scripts/interaction_feedback.gd": "cc720325f71f01f1b5bd13e6f41908fb52e4c4646f34f9abad6993f2da0ab781",
     "scripts/story_catalog.gd": "948b237cc946615048dd4e39245a94c5c170a90548ca321980048422bae98065",
     "scripts/survival_expansion.gd": "338a4b262fbadbfed00defc1423f9e0fe222fa7c0e914047748bf010f29c5f91",
-    "scripts/campaign_cycle.gd": "bb27a28b8985639f888a2c82bb5ac6c2f1d0aec971b028ee616a0858b31f1a2a",
-    "scripts/people_catalog.gd": "14f2a3410e9a53917507716e5edd0996e8155b858b0e8e15d085fac3b6d78fa7",
+    "scripts/campaign_cycle.gd": "9cddb9065dd6724a0068c7eb4b7e1c8e6d5c909b0ed037f17e2f4c3d7c9802ee",
+    "scripts/people_catalog.gd": "833967ecd93952e61e762448a45fa5cc56fe13b6c2abe033d58cc0cf7c6c651c",
     "scripts/story_system.gd": "d159b7a803f7ff9599bce0cfaa0a6d6daccc0f61c4532c62eb91d0a5b0c93943",
     "scripts/task_catalog.gd": "00ccd040ac0fcdfdc050853b2358bdc4c9e2c4dcdcc1ffda64e760a0d4c2b18f",
     "scripts/compact_hud.gd": "b3cd92506cb4970ed2b81bc6d97b331d32d1d9df79c031bd14ade572464ee973",
     "scripts/hud_icons.gd": "3139b9a836f4a36290b2502830027d3365ca8e2a37e08f1c6fae6ede7cb304bd",
     "scripts/residence_interface.gd": "09d725fc27120c5b4a9d21763f4a174d121b8ca156d14c1545fa3df1c75342fe",
     "scripts/enemy_catalog.gd": "c6b29ad8075223e9973031596318d5bfe77cc6676fd00c7cee3438f02eac6d49",
-    "scripts/campaign.gd": "8b3d101de57f575ef112d1f35f791dcc716630d74425b6fd33e92729d5b4651d",
+    "scripts/campaign.gd": "24be80f7c72e81efb419a809771e7afb49f2987c1b7694bb5e7668a40d9564ec",
     "scripts/defense_assessment.gd": "8b5ff9fe8f9e6b697885758abc427e79b78430dd557c6a8afd7087adc314cc03",
     "scripts/self_care_system.gd": "8bf71b828f37412d35757c2fbbc3fb79df8c5b215baae14f78b656aaa23efa11",
     "scripts/task_scheduler.gd": "7cecf069dc9e16dc6ad4a3a8b715752391e239f2c860acc76b1b927ca381e322",
@@ -61,7 +61,7 @@
     "scripts/survivor.gd": "c7dfbaea35c0ec49f2af34381b212de5c4e1b10b70fb6af1e1c524d289313b34",
     "scripts/security_view.gd": "c64b60405c688494a50afba5ebacc4d1cfec6bfd484a210992232df915ee7ed8",
     "scripts/campaign_chronicle.gd": "cd7f3fc41c1b9d59daa4aa159c97f0c7835eb0945fc1df9a18f19728d3f61cd3",
-    "scripts/character_abilities.gd": "8b3f0ce943e5fa9f58a4d9689eb1d19655678060342057867bfbaf8ccef6fa07",
+    "scripts/character_abilities.gd": "fcfc97e3579792579f1dbcfccf1427dcd7503f73f62a0065e95284e428b0a582",
     "scripts/workshop_view.gd": "d6c63d0ebb666fb12777399310494ddfa750cc0c992782f1b957d0370355d5ad",
     "scripts/expedition_view.gd": "a2052b6db8a1c73fbe60b3ea685f3cbeffd3f9b7b8a6a67204e74c4c18397271",
     "scripts/shelter.gd": "3d2f4bbe908a6c494694cbe969818945d2725addbdc20ecc9dc349613276e5b2",
@@ -71,34 +71,34 @@
     "scripts/inventory.gd": "bc82eb405e8e9de12654f480defecb12a4897f1358f632b7065ef6504c148df1",
     "scripts/goal_catalog.gd": "a922be1d6c79b529bd4ad2ae006c46e02dc9ed07a8ad3140ceb8133886e561a4",
     "scripts/shelter_progress.gd": "a22d582570639df0cf7ec29dc2179e9a032d7b42ec5835171bc493ce72f57121",
-    "scripts/people_system.gd": "babde28550c6e23dfc29fd40ee190cb04e660854d67b64dfdc3485aa9e7e033d",
+    "scripts/people_system.gd": "ff79ef1b5d57b53cce7eca15a7644ed96edad21a02637b756e555778e9894b5d",
     "scripts/game_ui.gd": "5f45ed27ab0c154bd4f86084e96b3f197561c1b6153f7d4b7167df299d861a89",
     "scripts/backpack_stacks.gd": "52d235703695ee6f8b96fed05a19d09c591d7e95b539aaa307062fa09c1eaa77",
     "scenes/shelter.tscn": "402acad6eddb9c656e4263c1db0eb584a9a8c37e1fb1966fa3eb51ffe638219c",
     "scenes/campaign.tscn": "f5e756e67450b7ba0e4fd36febb671bdcf4945f7e50fd3c01710186c4db52b0c",
     "project.godot": "57f83ada514556ae3afb7b598956265a2eeb51b82e39aec8cc5268522e045380",
-    "assets/fonts/interface.otf": "3cad22666f762fe70eba3b01008468861a73c9567d56577d6b245f584db20414",
+    "assets/fonts/interface.otf": "563ffa92ba47fcd747cca0ccd251be797d73da2603507b9c9552efb066fe058b",
     "assets/icon.svg": "e7259fb42ad26708d3e3f9587c6da2b98cd6b07736e55915c5dd8f30810f3027",
     "export_presets.cfg": "caff0157126dfe56ff90e2a7a91ef5e9ea48eb07234d48c5f8ca340ed28f586c"
   },
   "binaries": {
     "windows": {
-      "bytes": 105826648,
-      "sha256": "27bb7667349c2244e48ce5ac1ac67a0f89d779531faf4d1d7a5ff6e95440f46f"
+      "bytes": 105824856,
+      "sha256": "f23fafa67f3087309528860617d3c54e945e1aa401d5bc6ae2e68d114f7a1f98"
     },
     "linux": {
-      "bytes": 72243048,
-      "sha256": "d38fe0209d11ea81c83d58f625b5974e0ed6d34fbac60084d62babb2cb7db915"
+      "bytes": 72241256,
+      "sha256": "3360e10c329d99b3c6669304a3ea8549bc6ddbb98b73561d7605db07fe2dda0a"
     }
   },
   "acceptance": {
     "windows": {
-      "bytes": 106785040,
-      "sha256": "228c233d02c76ffa1c6932e35f5f523ac5b5fe64080158aa3d1b69ddad460afc"
+      "bytes": 106784128,
+      "sha256": "892062b16641ba02cb8c56c2cf616e19971caab63550525e2e2c03a16ad7550f"
     },
     "linux": {
-      "bytes": 73201440,
-      "sha256": "3917e799511f4af5e9008c833e78f4bdc4c140046a7db68856cf1052202124cb"
+      "bytes": 73200528,
+      "sha256": "26942275a681c0529cd7a73de3e420eb0d849bb3ade5a76cc80000f23e810688"
     }
   },
   "linux_cold_exit": {
@@ -110,6 +110,6 @@
       }
     ],
     "game_runtime_patched_for_probe": false,
-    "binary_sha256": "d38fe0209d11ea81c83d58f625b5974e0ed6d34fbac60084d62babb2cb7db915"
+    "binary_sha256": "3360e10c329d99b3c6669304a3ea8549bc6ddbb98b73561d7605db07fe2dda0a"
   }
 }

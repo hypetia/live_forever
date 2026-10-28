@@ -130,13 +130,14 @@ func support(game: Node2D, target_id: int) -> bool:
 	if actor.health <= 0 or target.health <= 0 or game.simulation_time - actor.person.last_support < 180 or game.simulation_time - target.person.last_support < 180: return false
 	if not game.inventory.try_take({"meals": 1}, "与同伴共餐安慰"): return false
 	var close := relationship(actor.survivor_id, target_id) >= 60
+	var strength := CharacterAbilities.factor(actor,"support")
 	for member in [actor, target]:
-		member.person.morale = minf(100, member.person.morale + (15 if close else 10))
+		member.person.morale = minf(100, member.person.morale + (15 if close else 10) * strength)
 		member.person.stress = maxf(0, member.person.stress - 20)
 		member.person.trauma = maxf(0, member.person.trauma - 8)
 		member.person.last_support = game.simulation_time
 	var pair := "%d:%d" % [mini(actor.survivor_id, target_id), maxi(actor.survivor_id, target_id)]
-	bonds[pair] = mini(100, int(bonds[pair]) + 10)
+	bonds[pair] = mini(100, int(bonds[pair]) + roundi(10 * strength))
 	event_reported.emit("%s与%s分享了一份热食，彼此更信任了。这次安慰不代替日常进食。" % [actor.display_name, target.display_name])
 	return true
 

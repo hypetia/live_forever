@@ -34,29 +34,32 @@ static func face(c: CanvasItem,id: String,at: Vector2,s: float=1.0) -> void:
    c.draw_colored_polygon(PackedVector2Array([at+Vector2(-16,-8)*s,at+Vector2(-10,-18)*s,at+Vector2(0,-14)*s,at+Vector2(11,-18)*s,at+Vector2(16,-8)*s]),Color('5b4938'))
    for x in [-10,9]:c.draw_line(at+Vector2(x,2)*s,at+Vector2(x*1.2,20)*s,dark,3*s,true)
    c.draw_polyline(PackedVector2Array([at+Vector2(-5,6)*s,at+Vector2(0,16)*s,at+Vector2(5,6)*s]),dark,2*s,true)
-  'lara':
-   c.draw_arc(at+Vector2(0,-2)*s,11*s,PI,TAU,20,Color('5d4134'),5*s,true)
-   c.draw_polyline(PackedVector2Array([at+Vector2(9,-5)*s,at+Vector2(15,3)*s,at+Vector2(14,24)*s]),Color('5d4134'),5*s,true)
-   c.draw_line(at+Vector2(-9,15)*s,at+Vector2(9,15)*s,Color('4b9c9a'),5*s,true)
-  'joel':
-   c.draw_arc(at+Vector2(0,-3)*s,11*s,PI,TAU,20,Color('57524a'),6*s,true)
-   c.draw_arc(at+Vector2(0,4)*s,9*s,0,PI,20,Color('625b50'),5*s,true)
-   for x in [-10,10]:c.draw_line(at+Vector2(x,-2)*s,at+Vector2(x,5)*s,Color('a5a094'),2*s,true)
-  'ellie':
-   c.draw_arc(at+Vector2(0,-2)*s,11*s,PI,TAU,20,Color('8b5745'),5*s,true)
-   c.draw_line(at+Vector2(9,0)*s,at+Vector2(14,17)*s,Color('8b5745'),4*s,true)
-   for x in [-4,4]:c.draw_circle(at+Vector2(x,5)*s,1*s,Color('966b50'))
-  'jill':
-   c.draw_arc(at+Vector2(0,-2)*s,11*s,PI,TAU,20,Color('65523f'),5*s,true)
-   c.draw_line(at+Vector2(-12,-7)*s,at+Vector2(11,-7)*s,Color('46769a'),5*s,true)
-   c.draw_circle(at+Vector2(-3,-9)*s,9*s,Color('46769a'))
-   c.draw_circle(at+Vector2(3,-10)*s,2*s,Color('b8b4a0'))
-  'liu':
-   c.draw_arc(at+Vector2(0,-2)*s,12*s,PI,TAU,20,Color('302f2c'),5*s,true)
-   c.draw_arc(at+Vector2(0,0)*s,16*s,0,PI,20,Color('bfc6c6'),4*s,true)
-   c.draw_line(at+Vector2(-12,15)*s,at+Vector2(12,15)*s,Color('bc7041'),5*s,true)
-  'wick':
-   c.draw_arc(at+Vector2(0,-2)*s,12*s,PI,TAU,20,dark,6*s,true)
-   for x in [-10,10]:c.draw_line(at+Vector2(x,-3)*s,at+Vector2(x,15)*s,dark,5*s,true)
-   c.draw_arc(at+Vector2(0,4)*s,8*s,0,PI,20,dark,3*s,true)
-   c.draw_line(at+Vector2(0,14)*s,at+Vector2(0,24)*s,Color('b9b3a7'),3*s,true)
+  'goku':
+   c.draw_colored_polygon(PackedVector2Array([at+Vector2(-13,1)*s,at+Vector2(-20,-9)*s,at+Vector2(-8,-8)*s,at+Vector2(-12,-20)*s,at+Vector2(0,-13)*s,at+Vector2(8,-24)*s,at+Vector2(10,-10)*s,at+Vector2(21,-14)*s,at+Vector2(12,1)*s]),dark)
+   c.draw_line(at+Vector2(-10,16)*s,at+Vector2(10,16)*s,Color('db853d'),6*s,true)
+  'conan':
+   c.draw_arc(at+Vector2(0,-3)*s,11*s,PI,TAU,20,dark,5*s,true)
+   for x in [-5,5]:c.draw_circle(at+Vector2(x,2)*s,4.5*s,Color('8daab5'),false,1.5*s,true)
+   c.draw_line(at+Vector2(-1,2)*s,at+Vector2(1,2)*s,dark,1.5*s,true)
+   c.draw_colored_polygon(PackedVector2Array([at+Vector2(-8,15)*s,at+Vector2(0,18)*s,at+Vector2(8,15)*s,at+Vector2(8,21)*s,at+Vector2(0,18)*s,at+Vector2(-8,21)*s]),Color('b2574e'))
+  'batman':
+   c.draw_arc(at+Vector2(0,-2)*s,12*s,PI,TAU,20,dark,7*s,true)
+   for side in [-1,1]:c.draw_colored_polygon(PackedVector2Array([at+Vector2(side*11,-3)*s,at+Vector2(side*10,-24)*s,at+Vector2(side*4,-10)*s]),dark)
+   c.draw_line(at+Vector2(-10,1)*s,at+Vector2(10,1)*s,dark,4*s,true)
+   for x in [-5,5]:c.draw_line(at+Vector2(x-2,0)*s,at+Vector2(x+2,0)*s,Color('b6c7c8'),1.3*s,true)
+  'sherlock':
+   c.draw_arc(at+Vector2(0,-3)*s,12*s,PI,TAU,20,dark,6*s,true)
+   for x in [-8,-3,3,8]:c.draw_circle(at+Vector2(x,-10+abs(x)*.35)*s,3*s,dark)
+   c.draw_line(at+Vector2(-10,15)*s,at+Vector2(10,15)*s,Color('3e4e68'),7*s,true)
+   c.draw_line(at+Vector2(7,14)*s,at+Vector2(8,28)*s,Color('3e4e68'),5*s,true)
+  'harry':
+   c.draw_arc(at+Vector2(0,-3)*s,11*s,PI,TAU,20,dark,6*s,true)
+   for x in [-5,5]:c.draw_circle(at+Vector2(x,2)*s,4.5*s,dark,false,1.5*s,true)
+   c.draw_line(at+Vector2(-1,2)*s,at+Vector2(1,2)*s,dark,1.5*s,true)
+   c.draw_polyline(PackedVector2Array([at+Vector2(3,-8)*s,at+Vector2(1,-4)*s,at+Vector2(4,-4)*s,at+Vector2(2,0)*s]),Color('a35e51'),1.4*s,true)
+   c.draw_line(at+Vector2(-9,16)*s,at+Vector2(9,16)*s,Color('934941'),5*s,true)
+  'neo':
+   c.draw_arc(at+Vector2(0,-3)*s,11*s,PI,TAU,20,dark,5*s,true)
+   c.draw_line(at+Vector2(-10,1)*s,at+Vector2(10,1)*s,dark,3*s,true)
+   for x in [-5,5]:c.draw_rect(Rect2(at+Vector2(x-4,-1)*s,Vector2(8,5)*s),dark)
+   c.draw_line(at+Vector2(-10,16)*s,at+Vector2(10,16)*s,Color('252c2a'),6*s,true)

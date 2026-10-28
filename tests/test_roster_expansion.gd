@@ -1,5 +1,5 @@
 extends "res://tests/test_tactical_campaign.gd"
-const NEW_IDS := ['lara','joel','ellie','jill','liu','wick']
+const NEW_IDS := ['goku','conan','batman','sherlock','harry','neo']
 func ready_recruit(game: Node2D,id: String) -> Survivor:
  game.simulation_time=29*720
  game.upkeep.level=1
@@ -37,10 +37,26 @@ func _run() -> void:
   expect(SaveSystem.apply_state(g,saved_trip).is_empty(),'active expedition restores new identity '+id)
   g.expedition.player_x=90;g.expedition_retreat();g.confirm_departure();g.begin_day()
   expect(g.cycle.phase=='day','new character can return to base '+id)
-  if id=='joel':
+  if id=='sherlock':
    var listener:Survivor=g.survivors[0];listener.person.morale=40;listener.person.stress=50
    g.residence.finish(g,'music',actor)
-   expect(is_equal_approx(listener.person.morale,48) and is_equal_approx(listener.person.stress,35.6),'Joel guitar bonus changes actual companion mood')
+   expect(is_equal_approx(listener.person.morale,48) and is_equal_approx(listener.person.stress,35.6),'Sherlock guitar bonus changes actual companion mood')
+  if id=='harry':
+   var target_actor:Survivor=g.survivors[0]
+   actor.person.morale=40;target_actor.person.morale=40
+   var food:int=g.inventory.amount('meals');var trust:int=g.people.relationship(actor.survivor_id,0)
+   g.select_survivor(actor.survivor_id)
+   expect(g.people.support(g,0),'Harry performs actual paid mutual support')
+   expect(actor.person.morale==53 and target_actor.person.morale==53 and g.people.relationship(actor.survivor_id,0)==trust+13,'Harry boosts actual mood and trust by thirty percent')
+   expect(g.inventory.amount('meals')==food-1 and not g.people.support(g,0),'Harry still pays food and respects mutual support cooldown')
+  if id=='goku':
+   actor.hunger=10;var baseline:Survivor=g.survivors[0];baseline.hunger=10
+   SurvivalRules.tick(actor,10);SurvivalRules.tick(baseline,10)
+   expect(is_equal_approx(actor.hunger-10,(baseline.hunger-10)*1.2),'Goku strong recovery has a real twenty-percent appetite cost')
+  if id=='batman':
+   actor.fatigue=10;var baseline:Survivor=g.survivors[0];baseline.fatigue=10
+   SurvivalRules.tick(actor,10);SurvivalRules.tick(baseline,10)
+   expect(is_equal_approx(actor.fatigue-10,(baseline.fatigue-10)*1.1),'Batman workload has a real ten-percent fatigue cost')
   g.free()
   for choice in [0,1]:
    g=fresh();actor=ready_recruit(g,id)
