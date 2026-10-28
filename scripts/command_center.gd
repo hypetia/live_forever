@@ -169,6 +169,7 @@ func _check(parent: Node, label: String, state: bool, callback: Callable) -> Che
 
 
 func open(page: int = 0) -> void:
+	if game.has_method("siege_snapshot") and game.siege.active: return
 	if visible: return
 	_paused_before = game.paused
 	game.paused = true

@@ -53,6 +53,8 @@ func _run() -> void:
  check(game.cards.all(func(c):return c.get_global_rect().end.x<game.siege_view.toolbar.position.x),'defender cards do not overlap the combat controls')
  await click_at(game.cards[1].get_global_rect().get_center())
  check(game.selected_id==1,'actual defender card click transfers control during a raid')
+ await double_click(game.cards[1].get_global_rect().get_center())
+ check(not game.center.visible and game.selected_id==1,'double-clicking a defender cannot open instant-care or recruitment menus during battle')
  await keypress(KEY_SPACE);sim(game,6)
  check(game.siege.wave==1 and not game.siege_view.pause_panel.visible,'Space resumes actual visible enemy waves')
  await picture('res://docs/v21-base-defense.png')

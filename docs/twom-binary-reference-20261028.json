@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-28",
+  "inputs": [
+    {
+      "name": "This War of Mine.exe",
+      "bytes": 9680568,
+      "sha256": "7e114e63d2371b3a31c6070011ba3869fecb2248895afc0171b248c3e0b69bcb"
+    },
+    {
+      "name": "libcurl.dll",
+      "bytes": 228864,
+      "sha256": "67cdb433aff431f84a7f0e6f91ff0ccadcbc788be892112bcaf8f6795cdd2f16"
+    },
+    {
+      "name": "steam_api64.dll",
+      "bytes": 295336,
+      "sha256": "4df999c0c8cb12589f0864d52be5d4c775577aeb27fee28b49b188f9ba083eea"
+    },
+    {
+      "name": "newsfeed.dll",
+      "bytes": 69744,
+      "sha256": "24a271e6bfae491b8878338bbd90011dad42b6d191443f939703c452b8ae5def"
+    }
+  ],
+  "target_executed": false,
+  "rea_version": "6.8.0",
+  "commands": [
+    {
+      "name": "version",
+      "exit_code": 0,
+      "report_sha256": "4c7d245d1e1c2c70e26c15a790671f5aacaacfffafbcbe8e86ce9df0bbd835bf"
+    },
+    {
+      "name": "installation",
+      "exit_code": 0,
+      "report_sha256": "d5af0ffd0e20f99a89f88fd557f42ad0e5e34f6bd3cb7ef156f84d45d8c0e4dd"
+    },
+    {
+      "name": "pe-imports",
+      "exit_code": 0,
+      "report_sha256": "a30e40e98f567b951ecc53d8a8f6ec14a96b3f51fd5c5f6cb87c2e88239d73c6"
+    },
+    {
+      "name": "ghidra-readiness",
+      "exit_code": 1,
+      "report_sha256": "8d3a0b471bee07cdbc00f85935cc5b1fd935fc4aee76d1257d644f8ff8efd3f8"
+    }
+  ],
+  "native_analysis": "not completed: Ghidra provider not ready",
+  "mechanics_verified_by_execution": false,
+  "confirmed_reference_names": [
+    "common.dat",
+    "common.idx",
+    "localizations.dat",
+    "localizations.idx",
+    "textures.dat",
+    "textures.idx",
+    "sounds.dat",
+    "sounds.idx"
+  ],
+  "interpretation": "Identified PE architecture, import dependencies and embedded type/string references. These are research leads; numerical behavior and complete original game mechanics are not established. No original binaries or full string dumps are included in this repository."
+}

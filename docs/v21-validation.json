@@ -1,6 +1,6 @@
 {
   "version": "1.11.0",
-  "date": "2026-10-27",
+  "date": "2026-10-28",
   "save_schema": 18,
   "status": "Current campaign feature and regression checks passed; Windows hardware and arbitrary infinite play are not certified.",
   "logical_checks": 2164,
@@ -35,7 +35,7 @@
     "test_keyboard_movement": 27,
     "test_departure_equipment": 36
   },
-  "gui_checks": 638,
+  "gui_checks": 639,
   "gui_suites": {
     "visual_smoke": 36,
     "visual_self_care": 22,
@@ -59,7 +59,7 @@
     "visual_district_system": 33,
     "visual_combat_feedback": 11,
     "visual_goals": 24,
-    "visual_tactical": 31
+    "visual_tactical": 32
   },
   "persistence_processes": 61,
   "new_cross_process_phases": [
@@ -16091,7 +16091,7 @@
     "step_hz": 20,
     "seed": "normal default campaign seed; no per-case seed override",
     "evidence_scope": "All six 35-day cases exit with real victory. Three 60-day cases explicitly choose endless continuation and keep surviving through day 60. Stock totals and actor health are actual state.",
-    "runtime_after_matrix": "Only compact_hud.gd changed after these runs to restore visible participant cards; simulation and rules unchanged. Default 190-second policy threshold was exposed as a test-only variable for the separate real-time QA policy."
+    "runtime_after_matrix": "Only compact_hud.gd and command_center.gd changed after these runs: participant cards are visible/selectable without opening instant-care menus in a raid. Simulation and rules unchanged. The default 190-second policy threshold was exposed as a test-only variable for the separate real-time QA policy."
   },
   "desktop": {
     "checks": [
@@ -16584,9 +16584,9 @@
         "passed": true
       }
     ],
-    "elapsed_seconds": 360.064,
+    "elapsed_seconds": 360.032,
     "engine": "4.6.3-stable (official)",
-    "frames": 5300,
+    "frames": 5497,
     "platform": "Linux",
     "requested_minutes": 6.0,
     "resolutions": [
@@ -16638,7 +16638,7 @@
     "samples": [
       {
         "alive": 3,
-        "fps": 6.0,
+        "fps": 3.0,
         "frames": 1,
         "simulation_seconds": 0.1,
         "static_memory": 0.0,
@@ -16652,49 +16652,31 @@
           "water": 8
         },
         "trips": 0,
-        "wall_seconds": 0.013
-      },
-      {
-        "alive": 3,
-        "fps": 4.0,
-        "frames": 65,
-        "simulation_seconds": 6.43646499999998,
-        "static_memory": 0.0,
-        "stock": {
-          "fuel": 5,
-          "materials": 10,
-          "meals": 2,
-          "medicine": 2,
-          "raw_food": 6,
-          "tools": 1,
-          "water": 8
-        },
-        "trips": 0,
-        "wall_seconds": 10.115
-      },
-      {
-        "alive": 3,
-        "fps": 13.0,
-        "frames": 125,
-        "simulation_seconds": 11.7965863333335,
-        "static_memory": 0.0,
-        "stock": {
-          "fuel": 5,
-          "materials": 10,
-          "meals": 2,
-          "medicine": 2,
-          "raw_food": 6,
-          "tools": 1,
-          "water": 8
-        },
-        "trips": 0,
-        "wall_seconds": 20.278
+        "wall_seconds": 0.011
       },
       {
         "alive": 3,
         "fps": 7.0,
-        "frames": 225,
-        "simulation_seconds": 20.4444450000001,
+        "frames": 61,
+        "simulation_seconds": 6.09999999999998,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 12,
+          "meals": 2,
+          "medicine": 2,
+          "raw_food": 6,
+          "tools": 1,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 10.087
+      },
+      {
+        "alive": 3,
+        "fps": 7.0,
+        "frames": 127,
+        "simulation_seconds": 12.7000000000002,
         "static_memory": 0.0,
         "stock": {
           "fuel": 5,
@@ -16706,301 +16688,121 @@
           "water": 8
         },
         "trips": 0,
-        "wall_seconds": 30.292
-      },
-      {
-        "alive": 3,
-        "fps": 4.0,
-        "frames": 312,
-        "simulation_seconds": 28.3101198888886,
-        "static_memory": 0.0,
-        "stock": {
-          "fuel": 5,
-          "materials": 4,
-          "meals": 2,
-          "medicine": 2,
-          "raw_food": 6,
-          "tools": 1,
-          "water": 8
-        },
-        "trips": 0,
-        "wall_seconds": 40.363
-      },
-      {
-        "alive": 3,
-        "fps": 17.0,
-        "frames": 426,
-        "simulation_seconds": 36.6229778888882,
-        "static_memory": 0.0,
-        "stock": {
-          "fuel": 5,
-          "materials": 4,
-          "meals": 2,
-          "medicine": 2,
-          "raw_food": 6,
-          "tools": 1,
-          "water": 8
-        },
-        "trips": 0,
-        "wall_seconds": 50.363
-      },
-      {
-        "alive": 3,
-        "fps": 13.0,
-        "frames": 581,
-        "simulation_seconds": 46.0511684646453,
-        "static_memory": 0.0,
-        "stock": {
-          "fuel": 5,
-          "materials": 4,
-          "meals": 2,
-          "medicine": 2,
-          "raw_food": 6,
-          "tools": 1,
-          "water": 8
-        },
-        "trips": 0,
-        "wall_seconds": 60.427
-      },
-      {
-        "alive": 3,
-        "fps": 13.0,
-        "frames": 708,
-        "simulation_seconds": 55.5701038350152,
-        "static_memory": 0.0,
-        "stock": {
-          "fuel": 5,
-          "materials": 0,
-          "meals": 2,
-          "medicine": 2,
-          "raw_food": 6,
-          "tools": 0,
-          "water": 8
-        },
-        "trips": 0,
-        "wall_seconds": 70.462
-      },
-      {
-        "alive": 3,
-        "fps": 11.0,
-        "frames": 815,
-        "simulation_seconds": 64.4557677239036,
-        "static_memory": 0.0,
-        "stock": {
-          "fuel": 5,
-          "materials": 0,
-          "meals": 2,
-          "medicine": 2,
-          "raw_food": 6,
-          "tools": 0,
-          "water": 8
-        },
-        "trips": 0,
-        "wall_seconds": 80.573
-      },
-      {
-        "alive": 3,
-        "fps": 12.0,
-        "frames": 913,
-        "simulation_seconds": 73.3617800572365,
-        "static_memory": 0.0,
-        "stock": {
-          "fuel": 5,
-          "materials": 0,
-          "meals": 2,
-          "medicine": 2,
-          "raw_food": 6,
-          "tools": 0,
-          "water": 8
-        },
-        "trips": 0,
-        "wall_seconds": 90.597
-      },
-      {
-        "alive": 3,
-        "fps": 18.0,
-        "frames": 1069,
-        "simulation_seconds": 367.279118851846,
-        "static_memory": 0.0,
-        "stock": {
-          "fuel": 5,
-          "materials": 0,
-          "meals": 2,
-          "medicine": 1,
-          "raw_food": 6,
-          "tools": 0,
-          "water": 8
-        },
-        "trips": 0,
-        "wall_seconds": 100.609
-      },
-      {
-        "alive": 3,
-        "fps": 23.0,
-        "frames": 1272,
-        "simulation_seconds": 376.838727148134,
-        "static_memory": 0.0,
-        "stock": {
-          "fuel": 5,
-          "materials": 0,
-          "meals": 2,
-          "medicine": 1,
-          "raw_food": 6,
-          "tools": 0,
-          "water": 8
-        },
-        "trips": 0,
-        "wall_seconds": 110.635
-      },
-      {
-        "alive": 3,
-        "fps": 21.0,
-        "frames": 1462,
-        "simulation_seconds": 386.576224555534,
-        "static_memory": 0.0,
-        "stock": {
-          "fuel": 5,
-          "materials": 0,
-          "meals": 2,
-          "medicine": 1,
-          "raw_food": 6,
-          "tools": 0,
-          "water": 8
-        },
-        "trips": 0,
-        "wall_seconds": 120.664
-      },
-      {
-        "alive": 3,
-        "fps": 17.0,
-        "frames": 1675,
-        "simulation_seconds": 396.320626555527,
-        "static_memory": 0.0,
-        "stock": {
-          "fuel": 5,
-          "materials": 0,
-          "meals": 2,
-          "medicine": 1,
-          "raw_food": 6,
-          "tools": 0,
-          "water": 8
-        },
-        "trips": 0,
-        "wall_seconds": 130.696
-      },
-      {
-        "alive": 3,
-        "fps": 11.0,
-        "frames": 1841,
-        "simulation_seconds": 405.706303282792,
-        "static_memory": 0.0,
-        "stock": {
-          "fuel": 5,
-          "materials": 0,
-          "meals": 2,
-          "medicine": 1,
-          "raw_food": 6,
-          "tools": 0,
-          "water": 8
-        },
-        "trips": 0,
-        "wall_seconds": 140.704
-      },
-      {
-        "alive": 3,
-        "fps": 21.0,
-        "frames": 2028,
-        "simulation_seconds": 415.326310585814,
-        "static_memory": 0.0,
-        "stock": {
-          "fuel": 5,
-          "materials": 0,
-          "meals": 2,
-          "medicine": 1,
-          "raw_food": 6,
-          "tools": 0,
-          "water": 8
-        },
-        "trips": 0,
-        "wall_seconds": 150.71
+        "wall_seconds": 20.132
       },
       {
         "alive": 3,
         "fps": 15.0,
-        "frames": 2207,
-        "simulation_seconds": 424.471673363584,
+        "frames": 212,
+        "simulation_seconds": 20.2984139629631,
         "static_memory": 0.0,
         "stock": {
           "fuel": 5,
-          "materials": 0,
+          "materials": 4,
           "meals": 2,
-          "medicine": 1,
+          "medicine": 2,
           "raw_food": 6,
-          "tools": 0,
+          "tools": 1,
           "water": 8
         },
         "trips": 0,
-        "wall_seconds": 160.714
+        "wall_seconds": 30.173
       },
       {
         "alive": 3,
-        "fps": 21.0,
-        "frames": 2422,
-        "simulation_seconds": 433.859242770984,
+        "fps": 15.0,
+        "frames": 351,
+        "simulation_seconds": 29.5895470639727,
         "static_memory": 0.0,
         "stock": {
           "fuel": 5,
-          "materials": 0,
+          "materials": 4,
           "meals": 2,
-          "medicine": 1,
+          "medicine": 2,
           "raw_food": 6,
-          "tools": 0,
+          "tools": 1,
           "water": 8
         },
         "trips": 0,
-        "wall_seconds": 170.734
+        "wall_seconds": 40.228
       },
       {
         "alive": 3,
-        "fps": 21.0,
-        "frames": 2626,
-        "simulation_seconds": 443.708572030236,
+        "fps": 15.0,
+        "frames": 504,
+        "simulation_seconds": 38.9903411750834,
         "static_memory": 0.0,
         "stock": {
           "fuel": 5,
-          "materials": 0,
+          "materials": 4,
           "meals": 2,
-          "medicine": 1,
+          "medicine": 2,
           "raw_food": 6,
-          "tools": 0,
+          "tools": 1,
           "water": 8
         },
         "trips": 0,
-        "wall_seconds": 180.743
+        "wall_seconds": 50.272
       },
       {
         "alive": 3,
-        "fps": 23.0,
-        "frames": 2826,
-        "simulation_seconds": 453.474917919117,
+        "fps": 17.0,
+        "frames": 660,
+        "simulation_seconds": 48.6377146195273,
         "static_memory": 0.0,
         "stock": {
           "fuel": 5,
-          "materials": 0,
+          "materials": 4,
           "meals": 2,
-          "medicine": 1,
+          "medicine": 2,
           "raw_food": 6,
-          "tools": 0,
+          "tools": 1,
           "water": 8
         },
         "trips": 0,
-        "wall_seconds": 190.755
+        "wall_seconds": 60.282
       },
       {
         "alive": 3,
-        "fps": 26.0,
-        "frames": 3036,
-        "simulation_seconds": 463.146314321225,
+        "fps": 12.0,
+        "frames": 760,
+        "simulation_seconds": 57.2805152861935,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 2,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 70.354
+      },
+      {
+        "alive": 3,
+        "fps": 12.0,
+        "frames": 866,
+        "simulation_seconds": 66.3555935084152,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 2,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 80.416
+      },
+      {
+        "alive": 3,
+        "fps": 14.0,
+        "frames": 1020,
+        "simulation_seconds": 361.252938333332,
         "static_memory": 0.0,
         "stock": {
           "fuel": 5,
@@ -17012,13 +16814,211 @@
           "water": 8
         },
         "trips": 0,
-        "wall_seconds": 200.874
+        "wall_seconds": 90.44
+      },
+      {
+        "alive": 3,
+        "fps": 20.0,
+        "frames": 1220,
+        "simulation_seconds": 370.777098370361,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 1,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 100.459
+      },
+      {
+        "alive": 3,
+        "fps": 17.0,
+        "frames": 1403,
+        "simulation_seconds": 380.373514629613,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 1,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 110.5
       },
       {
         "alive": 3,
         "fps": 13.0,
-        "frames": 3172,
-        "simulation_seconds": 669.239115666659,
+        "frames": 1542,
+        "simulation_seconds": 390.013541962938,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 1,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 120.539
+      },
+      {
+        "alive": 3,
+        "fps": 8.0,
+        "frames": 1645,
+        "simulation_seconds": 398.344616962931,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 1,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 130.615
+      },
+      {
+        "alive": 3,
+        "fps": 14.0,
+        "frames": 1818,
+        "simulation_seconds": 408.152225185145,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 1,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 140.689
+      },
+      {
+        "alive": 3,
+        "fps": 17.0,
+        "frames": 2022,
+        "simulation_seconds": 417.915040740693,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 1,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 150.722
+      },
+      {
+        "alive": 3,
+        "fps": 18.0,
+        "frames": 2172,
+        "simulation_seconds": 426.57029097301,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 1,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 160.731
+      },
+      {
+        "alive": 3,
+        "fps": 24.0,
+        "frames": 2398,
+        "simulation_seconds": 436.440152124517,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 1,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 170.733
+      },
+      {
+        "alive": 3,
+        "fps": 21.0,
+        "frames": 2593,
+        "simulation_seconds": 446.177290875832,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 1,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 180.76
+      },
+      {
+        "alive": 3,
+        "fps": 13.0,
+        "frames": 2748,
+        "simulation_seconds": 455.441780542491,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 5,
+          "materials": 0,
+          "meals": 2,
+          "medicine": 1,
+          "raw_food": 6,
+          "tools": 0,
+          "water": 8
+        },
+        "trips": 0,
+        "wall_seconds": 190.813
+      },
+      {
+        "alive": 3,
+        "fps": 11.0,
+        "frames": 2933,
+        "simulation_seconds": 660.897142857142,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 13,
+          "materials": 11,
+          "meals": 2,
+          "medicine": 4,
+          "raw_food": 8,
+          "tools": 1,
+          "water": 17
+        },
+        "trips": 1,
+        "wall_seconds": 200.814
+      },
+      {
+        "alive": 3,
+        "fps": 10.0,
+        "frames": 3035,
+        "simulation_seconds": 669.148470148141,
         "static_memory": 0.0,
         "stock": {
           "fuel": 13,
@@ -17030,121 +17030,85 @@
           "water": 17
         },
         "trips": 1,
-        "wall_seconds": 210.895
-      },
-      {
-        "alive": 3,
-        "fps": 10.0,
-        "frames": 3274,
-        "simulation_seconds": 678.241356777762,
-        "static_memory": 0.0,
-        "stock": {
-          "fuel": 12,
-          "materials": 9,
-          "meals": 0,
-          "medicine": 4,
-          "raw_food": 7,
-          "tools": 1,
-          "water": 16
-        },
-        "trips": 1,
-        "wall_seconds": 220.943
-      },
-      {
-        "alive": 3,
-        "fps": 14.0,
-        "frames": 3398,
-        "simulation_seconds": 687.417106111087,
-        "static_memory": 0.0,
-        "stock": {
-          "fuel": 12,
-          "materials": 5,
-          "meals": 1,
-          "medicine": 4,
-          "raw_food": 7,
-          "tools": 1,
-          "water": 16
-        },
-        "trips": 1,
-        "wall_seconds": 231.025
-      },
-      {
-        "alive": 3,
-        "fps": 15.0,
-        "frames": 3523,
-        "simulation_seconds": 696.817558174572,
-        "static_memory": 0.0,
-        "stock": {
-          "fuel": 12,
-          "materials": 5,
-          "meals": 1,
-          "medicine": 4,
-          "raw_food": 7,
-          "tools": 1,
-          "water": 16
-        },
-        "trips": 1,
-        "wall_seconds": 241.071
-      },
-      {
-        "alive": 3,
-        "fps": 14.0,
-        "frames": 3675,
-        "simulation_seconds": 706.680114396787,
-        "static_memory": 0.0,
-        "stock": {
-          "fuel": 12,
-          "materials": 1,
-          "meals": 1,
-          "medicine": 4,
-          "raw_food": 7,
-          "tools": 0,
-          "water": 16
-        },
-        "trips": 1,
-        "wall_seconds": 251.101
+        "wall_seconds": 210.875
       },
       {
         "alive": 3,
         "fps": 11.0,
-        "frames": 3826,
-        "simulation_seconds": 716.580113174557,
+        "frames": 3132,
+        "simulation_seconds": 677.343811481467,
         "static_memory": 0.0,
         "stock": {
-          "fuel": 12,
-          "materials": 1,
-          "meals": 1,
+          "fuel": 13,
+          "materials": 9,
+          "meals": 0,
           "medicine": 4,
-          "raw_food": 7,
-          "tools": 0,
-          "water": 16
+          "raw_food": 8,
+          "tools": 1,
+          "water": 17
         },
         "trips": 1,
-        "wall_seconds": 261.133
+        "wall_seconds": 220.918
       },
       {
         "alive": 3,
-        "fps": 16.0,
-        "frames": 3965,
-        "simulation_seconds": 726.237376396771,
+        "fps": 12.0,
+        "frames": 3238,
+        "simulation_seconds": 686.149062370349,
         "static_memory": 0.0,
         "stock": {
           "fuel": 12,
-          "materials": 1,
+          "materials": 5,
           "meals": 1,
           "medicine": 4,
           "raw_food": 7,
-          "tools": 0,
+          "tools": 1,
           "water": 16
         },
         "trips": 1,
-        "wall_seconds": 271.169
+        "wall_seconds": 230.978
+      },
+      {
+        "alive": 3,
+        "fps": 8.0,
+        "frames": 3338,
+        "simulation_seconds": 694.648780037008,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 12,
+          "materials": 5,
+          "meals": 1,
+          "medicine": 4,
+          "raw_food": 7,
+          "tools": 1,
+          "water": 16
+        },
+        "trips": 1,
+        "wall_seconds": 241.111
+      },
+      {
+        "alive": 3,
+        "fps": 9.0,
+        "frames": 3406,
+        "simulation_seconds": 701.382474370335,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 12,
+          "materials": 5,
+          "meals": 1,
+          "medicine": 4,
+          "raw_food": 7,
+          "tools": 1,
+          "water": 16
+        },
+        "trips": 1,
+        "wall_seconds": 251.137
       },
       {
         "alive": 3,
         "fps": 14.0,
-        "frames": 4072,
-        "simulation_seconds": 734.424470682478,
+        "frames": 3548,
+        "simulation_seconds": 711.095394521843,
         "static_memory": 0.0,
         "stock": {
           "fuel": 12,
@@ -17156,121 +17120,67 @@
           "water": 16
         },
         "trips": 1,
-        "wall_seconds": 281.197
-      },
-      {
-        "alive": 3,
-        "fps": 19.0,
-        "frames": 4202,
-        "simulation_seconds": 1082.861856,
-        "static_memory": 0.0,
-        "stock": {
-          "fuel": 12,
-          "materials": 1,
-          "meals": 1,
-          "medicine": 3,
-          "raw_food": 7,
-          "tools": 0,
-          "water": 16
-        },
-        "trips": 1,
-        "wall_seconds": 291.206
-      },
-      {
-        "alive": 3,
-        "fps": 20.0,
-        "frames": 4396,
-        "simulation_seconds": 1092.0317595238,
-        "static_memory": 0.0,
-        "stock": {
-          "fuel": 12,
-          "materials": 1,
-          "meals": 1,
-          "medicine": 3,
-          "raw_food": 7,
-          "tools": 0,
-          "water": 16
-        },
-        "trips": 1,
-        "wall_seconds": 301.209
-      },
-      {
-        "alive": 3,
-        "fps": 16.0,
-        "frames": 4539,
-        "simulation_seconds": 1101.14081285713,
-        "static_memory": 0.0,
-        "stock": {
-          "fuel": 12,
-          "materials": 1,
-          "meals": 1,
-          "medicine": 3,
-          "raw_food": 7,
-          "tools": 0,
-          "water": 16
-        },
-        "trips": 1,
-        "wall_seconds": 311.21
-      },
-      {
-        "alive": 3,
-        "fps": 17.0,
-        "frames": 4671,
-        "simulation_seconds": 1109.68802885712,
-        "static_memory": 0.0,
-        "stock": {
-          "fuel": 12,
-          "materials": 1,
-          "meals": 1,
-          "medicine": 3,
-          "raw_food": 7,
-          "tools": 0,
-          "water": 16
-        },
-        "trips": 1,
-        "wall_seconds": 321.388
+        "wall_seconds": 261.155
       },
       {
         "alive": 3,
         "fps": 15.0,
-        "frames": 4835,
-        "simulation_seconds": 1119.41569419045,
+        "frames": 3687,
+        "simulation_seconds": 720.674786521836,
         "static_memory": 0.0,
         "stock": {
           "fuel": 12,
           "materials": 1,
           "meals": 1,
-          "medicine": 3,
+          "medicine": 4,
           "raw_food": 7,
           "tools": 0,
           "water": 16
         },
         "trips": 1,
-        "wall_seconds": 331.388
+        "wall_seconds": 271.2
+      },
+      {
+        "alive": 3,
+        "fps": 14.0,
+        "frames": 3839,
+        "simulation_seconds": 730.471007410717,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 12,
+          "materials": 1,
+          "meals": 1,
+          "medicine": 4,
+          "raw_food": 7,
+          "tools": 0,
+          "water": 16
+        },
+        "trips": 1,
+        "wall_seconds": 281.202
       },
       {
         "alive": 3,
         "fps": 18.0,
-        "frames": 5005,
-        "simulation_seconds": 1129.14124219044,
+        "frames": 4007,
+        "simulation_seconds": 740.413833707006,
         "static_memory": 0.0,
         "stock": {
           "fuel": 12,
           "materials": 1,
           "meals": 1,
-          "medicine": 3,
+          "medicine": 4,
           "raw_food": 7,
           "tools": 0,
           "water": 16
         },
         "trips": 1,
-        "wall_seconds": 341.391
+        "wall_seconds": 291.236
       },
       {
         "alive": 3,
-        "fps": 23.0,
-        "frames": 5204,
-        "simulation_seconds": 1138.74075192059,
+        "fps": 31.0,
+        "frames": 4300,
+        "simulation_seconds": 1088.95770559259,
         "static_memory": 0.0,
         "stock": {
           "fuel": 12,
@@ -17282,190 +17192,284 @@
           "water": 16
         },
         "trips": 1,
-        "wall_seconds": 351.463
+        "wall_seconds": 301.251
+      },
+      {
+        "alive": 3,
+        "fps": 24.0,
+        "frames": 4524,
+        "simulation_seconds": 1098.51048262962,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 12,
+          "materials": 1,
+          "meals": 1,
+          "medicine": 3,
+          "raw_food": 7,
+          "tools": 0,
+          "water": 16
+        },
+        "trips": 1,
+        "wall_seconds": 311.279
+      },
+      {
+        "alive": 3,
+        "fps": 21.0,
+        "frames": 4717,
+        "simulation_seconds": 1108.43297951851,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 12,
+          "materials": 1,
+          "meals": 1,
+          "medicine": 3,
+          "raw_food": 7,
+          "tools": 0,
+          "water": 16
+        },
+        "trips": 1,
+        "wall_seconds": 321.314
+      },
+      {
+        "alive": 3,
+        "fps": 24.0,
+        "frames": 4916,
+        "simulation_seconds": 1117.99203418517,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 12,
+          "materials": 1,
+          "meals": 1,
+          "medicine": 3,
+          "raw_food": 7,
+          "tools": 0,
+          "water": 16
+        },
+        "trips": 1,
+        "wall_seconds": 331.351
+      },
+      {
+        "alive": 3,
+        "fps": 19.0,
+        "frames": 5120,
+        "simulation_seconds": 1127.61944585182,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 12,
+          "materials": 1,
+          "meals": 1,
+          "medicine": 3,
+          "raw_food": 7,
+          "tools": 0,
+          "water": 16
+        },
+        "trips": 1,
+        "wall_seconds": 341.394
+      },
+      {
+        "alive": 3,
+        "fps": 31.0,
+        "frames": 5374,
+        "simulation_seconds": 1137.26955437034,
+        "static_memory": 0.0,
+        "stock": {
+          "fuel": 12,
+          "materials": 1,
+          "meals": 1,
+          "medicine": 3,
+          "raw_food": 7,
+          "tools": 0,
+          "water": 16
+        },
+        "trips": 1,
+        "wall_seconds": 351.407
       }
     ],
-    "save_path": "/workspace/artifacts/v21-desktop-final-2/session.json",
+    "save_path": "/workspace/artifacts/v21-desktop-final-3/session.json",
     "screens": 1,
     "status": "ready_to_close",
     "stock": {
       "fuel": 17,
       "materials": 3,
       "meals": 1,
-      "medicine": 5,
+      "medicine": 6,
       "raw_food": 13,
       "tools": 1,
       "water": 18
     },
     "worst_frame_seconds": 0.15,
     "native_close_and_restart": "passed",
-    "executable_sha256": "d049a8eeab2c4424acae31383c5afcc366248a6f88b23932b7b6dd63db7ae886",
-    "acceptance_binary_sha256": "90091002229bd4ab505aecd21f72ee7a5e1196f6892b2e0becf0705d615564cd",
+    "executable_sha256": "0f39c429501beba8f9cf512081e1a569772039b35cdb8edf3c9e8e6734a129a0",
+    "acceptance_binary_sha256": "32c3e26cec3a9f0e44751e77fd771eb5de04677a4b49e8b5c2b35a1780de33ae",
     "continuous_30_minutes_complete": false,
     "process_memory_samples": [
       {
-        "monotonic_seconds": 256648.246425628,
-        "resident_bytes": 12288
+        "monotonic_seconds": 257340.37126796,
+        "resident_bytes": 90112
       },
       {
-        "monotonic_seconds": 256658.301573083,
-        "resident_bytes": 93048832
+        "monotonic_seconds": 257350.389196885,
+        "resident_bytes": 90730496
       },
       {
-        "monotonic_seconds": 256668.349200408,
-        "resident_bytes": 340172800
+        "monotonic_seconds": 257360.420391333,
+        "resident_bytes": 331628544
       },
       {
-        "monotonic_seconds": 256678.372287704,
-        "resident_bytes": 395104256
+        "monotonic_seconds": 257370.437904521,
+        "resident_bytes": 365846528
       },
       {
-        "monotonic_seconds": 256688.388698542,
-        "resident_bytes": 407908352
+        "monotonic_seconds": 257380.446340905,
+        "resident_bytes": 414703616
       },
       {
-        "monotonic_seconds": 256698.404147772,
-        "resident_bytes": 403853312
+        "monotonic_seconds": 257390.480332926,
+        "resident_bytes": 414035968
       },
       {
-        "monotonic_seconds": 256708.425923986,
-        "resident_bytes": 403685376
+        "monotonic_seconds": 257400.549911121,
+        "resident_bytes": 411340800
       },
       {
-        "monotonic_seconds": 256718.475465418,
-        "resident_bytes": 403689472
+        "monotonic_seconds": 257410.586131373,
+        "resident_bytes": 411344896
       },
       {
-        "monotonic_seconds": 256728.517013145,
-        "resident_bytes": 403689472
+        "monotonic_seconds": 257420.615324211,
+        "resident_bytes": 411344896
       },
       {
-        "monotonic_seconds": 256738.593867087,
-        "resident_bytes": 403689472
+        "monotonic_seconds": 257430.65639954,
+        "resident_bytes": 411344896
       },
       {
-        "monotonic_seconds": 256748.619282843,
-        "resident_bytes": 403689472
+        "monotonic_seconds": 257440.703108862,
+        "resident_bytes": 411344896
       },
       {
-        "monotonic_seconds": 256758.660368846,
-        "resident_bytes": 403656704
+        "monotonic_seconds": 257450.798392948,
+        "resident_bytes": 411344896
       },
       {
-        "monotonic_seconds": 256768.689780268,
-        "resident_bytes": 403656704
+        "monotonic_seconds": 257460.825607084,
+        "resident_bytes": 411348992
       },
       {
-        "monotonic_seconds": 256778.707646577,
-        "resident_bytes": 403656704
+        "monotonic_seconds": 257471.248398122,
+        "resident_bytes": 411332608
       },
       {
-        "monotonic_seconds": 256788.761307675,
-        "resident_bytes": 399200256
+        "monotonic_seconds": 257481.294844314,
+        "resident_bytes": 411320320
       },
       {
-        "monotonic_seconds": 256798.78332952,
-        "resident_bytes": 399208448
+        "monotonic_seconds": 257491.339274134,
+        "resident_bytes": 406351872
       },
       {
-        "monotonic_seconds": 256808.812252605,
-        "resident_bytes": 399245312
+        "monotonic_seconds": 257501.365093468,
+        "resident_bytes": 406355968
       },
       {
-        "monotonic_seconds": 256818.837790674,
-        "resident_bytes": 399245312
+        "monotonic_seconds": 257511.401382158,
+        "resident_bytes": 406388736
       },
       {
-        "monotonic_seconds": 256828.8684552,
-        "resident_bytes": 399261696
+        "monotonic_seconds": 257521.430397872,
+        "resident_bytes": 406421504
       },
       {
-        "monotonic_seconds": 256838.924268602,
-        "resident_bytes": 399261696
+        "monotonic_seconds": 257531.477117531,
+        "resident_bytes": 406441984
       },
       {
-        "monotonic_seconds": 256848.96274184,
-        "resident_bytes": 399273984
+        "monotonic_seconds": 257541.50715705,
+        "resident_bytes": 406441984
       },
       {
-        "monotonic_seconds": 256859.000259986,
-        "resident_bytes": 399273984
+        "monotonic_seconds": 257551.544585797,
+        "resident_bytes": 406454272
       },
       {
-        "monotonic_seconds": 256869.033994629,
-        "resident_bytes": 399273984
+        "monotonic_seconds": 257561.569297206,
+        "resident_bytes": 406454272
       },
       {
-        "monotonic_seconds": 256879.057716246,
-        "resident_bytes": 399273984
+        "monotonic_seconds": 257571.627212249,
+        "resident_bytes": 406454272
       },
       {
-        "monotonic_seconds": 256889.113261377,
-        "resident_bytes": 399273984
+        "monotonic_seconds": 257581.658644094,
+        "resident_bytes": 406454272
       },
       {
-        "monotonic_seconds": 256899.148958096,
-        "resident_bytes": 399282176
+        "monotonic_seconds": 257591.726776693,
+        "resident_bytes": 406454272
       },
       {
-        "monotonic_seconds": 256909.178770592,
-        "resident_bytes": 399282176
+        "monotonic_seconds": 257601.789965425,
+        "resident_bytes": 406454272
       },
       {
-        "monotonic_seconds": 256919.202906937,
-        "resident_bytes": 399282176
+        "monotonic_seconds": 257611.893834891,
+        "resident_bytes": 406454272
       },
       {
-        "monotonic_seconds": 256929.264698801,
-        "resident_bytes": 399273984
+        "monotonic_seconds": 257621.935701686,
+        "resident_bytes": 406454272
       },
       {
-        "monotonic_seconds": 256939.295849127,
-        "resident_bytes": 399208448
+        "monotonic_seconds": 257631.977544344,
+        "resident_bytes": 406454272
       },
       {
-        "monotonic_seconds": 256949.31676657,
-        "resident_bytes": 399208448
+        "monotonic_seconds": 257642.074057323,
+        "resident_bytes": 406454272
       },
       {
-        "monotonic_seconds": 256959.34113017,
-        "resident_bytes": 399208448
+        "monotonic_seconds": 257652.106686742,
+        "resident_bytes": 406454272
       },
       {
-        "monotonic_seconds": 256969.372979479,
-        "resident_bytes": 399208448
+        "monotonic_seconds": 257662.138103474,
+        "resident_bytes": 406454272
       },
       {
-        "monotonic_seconds": 256979.406895309,
-        "resident_bytes": 399278080
+        "monotonic_seconds": 257672.161582599,
+        "resident_bytes": 405696512
       },
       {
-        "monotonic_seconds": 256989.444680686,
-        "resident_bytes": 399319040
+        "monotonic_seconds": 257682.197150667,
+        "resident_bytes": 405331968
       },
       {
-        "monotonic_seconds": 256999.508279219,
-        "resident_bytes": 399319040
+        "monotonic_seconds": 257692.224850078,
+        "resident_bytes": 405352448
       },
       {
-        "monotonic_seconds": 257009.542858475,
-        "resident_bytes": 399323136
+        "monotonic_seconds": 257702.294325513,
+        "resident_bytes": 405151744
       },
       {
-        "monotonic_seconds": 257019.57525866,
-        "resident_bytes": 399339520
+        "monotonic_seconds": 257712.325761332,
+        "resident_bytes": 405155840
       },
       {
-        "monotonic_seconds": 257029.598258851,
-        "resident_bytes": 399335424
+        "monotonic_seconds": 257722.360340899,
+        "resident_bytes": 405168128
       },
       {
-        "monotonic_seconds": 257039.661058261,
-        "resident_bytes": 399335424
+        "monotonic_seconds": 257732.439225717,
+        "resident_bytes": 405176320
       },
       {
-        "monotonic_seconds": 257049.731448797,
-        "resident_bytes": 399335424
+        "monotonic_seconds": 257742.482821847,
+        "resident_bytes": 405176320
+      },
+      {
+        "monotonic_seconds": 257752.55104271,
+        "resident_bytes": 405184512
       }
     ]
   },
@@ -17478,7 +17482,7 @@
       }
     ],
     "game_runtime_patched_for_probe": false,
-    "binary_sha256": "d049a8eeab2c4424acae31383c5afcc366248a6f88b23932b7b6dd63db7ae886"
+    "binary_sha256": "0f39c429501beba8f9cf512081e1a569772039b35cdb8edf3c9e8e6734a129a0"
   },
   "builds": {
     "runtime_sha256": {
@@ -17505,7 +17509,7 @@
       "scripts/survival_rules.gd": "df99c7811d874226dccc785c25f1ff205faf2a08c74b243a659a5ea90cc03934",
       "scripts/vitals.gd": "93c5927c6ed1028e0cf58fa20ebc9215c08ae73df544e8416202af55f3c52281",
       "scripts/game_audio.gd": "d7d2030467fb34aff5310544324dbc75a6c126b52511424c635698b98bab77a1",
-      "scripts/command_center.gd": "855e98aa4448dd5904211f4b281a8c8183b7070dc3be3242925f2422dd061ac8",
+      "scripts/command_center.gd": "4be9abf4b855d9e63ba3692492ccfe9670f128fdeeac17a182809de07c1aaa17",
       "scripts/interaction_feedback.gd": "cc720325f71f01f1b5bd13e6f41908fb52e4c4646f34f9abad6993f2da0ab781",
       "scripts/story_catalog.gd": "f4fcbfb0bacfcb1d7f042bdf0f0098ba7f6ebb54eeafed740e76e38a9c5c1450",
       "scripts/survival_expansion.gd": "f981f5d724b2f3ed983111ffb864ca1db0b965849882c111a6a0296ac315377f",
@@ -17554,29 +17558,29 @@
     },
     "binaries": {
       "windows": {
-        "bytes": 105743264,
-        "sha256": "685da29ca974b68304c17d9162bd621c95123022e6bcb808180fc6b573490bfc"
+        "bytes": 105743344,
+        "sha256": "1b8e9fdbc5ae8a99d0b2ec7694c8237a5ae278124f3349022ac9265069f52372"
       },
       "linux": {
-        "bytes": 72159664,
-        "sha256": "d049a8eeab2c4424acae31383c5afcc366248a6f88b23932b7b6dd63db7ae886"
+        "bytes": 72159744,
+        "sha256": "0f39c429501beba8f9cf512081e1a569772039b35cdb8edf3c9e8e6734a129a0"
       }
     },
     "acceptance": {
       "windows": {
-        "bytes": 106571832,
-        "sha256": "97d1e6b8cb5101d49e2cdc6b2d2ecdfc649d5ee478557111cba7b44496eab6da"
+        "bytes": 106572056,
+        "sha256": "b2b981d2bba4336f644d4f67b638b47efc3158824734d585dcd6fa38762bb206"
       },
       "linux": {
-        "bytes": 72988232,
-        "sha256": "90091002229bd4ab505aecd21f72ee7a5e1196f6892b2e0becf0705d615564cd"
+        "bytes": 72988456,
+        "sha256": "32c3e26cec3a9f0e44751e77fd771eb5de04677a4b49e8b5c2b35a1780de33ae"
       }
     }
   },
   "compatibility": "Authentic schema17 unfinished autonomous drinking and earlier schema fixtures load through normal checksummed migration. Old saves retain supplies, actor identities and previously open routes. New-game reset is separately validated for all three rosters.",
   "validation_scope": [
-    "The clean imported project ran 2164 logical checks, 607 previous GUI checks and 55 previous persistence processes.",
-    "Only compact_hud.gd changed afterward to expose participant cards during defense; 31 actual GUI checks then verified visible cards, no toolbar overlap and mouse takeover. Tactical, siege, self-care and campaign unit suites were repeated against the final export project. Other 68 runtime input hashes remain identical.",
+    "The final clean export project ran 2164 logical checks with all 69 runtime input hashes matching the shipped source. The earlier graphical baseline passed 607 checks and 55 previous persistence processes.",
+    "After the 607-check graphical baseline, compact_hud.gd and command_center.gd were adjusted to expose participant cards and block instant-care menus during defense; 32 actual GUI checks then verified visible cards, no toolbar overlap and mouse takeover, including double-click menu blocking. All logical suites were repeated against the final export project. Other 67 runtime input hashes remain identical.",
     "Nine actual balance runs use normal resource-paid commands: six 35-day strategies, three 60-day endless continuations. No actor stats, enemies, positions, stocks or mission progress are injected. Three different personal arcs complete through real reconnaissance and paid work.",
     "Final ordinary Linux bytes completed real OS keyboard/search/T return/explicit exit/native close/restart on a cold X server. Final separate QA bytes completed the desktop matrix, fullscreen and six minutes of rendered continuous play, then actual close and restart.",
     "The desktop QA pilot uses a shorter 70-second minimum daytime decision policy to cover a real expedition within the short smoke run; accelerated long-run simulation uses the original 190-second policy. These are separate from the unmodified ordinary game input path.",
@@ -17589,7 +17593,8 @@
     "Guard interception of climbing enemies targets real landings.",
     "Reset snapshot includes campaign stack flags before validation.",
     "Shared door/window input latch permits changing interaction key without double toggles.",
-    "Raid participants remain visible and selectable without overlapping combat controls."
+    "Raid participants remain visible and selectable without overlapping combat controls.",
+    "Double-clicking defender cards cannot open instant-care or recruitment menus during a raid."
   ],
   "limitations": [
     "Windows officially exported, not tested on Windows hardware.",

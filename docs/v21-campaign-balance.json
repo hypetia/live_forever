@@ -16019,5 +16019,5 @@
   "step_hz": 20,
   "seed": "normal default campaign seed; no per-case seed override",
   "evidence_scope": "All six 35-day cases exit with real victory. Three 60-day cases explicitly choose endless continuation and keep surviving through day 60. Stock totals and actor health are actual state.",
-  "runtime_after_matrix": "Only compact_hud.gd changed after these runs to restore visible participant cards; simulation and rules unchanged. Default 190-second policy threshold was exposed as a test-only variable for the separate real-time QA policy."
+  "runtime_after_matrix": "Only compact_hud.gd and command_center.gd changed after these runs: participant cards are visible/selectable without opening instant-care menus in a raid. Simulation and rules unchanged. The default 190-second policy threshold was exposed as a test-only variable for the separate real-time QA policy."
 }

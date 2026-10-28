@@ -92,7 +92,7 @@
 
 旧档无需重开。schema18增加房间、感染者行为、人物志与实时防守，兼容schema1–17；schema17增加基本自理，兼容schema1–16，保留实际任务和物资；schema16加入街区经营、声源与轮值预留，兼容schema1–15；schema15增加地点状况、持久通路与清障，兼容schema1–14；schema14加入堆叠规则，兼容schema1–13，保留实际件数、装备与敌人AI；schema13增加敌人的原巡逻楼层、目标记忆和攀爬进度，兼容schema1–12；schema10保留家园、迁居、安防、勘察与演奏记录，增加可恢复的返程安排，继续保存装备归属／耐久、弹匣与换弹进度、疾病／寒冷、炉火、工作台在制项目、地图和战役进度，兼容schema1–9。旧版在途物资继续保留，新增战役从导入当天计日；不会因读取旧档反复发装备。系统用户目录和旧版本一致，首次写入保留备份。建议解压到新文件夹，不覆盖正在运行的旧程序。
 
-[v1.11战术与角色](docs/TACTICS_CHARACTERS_V21.md) · [v1.10人物自理](docs/AUTONOMY_V20.md) · [v1.9街区、前哨与诱饵](docs/DISTRICTS_V19.md) · [v1.8地图与路线](docs/MAP_ENVIRONMENTS_V18.md) · [v1.7背包堆叠](docs/BACKPACK_STACKS_V17.md) · [REA研究状态](docs/REA_RESEARCH_V17.md) · [原作公开资料研究](docs/TWOM_PUBLIC_RESEARCH.md) · [v1.6敌人AI、攻击与安防](docs/AI_SECURITY_V16.md) · [v1.5事件、界面与战斗](docs/DIRECTOR_UI_COMBAT_V15.md) · [v1.4设施升级](docs/FACILITIES_V14.md) · [v1.3.3离场与装备](docs/DEPARTURE_EQUIPMENT_V133.md) · [v1.3.2白天键盘修复](docs/KEYBOARD_V132.md) · [v1.3.1交互修复与验证](docs/INTERACTIONS_V131.md) · [v1.3角色、家园与验证](docs/HOMES_V13.md) · [v1.2界面说明](docs/PRESENTATION_V12.md) · [装备、气候、九地图和战役规则](docs/EXPANSION_V11.md) · [Windows检查方法](docs/WINDOWS_ACCEPTANCE.md) · [下载索引](downloads/README.md) · [许可](licenses/README.md)
+[v1.11战术与角色](docs/TACTICS_CHARACTERS_V21.md) · [v1.10人物自理](docs/AUTONOMY_V20.md) · [v1.9街区、前哨与诱饵](docs/DISTRICTS_V19.md) · [v1.8地图与路线](docs/MAP_ENVIRONMENTS_V18.md) · [v1.7背包堆叠](docs/BACKPACK_STACKS_V17.md) · [原作文件静态研究](docs/TWOM_BINARY_REFERENCE_20261028.md) · [REA工具验证](docs/REA_RESEARCH_V17.md) · [原作公开资料研究](docs/TWOM_PUBLIC_RESEARCH.md) · [v1.6敌人AI、攻击与安防](docs/AI_SECURITY_V16.md) · [v1.5事件、界面与战斗](docs/DIRECTOR_UI_COMBAT_V15.md) · [v1.4设施升级](docs/FACILITIES_V14.md) · [v1.3.3离场与装备](docs/DEPARTURE_EQUIPMENT_V133.md) · [v1.3.2白天键盘修复](docs/KEYBOARD_V132.md) · [v1.3.1交互修复与验证](docs/INTERACTIONS_V131.md) · [v1.3角色、家园与验证](docs/HOMES_V13.md) · [v1.2界面说明](docs/PRESENTATION_V12.md) · [装备、气候、九地图和战役规则](docs/EXPANSION_V11.md) · [Windows检查方法](docs/WINDOWS_ACCEPTANCE.md) · [下载索引](downloads/README.md) · [许可](licenses/README.md)
 
 ```sh
 git clone --single-branch --branch main https://github.com/hypetia/live_forever.git
@@ -104,4 +104,4 @@ python tools/build_desktop.py --acceptance --output builds --logs builds/logs
 
 开发需要Godot4.6.3、Python3；图形检查需要显示环境。普通玩家不需要这些工具。默认入口为`scenes/campaign.tscn`，`shelter.tscn`是底层回归测试场景。
 
-已阅读可访问的GitHub社区资料和工具说明；Steam、Wiki与视频站点访问被当前网络代理403拦截，未运行或观看原作实机。本版加入九地图的独立场景与通路规则，地图仍以两层横向空间为主，不声称已经达到《这是我的战争》的整体成熟度。
+已阅读可访问的公开资料，并对用户提供的Windows Steam原作EXE／DLL完成REA静态检查，识别到房间可见性、行为树、敌人记忆、战斗与库存配置入口；尚未完成原生反编译或原作实机验证，准确数值仍待资源数据与观察交叉核对。本版加入九地图的独立场景与通路规则，地图仍以两层横向空间为主，不声称已经达到《这是我的战争》的整体成熟度。
