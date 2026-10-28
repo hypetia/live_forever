@@ -174,15 +174,15 @@ func tick_day(game: Node2D, delta: float) -> void:
 			continue
 		if not station.is_empty(): used_stations.append(station)
 		var rate: float = game.facilities.rate(station) if not station.is_empty() and not FacilitySystem.RECIPES.get(job["kind"],{}).has("from") else 1.0
-		job["elapsed"] = minf(job["duration"], job["elapsed"] + delta * actor.effort_factor() * actor.person.bonus("craft") * rate)
-		actor.activity = {"kind": "music" if job["kind"] == "music" else "build", "label": job["label"], "progress": job["elapsed"] / job["duration"]}
+		job["elapsed"] = minf(job["duration"], job["elapsed"] + delta * (1.0 if job["kind"] in ["music","picnic"] else CharacterAbilities.factor(actor,"work")) * actor.effort_factor() * actor.person.bonus("craft") * rate)
+		actor.activity = {"kind": "music" if job["kind"] == "music" else "eat" if job["kind"] == "picnic" else "build", "label": job["label"], "progress": job["elapsed"] / job["duration"]}
 		if job["elapsed"] >= job["duration"]:
 			finish(game, job)
 			jobs.erase(job)
 			actor.activity.clear()
 
 static func job_position(kind: String) -> Vector2:
-	return Vector2(584,430) if kind == "music" else Vector2(900,430) if FacilitySystem.station_for(kind) == "stove" else Vector2(485,640)
+	return Vector2(584,430) if kind in ["music","picnic"] else Vector2(900,430) if FacilitySystem.station_for(kind) == "stove" else Vector2(485,640)
 
 func reserves_station(game: Node2D, station: String) -> bool:
 	return jobs.any(func(job): return FacilitySystem.station_for(job["kind"]) == station and game.survivors[int(job["actor"])].route.is_empty() and game.survivors[int(job["actor"])].position.distance_to(job_position(job["kind"])) <= 10)
@@ -222,7 +222,7 @@ func start_job(game: Node2D, kind: String, item_id: int = -1) -> bool:
 	jobs.append({"actor": actor.survivor_id, "kind": kind, "item": item_id, "elapsed": 0.0, "duration": recipe["seconds"], "cost": recipe["cost"].duplicate(), "label": recipe["name"]})
 	actor.route = route
 	actor.state = Survivor.TaskState.RETURNING
-	game._log(actor.display_name + ("前往厨房：" if FacilitySystem.station_for(kind) == "stove" else "前往工作台：") + recipe["name"] + "。取消或日落退还未完成用料。")
+	game._log(actor.display_name + ("前往餐桌：" if kind == "picnic" else "前往厨房：" if FacilitySystem.station_for(kind) == "stove" else "前往工作台：") + recipe["name"] + "。取消或日落退还未完成用料。")
 	return true
 
 func cancel(game: Node2D, id: int, refund: bool = true) -> void:

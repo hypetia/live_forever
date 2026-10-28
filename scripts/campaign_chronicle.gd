@@ -119,7 +119,7 @@ func aid(game: Node2D,actor: Survivor) -> void:
 func shared_meal(game: Node2D) -> bool:
  var day:=ExpeditionState.day_at(game.simulation_time)
  var actor:Survivor=_actor(game,'he')
- if actor==null or actor.health<=0 or not arcs.has('he') or arcs['he']['stage']!=3 or game.cycle.phase!='day' or day==meal_day:return false
+ if actor==null or actor.health<=0 or not arcs.has('he') or arcs['he']['stage']!=3 or game.cycle.phase!='day' or day==meal_day or game.expansion.jobs.any(func(job):return job['kind']=='picnic'):return false
  if not game.inventory.try_take({'meals':2},'厨师的公共餐桌'):return false
  meal_day=day
  for member: Survivor in game.survivors:

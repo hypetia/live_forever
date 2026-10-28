@@ -7,7 +7,7 @@ func _run() -> void:
   game.chronicle.apply_scenario(game,scenario);game._process(0)
   await process_frame;await process_frame
   var names:Array=game.survivors.map(func(a):return a.display_name)
-  check(names.all(func(n):return n in ['斯塔克','克里斯','里昂','小当家','灰原哀','杰克船长']),'actual roster cards use recognizable names in '+scenario)
+  check(names.all(func(n):return n in ['阿笠博士','黑杰克','里昂','小当家','端木蓉','詹姆斯·邦德']),'actual roster cards use recognizable names in '+scenario)
   game.chronicle_view.show_page('people')
   var text:=''
   for child in game.chronicle_view.body.get_children():
@@ -29,14 +29,35 @@ func _run() -> void:
  await process_frame;await process_frame
  var wick_button:Button
  for child in game.chronicle_view.body.get_children():
-  if child is Button and child.text.begins_with('接纳 尼奥'):wick_button=child
+  if child is Button and child.text.begins_with('接纳 米老鼠'):wick_button=child
  check(is_instance_valid(wick_button) and not wick_button.disabled,'last arrival has a reachable eligible recruitment control')
  var raw_before:int=game.inventory.amount('raw_food')
  if is_instance_valid(wick_button):await click_at(wick_button.get_global_rect().get_center())
- check(game.survivors.back().person.persona=='neo' and game.inventory.amount('raw_food')==raw_before-2,'actual last catalogue button recruits Neo and pays the joining cost')
+ check(game.survivors.back().person.persona=='mickey' and game.inventory.amount('raw_food')==raw_before-2,'actual last catalogue button recruits Mickey and pays the joining cost')
  await process_frame;RenderingServer.force_draw();root.get_texture().get_image().save_png(output.path_join('catalogue.png'))
  game.chronicle_view.close();game._process(0)
  await process_frame;RenderingServer.force_draw();root.get_texture().get_image().save_png(output.path_join('expanded-team.png'))
  check(SaveSystem.validate(SaveSystem.capture(game)).is_empty(),'catalogue-recruited party remains a valid campaign')
+ check(game.people.recruit(game,'pooh'),'final roster can recruit Pooh as the fifth living resident')
+ game.self_care.sync(game)
+ for a:Survivor in game.survivors:
+  game.self_care.set_enabled(game,a,false)
+  a.position=Vector2([410,480,680,750,600][a.survivor_id],430)
+  a.person.morale=40;a.person.stress=60;a.person.trauma=20
+ game.chronicle_view.show_page('people')
+ await process_frame;await process_frame
+ var picnic:Button
+ for child in game.chronicle_view.body.get_children():
+  if child is Button and child.text.begins_with('让维尼分享'):picnic=child
+ check(is_instance_valid(picnic) and not picnic.disabled,'Pooh special activity has an available visible character-page control')
+ if is_instance_valid(picnic):await click_at(picnic.get_global_rect().get_center())
+ check(not game.chronicle_view.opened and game.expansion.jobs.any(func(j):return j['kind']=='picnic'),'actual mouse command starts physical picnic preparation and returns to the scene')
+ sim(game,2)
+ check(game.chronicle.meal_day==0,'visible preparation grants no early comfort')
+ await process_frame;RenderingServer.force_draw();root.get_texture().get_image().save_png(output.path_join('picnic-preparing.png'))
+ sim(game,12)
+ check(game.chronicle.meal_day==18 and game.survivors[0].person.morale>44,'completed visible picnic benefits the nearby companions')
+ await process_frame;RenderingServer.force_draw();root.get_texture().get_image().save_png(output.path_join('picnic-complete.png'))
+ check(SaveSystem.validate(SaveSystem.capture(game)).is_empty(),'five selected residents and completed picnic have a valid persistent state')
  game.free();await create_timer(.2).timeout
  print('CHARACTER REFERENCES VISUAL RESULT: %d checks, %d failures' % [checks,failures]);quit(1 if failures else 0)

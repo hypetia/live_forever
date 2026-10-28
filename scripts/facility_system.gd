@@ -31,7 +31,7 @@ func next_upgrade(station: String) -> String:
 	return station+"_"+str(int(levels[station])+1) if int(levels[station]) < 3 else ""
 
 static func station_for(kind: String) -> String:
-	if kind == "music": return ""
+	if kind in ["music","picnic"]: return ""
 	return RECIPES.get(kind,{}).get("station","workbench")
 
 static func cooking_output(kind: String, actor: Survivor) -> Dictionary:

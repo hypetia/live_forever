@@ -260,7 +260,7 @@ func refresh() -> void:
 		if enemy["hp"] > 0: alert = maxf(alert, float(enemy["suspicion"]))
 	alert_label.text = "噪声 %d  /  警觉 %d  /  %s" % [int(state.noise), int(alert), "藏身中" if state.in_cover() else "潜行" if state.sneaking else "暴露"]
 	actor_label.text = actor.display_name
-	role_label.text = "搜寻者 · 搜索+20% / 脚步声−20%" if actor.speciality == "搜寻者" else actor.speciality + " / 单人实时探索"
+	role_label.text = actor.speciality + " · 搜索+20% / 脚步声−20%" if PeopleCatalog.scout_training(actor.person.persona) else actor.speciality + " / 单人实时探索"
 	stats_label.text = "生命%d · 饱腹%d · 精神%d\n水分%d · 伤势%d · 感染%d" % [Vitals.value(actor,"health"),Vitals.value(actor,"fullness"),Vitals.value(actor,"vigor"),Vitals.value(actor,"hydration"),roundi(actor.injury),roundi(actor.infection)]
 	gear_label.visible = actor.metabolism < 1
 	if actor.metabolism < 1:

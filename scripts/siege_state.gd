@@ -158,7 +158,7 @@ func tick(game: Node2D,delta: float) -> void:
    var clear:bool=absf(actor.position.y-float(e['y']))<28 and absf(actor.position.x-float(e['x']))<float(weapon.get('reach',66))+5 and (float(e['x'])-actor.position.x)*float(s['facing'])>=-10 and _clear(game,actor.position,Vector2(e['x'],e['y']),ranged)
    if clear:
     game.game_audio.combat_cue('hit')
-    var damage:=CharacterAbilities.melee_damage(actor,int(weapon.get('damage',0)),false) if not ranged and not weapon.is_empty() else int(weapon.get('damage',0))
+    var damage:=CharacterAbilities.melee_damage(actor,int(weapon.get('damage',0)),false) if not ranged and not weapon.is_empty() else (CharacterAbilities.ranged_damage(actor,int(weapon.get('damage',0))) if ranged else 0)
     e['hp']=maxi(0,int(e['hp'])-damage);e['hurt']=.25;e['timer']=maxf(float(e['timer']),.3)
     if e['mode']=='windup':e['mode']='hunt'
     if damage==0 and (is_equal_approx(float(e['y']),430) or is_equal_approx(float(e['y']),640)):

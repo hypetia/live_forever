@@ -84,7 +84,7 @@ func _ready() -> void:
 	scheduler.production_rate = func(id: String): return facilities.rate(id)
 	facilities.sync(self)
 	expansion.sync(self)
-	get_window().title = "封锁区：余生 v1.15.1"
+	get_window().title = "封锁区：余生 v1.16.0"
 	neighborhood.sync(self)
 	chronicle.sync(self)
 	scheduler.task_finished.connect(func(id: int,task: String): chronicle.job(self,id,task))
@@ -502,7 +502,7 @@ func enter_night_planning() -> void:
 	for actor in survivors:
 		cycle.roles.append("floor" if actor.health > 0 else "dead")
 		if actor.health <= 0: continue
-		var score: float = actor.health - actor.fatigue * 0.6 + (35 if actor.speciality == "搜寻者" else 0)
+		var score: float = actor.health - actor.fatigue * 0.6 + (35 if PeopleCatalog.scout_training(actor.person.persona) else 0)
 		if score > best:
 			best = score
 			scout = actor.survivor_id

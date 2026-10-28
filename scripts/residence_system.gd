@@ -7,12 +7,13 @@ const HOMES := {
 	"depot": {"name": "货场值守楼", "map": "depot", "site": 3, "day": 12, "warmth": 4, "risk": 10, "defense": 0.5, "hint": "结实但寒冷，尸群更密集；原有围墙提供防守。"},
 }
 const PROJECTS := {
+	"picnic": {"name":"维尼分享点心","cost":{"meals":1,"water":1},"seconds":8.0,"hint":"维尼到餐桌准备8秒，同层220范围内活人心境+5、压力−8、创伤−2、饥饿及口渴各−6。与公共餐桌共享每日一次；取消退料。"},
 	"gate": {"name": "加固入口门", "cost": {"materials": 5, "tools": 1}, "seconds": 34.0, "hint": "两级，每级防守+0.35；受安防耐久影响。"},
 	"mesh": {"name": "封护窗网", "cost": {"materials": 4, "tools": 1}, "seconds": 30.0, "hint": "两级，每级防守+0.25，减少突破时的伤害。"},
 	"alarm": {"name": "拉线预警铃", "cost": {"materials": 2, "tools": 1}, "seconds": 22.0, "hint": "放大守夜者的防守贡献30%；不能代替守夜。"},
 	"stakes": {"name": "外围拒马", "cost": {"materials": 5}, "seconds": 36.0, "hint": "防守+0.45，每次袭击额外磨损；需维护。"},
 	"maintain": {"name": "维护门窗与拒马", "cost": {"materials": 2}, "seconds": 18.0, "hint": "恢复45安防耐久，不能恢复房屋结构。"},
-	"guitar": {"name": "修好旧吉他", "cost": {"materials": 3, "tools": 1}, "seconds": 28.0, "hint": "可安排演奏；福尔摩斯安抚效果更好，会制造少量噪声。"},
+	"guitar": {"name": "修好旧吉他", "cost": {"materials": 3, "tools": 1}, "seconds": 28.0, "hint": "可安排演奏；维尼演奏安抚效果更好，会制造少量噪声。"},
 	"music": {"name": "为同伴弹奏", "cost": {}, "seconds": 20.0, "hint": "每人每天一次；在场同伴恢复心境、减轻压力，不代替睡眠。"},
 	"clear_row": {"name": "准备内巷清理工具", "cost": {"materials": 5, "tools": 2}, "seconds": 48.0, "hint": "勘察返回后准备工具，再赴新址清除附近感染者并确认清理。"},
 	"clear_depot": {"name": "准备货场清理工具", "cost": {"materials": 7, "tools": 2}, "seconds": 54.0, "hint": "勘察返回后准备工具，再赴新址清除附近感染者并确认清理。"},
@@ -93,6 +94,9 @@ func job_error(game: Node2D, kind: String) -> String:
 	if security.has(kind) and security[kind] >= (2 if kind in ["gate", "mesh"] else 1): return "已经完成此项加固。"
 	if kind == "maintain" and (condition >= 100 or security.values().all(func(n): return n == 0)): return "安防设施无需维护。"
 	if kind == "guitar" and guitar: return "吉他已经修好。"
+	if kind == "picnic":
+		if game.survivors[game.selected_id].person.persona != "pooh": return "这项活动由小熊维尼准备。"
+		if game.chronicle.meal_day == ExpeditionState.day_at(game.simulation_time): return "今天已经分享过点心或举办过公共餐桌。"
 	if kind == "music":
 		if not guitar: return "先修好吉他。"
 		if int(music_days.get(game.survivors[game.selected_id].person.persona, 0)) >= ExpeditionState.day_at(game.simulation_time): return "这位成员今天已经演奏过。"
@@ -124,9 +128,21 @@ func finish(game: Node2D, kind: String, actor: Survivor) -> void:
 			member.person.morale = minf(100, member.person.morale + 5 * strength)
 			member.person.stress = maxf(0, member.person.stress - 9 * strength)
 		noise = minf(100, noise + 5)
+	elif kind == "picnic":
+		game.chronicle.meal_day = ExpeditionState.day_at(game.simulation_time)
+		var recipients: Array[String] = []
+		for member: Survivor in game.survivors:
+			if member.health <= 0 or member.state == Survivor.TaskState.AWAY or absf(member.position.y-actor.position.y)>45 or absf(member.position.x-actor.position.x)>220: continue
+			member.person.morale=minf(100,member.person.morale+5)
+			member.person.stress=maxf(0,member.person.stress-8)
+			member.person.trauma=maxf(0,member.person.trauma-2)
+			member.hunger=maxf(0,member.hunger-6)
+			member.person.thirst=maxf(0,member.person.thirst-6)
+			recipients.append(member.display_name)
+		game._log("维尼分好点心，陪大家坐了一会儿："+"、".join(recipients))
 	elif kind.begins_with("clear_"): prepared.append(kind.trim_prefix("clear_"))
 	elif kind.begins_with("pack_"): convoy = kind.trim_prefix("pack_")
-	if kind != "music": noise = minf(100, noise + 9)
+	if kind not in ["music","picnic"]: noise = minf(100, noise + 9)
 	game.queue_redraw()
 
 func cancel_convoy(game: Node2D) -> bool:
@@ -254,6 +270,8 @@ static func validate(data: Variant, world: Dictionary) -> String:
 			if home_jobs > 1 or data["convoy"] != "": return "家园项目或车队重复占用"
 			if data["security"].has(kind) and data["security"][kind] >= (2 if kind in ["gate", "mesh"] else 1): return "安防项目已达上限"
 			if kind == "guitar" and data["guitar"]: return "重复修复吉他"
+			if kind == "picnic":
+				if world["actors"][int(job["actor"])]["person"]["persona"] != "pooh" or world["chronicle"]["meal_day"] == day: return "分享点心的准备者或每日次数无效"
 			if kind == "music":
 				var persona: String = world["actors"][int(job["actor"])]["person"]["persona"]
 				if not data["guitar"] or int(data["music_days"].get(persona,0)) >= day: return "演奏缺少吉他或仍在冷却"

@@ -283,7 +283,7 @@ func tick(delta: float, actor: Survivor, raw_controls: Dictionary) -> void:
 			_reset_route()
 		var movement_noise := (8.0 if sneaking else 75.0 if sprinting else 30.0) if moving else 0.0
 		movement_noise *= float(current_surface()["quiet" if sneaking else "noise"])
-		movement_noise *= (0.8 if actor.speciality == "搜寻者" else 1.0) * (1.0 - actor.person.level("scout") * 0.05)
+		movement_noise *= (0.8 if PeopleCatalog.scout_training(actor.person.persona) else 1.0) * (1.0 - actor.person.level("scout") * 0.05)
 		movement_noise *= CharacterAbilities.factor(actor,"noise")
 		noise = minf(100, maxf(noise_burst, movement_noise))
 		if bool(controls.get("interact", false)) and not moving and climb_target == -1:
@@ -293,7 +293,7 @@ func tick(delta: float, actor: Survivor, raw_controls: Dictionary) -> void:
 			if route_in_range() and nearby_site() == -1:
 				_clear_route(delta)
 			else:
-				_search(delta * (1.2 if actor.speciality == "搜寻者" else 1.0) * actor.person.bonus("scout"), actor)
+				_search(delta * (1.2 if PeopleCatalog.scout_training(actor.person.persona) else 1.0) * actor.person.bonus("scout"), actor)
 	if attack_windup > 0:
 		attack_windup = maxf(0, attack_windup - delta)
 		if attack_windup == 0:
@@ -449,7 +449,7 @@ func _resolve_attack(actor: Survivor) -> void:
 	target["memory"] = memory_duration(target)
 	if not weapon.is_empty():
 		var ambush: bool = not weapon.has("magazine") and sneaking and unaware and (player_x - float(target["x"])) * float(target["direction"]) < -10
-		var strength := int(weapon["damage"]) if weapon.has("magazine") else CharacterAbilities.melee_damage(actor, int(weapon["damage"]), ambush)
+		var strength := CharacterAbilities.ranged_damage(actor,int(weapon["damage"])) if weapon.has("magazine") else CharacterAbilities.melee_damage(actor, int(weapon["damage"]), ambush)
 		var damage := mini(int(target["hp"]), strength)
 		target["hp"] -= damage
 		if target["hp"] <= 0 and int(target["climb_target"]) != -1:

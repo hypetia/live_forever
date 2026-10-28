@@ -47,9 +47,9 @@ func render() -> void:
 	body.custom_minimum_size = Vector2(1300,1)
 	scroll.add_child(body)
 	var y := 0.0
-	ui.label(body,"安防与休闲 · 到工作台准备，完成才生效",Vector2(0,y),Vector2(1200,30),21,game.GOLD)
+	ui.label(body,"安防与休闲 · 到对应设施准备，完成才生效",Vector2(0,y),Vector2(1200,30),21,game.GOLD)
 	y += 45
-	for kind in ["gate","mesh","alarm","stakes","maintain","guitar","music"]:
+	for kind in ["gate","mesh","alarm","stakes","maintain","guitar","music","picnic"]:
 		y = project_row(body,kind,y)
 	y += 22
 	ui.label(body,"迁居 · 实地勘察、清理、打包、整夜转移",Vector2(0,y),Vector2(1280,32),21,game.GOLD)

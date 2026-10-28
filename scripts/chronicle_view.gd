@@ -6,6 +6,7 @@ var window: Panel
 var root: Control
 var body: VBoxContainer
 var page := 'people'
+var rendered_page := ''
 var pause_before := false
 
 func _ready() -> void:
@@ -34,6 +35,8 @@ func close_loaded() -> void:
  opened=false
  if is_instance_valid(root):root.hide()
 func refresh() -> void:
+ if page!=rendered_page:body.get_parent().scroll_vertical=0
+ rendered_page=page
  for child in body.get_children():body.remove_child(child);child.queue_free()
  game.chronicle.sync(game)
  if page=='starts':
@@ -83,6 +86,14 @@ func refresh() -> void:
    if game.neighborhood.rescue['state']=='safe' and not game.neighborhood.rescue['carrier'].is_empty():text('救援记忆：获救医护在伤情接近时优先照护救援者；急重伤仍优先。需要F4明确授权。',18)
   button('全部角色图鉴 · 12人及加入条件',func():page='roster';refresh())
   button('同伴分工与协作 F4',func():page='cooperate';refresh())
+  var pooh: Survivor = game.chronicle._actor(game,'pooh')
+  if pooh!=null and pooh.health>0:
+   text('维尼的小点心：到餐桌分享给附近同伴',22)
+   text(ResidenceSystem.PROJECTS['picnic']['hint'],18)
+   button('让维尼分享点心 · 熟食1 / 水1',func():
+    game.select_survivor(pooh.survivor_id)
+    if game.expansion.start_job(game,'picnic'):close()
+    else:refresh(),game.cycle.phase!='day' or game.game_over or game.chronicle.meal_day==ExpeditionState.day_at(game.simulation_time) or not game.inventory.can_take({'meals':1,'water':1}) or not game.residence.convoy.is_empty() or game.expansion.jobs.any(func(job):return ResidenceSystem.PROJECTS.has(job['kind'])))
   text('不是代号：每个人都带着一段未完的过去',26)
   text('选择一条信念，亲自勘查目标并生还，再让本人回到工作台完成专属计划。没有限时惩罚，也不会自动扣料。')
   for actor:Survivor in game.survivors:

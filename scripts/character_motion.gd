@@ -123,8 +123,8 @@ static func draw(c: CanvasItem,at: Vector2,actor: Survivor,data: Dictionary,arme
   var armor:=Color('687e79') if actor.armor_item['kind']=='vest' else Color('9a896c')
   if actor.armor_item['durability']<=0:armor=Color('62544f')
   c.draw_rect(Rect2(shoulder+Vector2(-11,1),Vector2(22,21)),armor)
- _arm(c,shoulder+Vector2(-7*f,7),data['back'],color.darkened(.12),-f)
- _arm(c,shoulder+Vector2(7*f,5),data['front'],color.lightened(.1),f)
+ _arm(c,shoulder+Vector2(-7*f,7),data['back'],color.darkened(.12),-f,actor.person.persona)
+ _arm(c,shoulder+Vector2(7*f,5),data['front'],color.lightened(.1),f,actor.person.persona)
  c.draw_rect(Rect2(head+Vector2(-3,5),Vector2(7,10)),Color('ad987e'))
  c.draw_circle(head,9,Color('c7b294'));c.draw_arc(head+Vector2(0,-2),9,PI,TAU,16,Color('333b3b'),5,true)
  PersonalityArt.face(c,actor.person.persona,head,.9)
@@ -157,9 +157,9 @@ static func draw(c: CanvasItem,at: Vector2,actor: Survivor,data: Dictionary,arme
   EquipmentArt.weapon(c,actor.weapon_item['kind'],shoulder+Vector2(-19*f,14) if stowed else hand,f,1.15 if stowed else data['angle'],1,actor.weapon_item['durability']<=0)
  c.draw_set_transform_matrix(base)
 
-static func _arm(c: CanvasItem,shoulder: Vector2,hand: Vector2,color: Color,direction: float) -> void:
+static func _arm(c: CanvasItem,shoulder: Vector2,hand: Vector2,color: Color,direction: float,persona: String="") -> void:
  var elbow: Vector2=(shoulder+hand)*.5+Vector2(direction*3,5)
- c.draw_polyline(PackedVector2Array([shoulder,elbow,hand]),color,6,true);c.draw_circle(hand,3,Color('bdab91'))
+ c.draw_polyline(PackedVector2Array([shoulder,elbow,hand]),color,6,true);c.draw_circle(hand,3,Color('d4ae54') if persona=='pooh' else Color('dfded3') if persona=='mickey' else Color('bdab91'))
 
 static func death_progress(age: float,terminal: bool) -> float:
  return 1.0 if terminal else clampf(age/.55,0,1)

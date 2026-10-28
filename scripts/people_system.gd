@@ -131,10 +131,11 @@ func support(game: Node2D, target_id: int) -> bool:
 	if not game.inventory.try_take({"meals": 1}, "与同伴共餐安慰"): return false
 	var close := relationship(actor.survivor_id, target_id) >= 60
 	var strength := CharacterAbilities.factor(actor,"support")
+	var calm := CharacterAbilities.factor(actor,"calm")
 	for member in [actor, target]:
 		member.person.morale = minf(100, member.person.morale + (15 if close else 10) * strength)
-		member.person.stress = maxf(0, member.person.stress - 20)
-		member.person.trauma = maxf(0, member.person.trauma - 8)
+		member.person.stress = maxf(0, member.person.stress - 20 * calm)
+		member.person.trauma = maxf(0, member.person.trauma - 8 * calm)
 		member.person.last_support = game.simulation_time
 	var pair := "%d:%d" % [mini(actor.survivor_id, target_id), maxi(actor.survivor_id, target_id)]
 	bonds[pair] = mini(100, int(bonds[pair]) + roundi(10 * strength))

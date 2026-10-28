@@ -72,8 +72,8 @@ func trade_error(game: Node2D, id: String) -> String:
 func trade_output(game: Node2D, id: String) -> Dictionary:
 	var output: Dictionary = GoalCatalog.TRADES[id]["output"].duplicate()
 	var actor: Survivor = game.survivors[game.selected_id]
-	if actor.health > 0 and actor.metabolism < 1 and actor.person.persona == "tang":
-		output["water"] = int(output.get("water", 0)) + 1
+	if actor.health > 0 and actor.metabolism < 1 and actor.person.persona in ["tang","mickey"]:
+		output["water"] = int(output.get("water", 0)) + (2 if actor.person.persona == "mickey" else 1)
 		output["fuel"] = int(output.get("fuel", 0)) + 1
 	return output
 
