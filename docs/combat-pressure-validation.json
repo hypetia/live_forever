@@ -28,14 +28,15 @@
   },
   "logic_check_total": 1651,
   "gui_checks": {
-    "visual_combat_pressure": 18,
+    "visual_combat_pressure": 19,
     "visual_combat_feedback": 11,
     "visual_security_ai": 24,
     "visual_tactical": 32,
     "visual_camp_life": 28,
-    "visual_equipment_loadout": 32
+    "visual_equipment_loadout": 32,
+    "visual_animation_polish": 12
   },
-  "gui_check_total": 145,
+  "gui_check_total": 158,
   "campaign_cases": [
     {
       "scenario": "classic",
@@ -131,7 +132,7 @@
       }
     ],
     "game_runtime_patched_for_probe": false,
-    "binary_sha256": "5abc90ba61e954f0d5eacf38b7da99fb314e335119068826ee8e41b93f3c09c0"
+    "binary_sha256": "bda0abfcd6e045f085e2e3b02e92235834b8880a2595f08048869cdde0e9c54e"
   },
   "runtime_input_files": 103,
   "runtime_sha256": {
@@ -148,7 +149,7 @@
     "scripts/scene_art.gd": "83681494ab5abfd572988d2133e1ac5e7ea366d029cfb63e151203df18070d49",
     "scripts/surface_footfalls.gd": "84177091f800e55bbafae3714661677131ea49602793eaeef833f0e43ca92e61",
     "scripts/camp_situation.gd": "e9d50aa2e1a6d476ebd6eb209c439ff4f917349ae97699fe64cf61b8b8ca1bd9",
-    "scripts/combat_effects.gd": "683f23f9247c9f04db96f28abcc52b47ae0be47383651ccee450dde98c2d46a3",
+    "scripts/combat_effects.gd": "139bfe2c8d82f2108aef49ce6ffde7d2ef832c0f63f445be4ed9aef94cbec33b",
     "scripts/camp_management.gd": "53b835740e53223d61eaf5c03be93fb7203c15485877a450d9f7ee0a3022b439",
     "scripts/camp_relations.gd": "a4b7dc6835f8ec3a4d28716032c0971838e407d00b9a8a527a33604a27229dd4",
     "scripts/backpack_grid.gd": "d56f66cc8d06b6bcb757962451099fbf30da4af1b9fc0e22d6ff5cb8c6565845",
@@ -225,9 +226,9 @@
     "assets/art/survivors.png.import": "f843b2e5888fbc7975c2971a043c44fe87fda4dceea8701daa3a7924d6790a8e",
     "assets/art/props.png.import": "62d87d8fc74cf4dafdc98d214f1ddd26fbd8d8073762508ac1d1889e92941e56",
     "assets/art/facilities.png.import": "6fd9a592cb450e4e17eccb20be428168e15edba9d882e97cf264c269b699026a",
-    "assets/art/locations.png.import": "cc670b802c20909db85bddc3f0985a83831507b63f8c03f2d3e19d62738373cf",
     "assets/art/pooh.svg.import": "8524834cca34de5685d39f9e2d5214af831b9570082d78575a92574fa620c7ea",
     "assets/art/mickey.svg.import": "84412a165b64a8263c22b87f9e3725b1acd1809b6d7c7d81e52e5bce34927aff",
+    "assets/art/locations.png.import": "cc670b802c20909db85bddc3f0985a83831507b63f8c03f2d3e19d62738373cf",
     "assets/art/backdrops.png.import": "a95e102fe73860d5cb3c7b435fe1bce8d757f7671bfbab5ffd16aebde0452a41",
     "assets/art/conan.svg.import": "c30c164b08ad24a77d4c8b86b510c7698dce7daa992d689b08238be29447bdeb",
     "assets/art/conan.svg": "275a3ef5169f0c41c18a9368dbc31bd45745906d3d2dd41e884a436b1253a0b2",
@@ -242,13 +243,14 @@
   "binaries": {
     "windows": {
       "bytes": 114414296,
-      "sha256": "6a987778bcdaa10c1f04b27b3be7ea356bec14e4cbd81f82a6e368062e8ed814"
+      "sha256": "115f1c8de83552bc179e9a61fc074bfd136d9fd04df63f65405c1a2db664a363"
     },
     "linux": {
       "bytes": 80830696,
-      "sha256": "5abc90ba61e954f0d5eacf38b7da99fb314e335119068826ee8e41b93f3c09c0"
+      "sha256": "bda0abfcd6e045f085e2e3b02e92235834b8880a2595f08048869cdde0e9c54e"
     }
   },
   "windows_status": "Official Windows x86_64 export verified; physical Windows GPU/input/endurance acceptance pending.",
-  "render_note": "GUI uses llvmpipe software rendering; this does not establish Windows hardware FPS."
+  "render_note": "GUI uses llvmpipe software rendering; this does not establish Windows hardware FPS.",
+  "final_render_recheck": "Committed windup animation takes priority over a non-interrupting hurt reaction. Combat, hit feedback and animation GUI suites and native exported-game cold start/input/close/restart rerun; simulation modules unchanged."
 }

@@ -71,8 +71,8 @@ func _draw_painted_enemy(c: CanvasItem,enemy: Dictionary,index: int,point: Vecto
   mode='dead';progress=clampf(age/.48,0,1) if reaction.get('lethal',false) else 1.0
   c.draw_colored_polygon(PackedVector2Array([point+Vector2(-25,-2),point+Vector2(25,-2),point+Vector2(20,3),point+Vector2(-20,3)]),Color('60272e'))
  elif int(enemy.get('climb_target',-1))!=-1:mode='climb'
- elif age<.28:mode='hurt';progress=age/.28
  elif enemy['mode']=='windup':mode='windup';progress=clampf(1-float(enemy.get('timer',0))/float(definition['windup']),0,1)
+ elif age<.28:mode='hurt';progress=age/.28
  elif not stationary and enemy['mode'] in ['chase','patrol','investigate']:mode='run' if kind=='runner' and enemy['mode']=='chase' else 'walk'
  var pose:=ActorVisual.remap(CharacterMotion.pose(mode,time,progress,facing))
  if mode not in ['dead','climb']:

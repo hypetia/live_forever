@@ -40,6 +40,7 @@ func _run() -> void:
 	var hp: int=e["hp"]
 	await keypress(KEY_J);sim(g,.22)
 	check(e["hp"]<hp and e["mode"]=="windup","physical J damages the armored brute without cancelling its heavy windup")
+	await picture(output+"/pressure-committed-hit.png")
 	check(90-int(e["hp"])>0 and 90-int(e["hp"])<CharacterAbilities.melee_damage(a,18,false),"visible front armor reduces actual knife damage")
 	await held_key(KEY_A,true);await held_key(KEY_SHIFT,true);sim(g,.7);await held_key(KEY_A,false);await held_key(KEY_SHIFT,false)
 	check(a.health==100 and e["cooldown"]>0,"actual retreat key moves out of the indicated heavy attack range")
