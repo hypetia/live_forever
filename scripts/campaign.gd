@@ -88,7 +88,7 @@ func _ready() -> void:
 	scheduler.production_rate = func(id: String): return facilities.rate(id)
 	facilities.sync(self)
 	expansion.sync(self)
-	get_window().title = "封锁区：余生 · v1.18.0"
+	get_window().title = "封锁区：余生 · v1.19.0"
 	neighborhood.sync(self)
 	chronicle.sync(self)
 	scheduler.task_finished.connect(func(id: int,task: String): chronicle.job(self,id,task))
@@ -509,6 +509,7 @@ func enter_night_planning() -> void:
 	cycle.night_day = maxi(1, ExpeditionState.day_at(simulation_time) - (1 if CampaignCycle.minute(simulation_time) < 360 else 0))
 	cycle.night_start = simulation_time
 	cycle.night_end = CampaignCycle.next_dawn(simulation_time)
+	RegionalThreats.prepare(self)
 	cycle.loadout.clear()
 	cycle.roles.clear()
 	cycle.late_warned = false

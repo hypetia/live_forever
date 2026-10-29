@@ -111,6 +111,9 @@ func refresh() -> void:
    else:text('已完成：'+a['after_a' if r['choice']==0 else 'after_b']+'\n专属能力：'+str(ChronicleCatalog.PERK_TEXT[id][r['choice']]))
   if game.chronicle.arcs.has('he') and game.chronicle.arcs['he']['stage']==3:button('公共餐桌 · 熟食2，全员心境+6／压力−8，每日一次',func():game.chronicle.shared_meal(game);refresh(),game.cycle.phase!='day' or not game.inventory.can_take({'meals':2}) or game.chronicle.meal_day==ExpeditionState.day_at(game.simulation_time))
  else:
+  text('感染者交战要点',27)
+  for kind in EnemyCatalog.TYPES:text(EnemyCatalog.TYPES[kind]['name']+'：'+EnemyCatalog.TYPES[kind]['hint'])
+  text('金色小环表示受击后稳身：仍会受伤，但不能连续打断。近战动作有短暂的移动减速；精神不足会延长再次出手的间隔。',18)
   text('那些仍在重复过去的感染者',27)
   text('每张地图的第三处现场记录可以揭示当地感染者的过去。伏猎者会等待，听风者听觉敏锐，呼号者会引同类调查，守巢者会回到旧岗位；受重伤者会尝试向同伴退却。相同位置的诱饵会被逐渐识破。')
   for id in LocationCatalog.ALL_IDS:

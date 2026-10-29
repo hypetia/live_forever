@@ -51,7 +51,11 @@ func _defend(delta: float) -> void:
    if actor.position.distance_to(Vector2(150,640))<85:s.toggle(game,'gate')
   if point.y<530 and point.x>915 and s.window>0 and not s.window_open:
    if actor.position.distance_to(Vector2(915,430))<85:s.toggle(game,'window')
-  if distance<float(actor.weapon().get('reach',66))-4:
+  if nearest['mode']=='windup' and actor.position.y in [430.0,640.0] and distance<CombatRules.bite_range(nearest['kind'])+35 and absf(point.y-actor.position.y)<28:
+   var retreat:=actor.position
+   retreat.x=clampf(float(nearest['x'])+(1 if actor.position.x>=float(nearest['x']) else -1)*(CombatRules.bite_range(nearest['kind'])+40),140,960)
+   game.move_selected(retreat)
+  elif distance<float(actor.weapon().get('reach',66))-4:
    s.attack(game,best)
    if not actor.route.is_empty():game.cancel_selected()
   elif actor.route.is_empty():
@@ -79,7 +83,7 @@ func _combat(controls: Dictionary) -> Dictionary:
   if f.facing!=direction:return {'axis':direction,'sneak':style=='quiet'}
   if f.attack_cooldown<=0:game.expedition_attack()
   input['axis']=0.0;input['interact']=false
- if distance<70 and nearest['mode']=='windup':input={'axis':-direction,'sprint':true}
+ if nearest['mode']=='windup':input={'axis':-direction if distance<CombatRules.bite_range(nearest['kind'])+35 else 0.0,'sprint':true}
  return input
 
 func _manage_expansion() -> void:

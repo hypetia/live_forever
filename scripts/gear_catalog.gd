@@ -2,10 +2,10 @@ class_name GearCatalog
 extends RefCounted
 ## Original balance, not a transcription of another game's item data.
 const ITEMS := {
-	"knife": {"name": "猎刀", "slot": "weapon", "cost": {"materials": 2}, "seconds": 16.0, "damage": 18, "reach": 70.0, "cooldown": 0.7, "windup": 0.16, "durability": 60, "wear": 2},
-	"bat": {"name": "钉棒", "slot": "weapon", "cost": {"materials": 3}, "seconds": 22.0, "damage": 26, "reach": 88.0, "cooldown": 1.0, "windup": 0.26, "durability": 96, "wear": 3},
-	"spear": {"name": "铁矛", "slot": "weapon", "cost": {"materials": 4, "tools": 1}, "seconds": 28.0, "damage": 30, "reach": 125.0, "cooldown": 1.15, "windup": 0.3, "durability": 100, "wear": 3},
-	"pistol": {"name": "修复手枪", "slot": "weapon", "cost": {"materials": 6, "tools": 2}, "seconds": 40.0, "damage": 32, "reach": 370.0, "cooldown": 0.65, "windup": 0.12, "durability": 100, "wear": 1, "magazine": 6},
+	"knife": {"name": "猎刀", "slot": "weapon", "cost": {"materials": 2}, "seconds": 16.0, "damage": 18, "effort":1.5, "impact":"light", "reach": 70.0, "cooldown": 0.7, "windup": 0.16, "durability": 60, "wear": 2},
+	"bat": {"name": "钉棒", "slot": "weapon", "cost": {"materials": 3}, "seconds": 22.0, "damage": 26, "effort":2.8, "impact":"heavy", "reach": 88.0, "cooldown": 1.0, "windup": 0.26, "durability": 96, "wear": 3},
+	"spear": {"name": "铁矛", "slot": "weapon", "cost": {"materials": 4, "tools": 1}, "seconds": 28.0, "damage": 30, "effort":2.4, "impact":"pierce", "reach": 125.0, "cooldown": 1.15, "windup": 0.3, "durability": 100, "wear": 3},
+	"pistol": {"name": "修复手枪", "slot": "weapon", "cost": {"materials": 6, "tools": 2}, "seconds": 40.0, "damage": 32, "effort":.8, "impact":"bullet", "reach": 370.0, "cooldown": 0.65, "windup": 0.12, "durability": 100, "wear": 1, "magazine": 6},
 	"padding": {"name": "夹层护甲", "slot": "armor", "cost": {"materials": 3, "fuel": 1}, "seconds": 24.0, "protection": 0.25, "warmth": 3.0, "durability": 80},
 	"vest": {"name": "防咬背心", "slot": "armor", "cost": {"materials": 6, "tools": 1}, "seconds": 34.0, "protection": 0.5, "warmth": 1.0, "durability": 100},
 	"coat": {"name": "厚冬衣", "slot": "coat", "cost": {"materials": 4, "fuel": 1}, "seconds": 28.0, "warmth": 16.0, "durability": 100},

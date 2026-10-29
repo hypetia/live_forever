@@ -485,7 +485,8 @@ func _draw_enemy(enemy: Dictionary, camera: float, state: ExpeditionState, index
 			draw_line(point+Vector2(-7,-55)*scale,point+Vector2(8,-55)*scale,Color("a65b4b"),4,true)
 			if state.minds[index]["call"]>12: draw_arc(point+Vector2(0,-60),40+(14-float(state.minds[index]["call"]))*45,0,TAU,40,Color(.8,.5,.3,.4),2,true)
 		else: draw_rect(Rect2(point+Vector2(-22,-58)*scale,Vector2(12,28)*scale),Color("8d7e5d"))
-	if enemy["mode"] == "windup": draw_arc(point+Vector2(0,-35*scale),42*scale,-PI/2,PI/2 if direction > 0 else PI*1.5,30,GameUi.WARNING,3,true)
+	CombatRules.telegraph(self,enemy,point,scale)
+	if Rect2(point+Vector2(-40,-145),Vector2(80,145)).has_point(mouse): CombatRules.details(self,game.FONT,enemy,point)
 
 
 func _draw_player(point: Vector2, actor: Survivor, state: ExpeditionState) -> void:

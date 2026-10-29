@@ -1,12 +1,12 @@
-# Live Forever · 封锁区：余生 v1.18.0
+# Live Forever · 封锁区：余生 v1.19.0
 
-v1.18.0重点完善建造设施与装备操作：施工和完成状态使用独立素材，工作台、厨房升级后外观变化；同款多把武器按编号和耐久独立分配。按 **O** 打开单独的手持武器、护甲、衣物面板，夜间分工中也可直接点击每个人的装备栏。外出时仅查看随身装备。窗口标题显示 `v1.18.0`。
+v1.19.0重做战斗与区域压力：受击稳身防止连续轻击无限打断，重型尸正面抗刀刺，迅捷尸追得上步行并会扑击。近战消耗精神，疲劳会延长出手间隔；夜间地图预告巡群变化，日期和地区噪声影响新巡群，维护前哨能阻止迁入。外出与基地防守使用相同的抗性、打断和攻击预警。窗口标题显示 `v1.19.0`。
 
 单人僵尸生存游戏：白天经营、制作和照顾同伴，夜间亲自潜入搜刮、抵御尸群。保留九张地图、三个开局、十二名角色及个人线、35日撤离战役、无尽生存、迁居和前哨。体验本次营地新机制请新开战役。
 
-![建造设施实际渲染](docs/facilities-built.png)
+![实际战斗预警](docs/pressure-brute-windup.png)
 
-[设施与装备操作、实际截图](docs/FACILITIES_EQUIPMENT.md) · [人物和环境美术](docs/REALISM_ART.md) · [营地玩法说明](docs/CAMP_LIFE.md) · [本版验证记录](docs/equipment-validation.json)
+[战斗压力、反制与区域巡群](docs/COMBAT_PRESSURE.md) · [设施与装备操作、实际截图](docs/FACILITIES_EQUIPMENT.md) · [人物和环境美术](docs/REALISM_ART.md) · [营地玩法说明](docs/CAMP_LIFE.md) · [本版验证记录](docs/combat-pressure-validation.json)
 
 ## 下载后直接玩
 
@@ -14,16 +14,16 @@ v1.18.0重点完善建造设施与装备操作：施工和完成状态使用独�
 
 | 用途 | GitHub直接下载 | 使用方法 |
 | --- | --- | --- |
-| Windows 64位游戏（约46MB） | [live_forever_v1.18.0_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.18.0/live_forever_v1.18.0_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
-| Linux x86_64游戏（约37MB） | [live_forever_v1.18.0_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.18.0/live_forever_v1.18.0_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
-| Windows一键验收工具 | [live_forever_v1.18.0_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.18.0/live_forever_v1.18.0_windows_acceptance.zip) | 主动运行 `windows_acceptance.cmd`，默认约30分钟 |
-| v1.18.0完整源码 | [live_forever_v1.18.0_source.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.18.0/live_forever_v1.18.0_source.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
+| Windows 64位游戏（约46MB） | [live_forever_v1.19.0_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.19.0/live_forever_v1.19.0_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
+| Linux x86_64游戏（约37MB） | [live_forever_v1.19.0_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.19.0/live_forever_v1.19.0_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
+| Windows一键验收工具 | [live_forever_v1.19.0_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.19.0/live_forever_v1.19.0_windows_acceptance.zip) | 主动运行 `windows_acceptance.cmd`，默认约30分钟 |
+| v1.19.0完整源码 | [live_forever_v1.19.0_source.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.19.0/live_forever_v1.19.0_source.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
 
 普通游戏不需要Godot、Python、登录、服务器或持续联网。验收工具是单独的程序，不会在正常游戏中替你操作。Windows包按官方模板导出；**尚未在Windows真实设备完成验收**。
 
-[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.18.0) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
+[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.19.0) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
 
-v1.18.0 运行包和对应源码托管在 `downloads-v1.18.0`；同版验收包在 `downloads-v1.18.0`，开发源码在 `main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
+v1.19.0 运行包和对应源码托管在 `downloads-v1.19.0`；同版验收包在 `downloads-v1.19.0`，开发源码在 `main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
 
 [角色设定说明（沿用）](docs/SELECTED_ROSTER_V27.md)
 
@@ -119,7 +119,7 @@ v1.18.0 运行包和对应源码托管在 `downloads-v1.18.0`；同版验收包�
 
 ## 存档与验证
 
-新版本使用新的存档目录，旧版存档不会自动载入，建议新开一局。schema20保存街区项目、现场生产与分流、在途救援、共同经历和独立的敌人迁入日期，兼容schema1–19；schema19保存协作授权、未完成现场护理与敌人搜索计划，兼容schema1–18；schema18增加房间、感染者行为、人物志与实时防守，兼容schema1–17；schema17增加基本自理，兼容schema1–16，保留实际任务和物资；schema16加入街区经营、声源与轮值预留，兼容schema1–15；schema15增加地点状况、持久通路与清障，兼容schema1–14；schema14加入堆叠规则，兼容schema1–13，保留实际件数、装备与敌人AI；schema13增加敌人的原巡逻楼层、目标记忆和攀爬进度，兼容schema1–12；schema10保留家园、迁居、安防、勘察与演奏记录，增加可恢复的返程安排，继续保存装备归属／耐久、弹匣与换弹进度、疾病／寒冷、炉火、工作台在制项目、地图和战役进度，兼容schema1–9。旧版在途物资继续保留，新增战役从导入当天计日；不会因读取旧档反复发装备。正常存档使用新游戏名对应的用户目录，写入保留备份。建议解压到新文件夹，不覆盖正在运行的旧程序。
+存档位于 Godot 的用户数据目录，以“封锁区：余生”命名；同名版本共用该目录。F6保存、F9读档，文件写入保留备份。体验新版建议按F2新开战役，替换现有战役需在游戏内确认。压缩包请解压到新文件夹，不覆盖正在运行的旧程序。
 
 [v1.11战术与角色](docs/TACTICS_CHARACTERS_V21.md) · [v1.10人物自理](docs/AUTONOMY_V20.md) · [v1.9街区、前哨与诱饵](docs/DISTRICTS_V19.md) · [v1.8地图与路线](docs/MAP_ENVIRONMENTS_V18.md) · [v1.7背包堆叠](docs/BACKPACK_STACKS_V17.md) · [原作文件静态研究](docs/TWOM_BINARY_REFERENCE_20261028.md) · [REA工具验证](docs/REA_RESEARCH_V17.md) · [原作公开资料研究](docs/TWOM_PUBLIC_RESEARCH.md) · [v1.6敌人AI、攻击与安防](docs/AI_SECURITY_V16.md) · [v1.5事件、界面与战斗](docs/DIRECTOR_UI_COMBAT_V15.md) · [v1.4设施升级](docs/FACILITIES_V14.md) · [v1.3.3离场与装备](docs/DEPARTURE_EQUIPMENT_V133.md) · [v1.3.2白天键盘修复](docs/KEYBOARD_V132.md) · [v1.3.1交互修复与验证](docs/INTERACTIONS_V131.md) · [v1.3角色、家园与验证](docs/HOMES_V13.md) · [v1.2界面说明](docs/PRESENTATION_V12.md) · [装备、气候、九地图和战役规则](docs/EXPANSION_V11.md) · [Windows检查方法](docs/WINDOWS_ACCEPTANCE.md) · [下载索引](downloads/README.md) · [许可](licenses/README.md)
 

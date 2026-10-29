@@ -68,7 +68,7 @@ func _spawn(game: Node2D) -> void:
   var kind: String='runner' if (day+wave+n)%4==0 else 'brute' if day>=10 and n==count-1 else 'walker'
   var upper:bool=n==1 and (wave%2==0 or window<gate*.7)
   var floor_id:=1 if upper else 0
-  enemies.append({'x':970.0 if upper else 105.0,'y':430.0 if upper else 640.0,'floor':floor_id,'entry':floor_id,'hp':int(EnemyCatalog.stats(kind)['health']),'kind':kind,'direction':-1.0 if upper else 1.0,'mode':'approach','timer':0.0,'target':-1,'route':[],'hurt':0.0,'escaped':false,'trapped':false})
+  enemies.append({'x':970.0 if upper else 105.0,'y':430.0 if upper else 640.0,'floor':floor_id,'entry':floor_id,'hp':int(EnemyCatalog.stats(kind)['health']),'kind':kind,'direction':-1.0 if upper else 1.0,'mode':'approach','timer':0.0,'target':-1,'route':[],'hurt':0.0,'escaped':false,'trapped':false,'brace':0.0})
  next_wave=elapsed+22
  game._log('第%d批尸群进入视野，注意门和二层窗。' % wave)
 
@@ -100,7 +100,8 @@ func attack(game: Node2D,id: int) -> bool:
  if best<0:return false
  var e:Dictionary=enemies[best];actor.facing=1.0 if e['x']>actor.position.x else -1.0
  strikes[key]={'enemy':best,'remaining':float(weapon.get('windup',.18)),'origin':actor.position.x,'floor':game.scheduler.navigation.floor_at(actor.position),'facing':actor.facing}
- cooldowns[key]=float(weapon.get('cooldown',1.1))
+ cooldowns[key]=float(weapon.get('cooldown',1.1))*CombatRules.tempo(actor)
+ actor.fatigue=minf(100,actor.fatigue+CombatRules.effort(weapon))
  return true
 
 func _clear(game: Node2D,a: Vector2,b: Vector2,ranged: bool) -> bool:
@@ -159,8 +160,10 @@ func tick(game: Node2D,delta: float) -> void:
    if clear:
     game.game_audio.combat_cue('hit')
     var damage:=CharacterAbilities.melee_damage(actor,int(weapon.get('damage',0)),false) if not ranged and not weapon.is_empty() else (CharacterAbilities.ranged_damage(actor,int(weapon.get('damage',0))) if ranged else 0)
-    e['hp']=maxi(0,int(e['hp'])-damage);e['hurt']=.25;e['timer']=maxf(float(e['timer']),.3)
-    if e['mode']=='windup':e['mode']='hunt'
+    damage=CombatRules.damage(e,actor.position.x,weapon,damage) if damage>0 else 0
+    e['hp']=maxi(0,int(e['hp'])-damage)
+    if e['hp']>0 and CombatRules.interrupt(e,actor.position.x,weapon,false):
+     e['hurt']=CombatRules.stagger_seconds(e['kind']);e['timer']=.3;e['mode']='hunt'
     if damage==0 and (is_equal_approx(float(e['y']),430) or is_equal_approx(float(e['y']),640)):
      e['x']=clampf(float(e['x'])+float(s['facing'])*18,100,970);e['route'].clear()
     if damage>0:enemy_hit.emit(int(s['enemy']),Vector2(e['x'],e['y']),float(s['facing']),damage,e['hp']<=0)
@@ -170,6 +173,7 @@ func tick(game: Node2D,delta: float) -> void:
  if wave>0 and wave<waves() and enemies.all(func(e):return e['hp']<=0 or e['escaped']):next_wave=minf(next_wave,elapsed+3)
  if elapsed<180 and wave<waves() and elapsed>=next_wave:_spawn(game)
  for e in enemies:
+  e['brace']=maxf(0,float(e.get('brace',0))-delta)
   if e['hp']<=0 or e['escaped']:continue
   e['hurt']=maxf(0,float(e['hurt'])-delta)
   if e['hurt']>0:continue
@@ -200,27 +204,46 @@ func tick(game: Node2D,delta: float) -> void:
   if target<0:continue
   var actor:Survivor=game.survivors[target];e['target']=target
   if e['mode']=='windup':
+   if e['kind']=='runner' and e['timer']<=.24 and e['timer']>0:
+    var strike_x: float=float(e.get('strike_x',actor.position.x))-float(e['direction'])*22
+    if (strike_x-float(e['x']))*float(e['direction'])>0:_walk(game,e,Vector2(strike_x,e['y']),280,minf(delta,float(e['timer'])))
+    point=Vector2(e['x'],e['y'])
    e['timer']=maxf(0,float(e['timer'])-delta)
    if e['timer']<=0:
-    if point.distance_to(actor.position)<58 and (actor.position.x-point.x)*float(e['direction'])>=-10 and invulnerable.get(str(target),0)<=0 and _clear(game,point,actor.position,false):
+    if point.distance_to(actor.position)<CombatRules.bite_range(e['kind']) and (actor.position.x-point.x)*float(e['direction'])>=-10 and invulnerable.get(str(target),0)<=0 and _clear(game,point,actor.position,false):
      var reduction:=1-actor.protection();var damage:=roundi(float(EnemyCatalog.stats(e['kind'])['damage'])*.8*reduction)
      actor.health=maxf(0,actor.health-damage);actor.injury=minf(100,actor.injury+8*reduction);actor.infection=minf(100,actor.infection+4*reduction);actor.person.stress=minf(100,actor.person.stress+5)
      if not actor.armor_item.is_empty():actor.armor_item['durability']=maxi(0,int(actor.armor_item['durability'])-5)
      game.game_audio.combat_cue('hurt')
-     invulnerable[str(target)]=1.2;hit_marks.append({'x':actor.position.x,'y':actor.position.y-40,'time':.45,'blood':true})
+     invulnerable[str(target)]=.65;hit_marks.append({'x':actor.position.x,'y':actor.position.y-40,'time':.45,'blood':true})
      if actor.health<=0:game.scheduler.mark_dead(actor,'基地防守中负伤');actions.erase(str(target));strikes.erase(str(target))
     e['mode']='hunt';e['timer']=1.0
    continue
   e['timer']=maxf(0,float(e['timer'])-delta)
-  if point.distance_to(actor.position)<45 and e['timer']<=0 and _clear(game,point,actor.position,false):e['mode']='windup';e['direction']=1.0 if actor.position.x>point.x else -1.0;e['timer']=float(EnemyCatalog.stats(e['kind'])['windup']);continue
+  if point.distance_to(actor.position)<CombatRules.engage(e['kind']) and e['timer']<=0 and _clear(game,point,actor.position,false):e['strike_x']=actor.position.x;e['mode']='windup';e['direction']=1.0 if actor.position.x>point.x else -1.0;e['timer']=float(EnemyCatalog.stats(e['kind'])['windup']);continue
   if point.y>530 and absf(point.x-485)<40 and distance>240 and e['timer']<=0:
    for resource in ['water','raw_food','materials']:
     if game.inventory.try_take({resource:1},'尸群突破后破坏储藏物资'):stock_lost+=1;break
    e['timer']=3.0
-  _walk(game,e,actor.position,float(EnemyCatalog.stats(e['kind'])['chase_speed'])*.7,delta)
+  var approach:=actor.position
+  if absf(point.y-actor.position.y)<28:
+   var side:=signf(actor.position.x-point.x) if absf(actor.position.x-point.x)>.01 else float(e['direction'])
+   approach.x=clampf(actor.position.x-side*minf(48,CombatRules.engage(e['kind'])*.65),100,970)
+  _walk(game,e,approach,float(EnemyCatalog.stats(e['kind'])['chase_speed'])*.7,delta)
  for id in participants:
   var actor:Survivor=game.survivors[id]
   if actor.health<=0 or id==game.selected_id:continue
+  if actor.position.y in [430.0,640.0] and not actions.has(str(id)) and not strikes.has(str(id)) and not actor.weapon().has('magazine'):
+   var danger: Dictionary={};var nearest:=INF
+   for enemy in enemies:
+    var separation:float=actor.position.distance_to(Vector2(enemy['x'],enemy['y']))
+    if enemy['hp']>0 and not enemy['escaped'] and (enemy['mode']=='windup' or (actor.weapon().is_empty() and enemy['mode']=='hunt')) and absf(actor.position.y-float(enemy['y']))<28 and separation<CombatRules.bite_range(enemy['kind'])+30 and separation<nearest and _clear(game,actor.position,Vector2(enemy['x'],enemy['y']),false):danger=enemy;nearest=separation
+   if not danger.is_empty():
+    var away:=1.0 if actor.position.x>=float(danger['x']) else -1.0
+    var destination:=Vector2(clampf(float(danger['x'])+away*(CombatRules.bite_range(danger['kind'])+35),140,960),actor.position.y)
+    if absf(destination.x-actor.position.x)>3:
+     if actor.route.is_empty() or actor.route.back().distance_to(destination)>8:actor.route=game.scheduler.navigation.route_between(actor.position,destination)
+     if not actor.route.is_empty():actor.state=Survivor.TaskState.RETURNING;continue
   var near:=false
   for e in enemies:
    if e['hp']>0 and not e['escaped'] and actor.position.distance_to(Vector2(e['x'],e['y']))<float(actor.weapon().get('reach',66)):near=true;break
@@ -323,7 +346,11 @@ static func validate(d: Variant,world: Dictionary) -> String:
   if not CharacterState.integer(id,0,world['actors'].size()-1) or checked.has(int(id)):return '防守队员无效'
   checked.append(int(id))
  for e in d['enemies']:
-  if not CharacterState.keys(e,['x','y','floor','entry','hp','kind','direction','mode','timer','target','route','hurt','escaped','trapped']) or not e['direction'] in [-1.0,1.0] or not e['kind'] in EnemyCatalog.TYPES or not CharacterState.integer(e['hp'],0,EnemyCatalog.stats(e['kind'])['health']) or not e['mode'] in ['approach','breach','hunt','windup'] or not e['escaped'] is bool or not e['trapped'] is bool:return '防守敌人状态无效'
+  var enemy_keys: Array=['x','y','floor','entry','hp','kind','direction','mode','timer','target','route','hurt','escaped','trapped']
+  for optional in ['brace','strike_x']:
+   if e is Dictionary and e.has(optional):enemy_keys.append(optional)
+  if e is Dictionary and (not CharacterState.number(e.get('brace',0),0,CombatRules.STAGGER_GUARD) or not CharacterState.number(e.get('strike_x',150),90,980)):return '防守稳身或扑击目标无效'
+  if not CharacterState.keys(e,enemy_keys) or not e['direction'] in [-1.0,1.0] or not e['kind'] in EnemyCatalog.TYPES or not CharacterState.integer(e['hp'],0,EnemyCatalog.stats(e['kind'])['health']) or not e['mode'] in ['approach','breach','hunt','windup'] or not e['escaped'] is bool or not e['trapped'] is bool:return '防守敌人状态无效'
   if not CharacterState.number(e['x'],90,980) or not CharacterState.number(e['y'],430,640) or not CharacterState.integer(e['floor'],0,1) or not CharacterState.integer(e['entry'],0,1) or not CharacterState.number(e['timer'],0,3) or not CharacterState.number(e['hurt'],0,.45) or not CharacterState.integer(e['target'],-1,world['actors'].size()-1) or not e['route'] is Array or e['route'].size()>6:return '防守敌人路径无效'
   var previous: Array=[e['x'],e['y']]
   for point in e['route']:

@@ -97,7 +97,7 @@ static func day_at(seconds: float) -> int:
 	return 1 + (480 + int(seconds * SurvivalRules.MINUTES_PER_SECOND)) / 1440
 
 
-func refresh_for_day(day: int) -> void:
+func refresh_for_day(day: int, repopulate: bool = true, announce: bool = true) -> void:
 	if active or day <= last_refresh_day:
 		return
 	if persistent_loot:
@@ -111,8 +111,8 @@ func refresh_for_day(day: int) -> void:
 		discovered.erase(index)
 	last_refresh_day = day
 	condition = (day - 1) % 2
-	_spawn_enemies(day)
-	event_reported.emit("%s：两处容器补充，感染者迁入；%s。已打通的通路保留。" % [area()["name"],condition_name()])
+	if repopulate: _spawn_enemies(day)
+	if announce: event_reported.emit("%s：两处容器补充，%s；%s。已打通的通路保留。" % [area()["name"],"感染者迁入" if repopulate else "前哨阻止巡群迁入",condition_name()])
 
 
 func _spawn_enemies(day: int) -> void:
@@ -279,6 +279,8 @@ func tick(delta: float, actor: Survivor, raw_controls: Dictionary) -> void:
 		elif moving:
 			facing = signf(axis)
 			var pace := (95.0 if sneaking else 275.0 if sprinting else 190.0) * (.8 if carrying_person else 1.0)
+			var weapon := actor.weapon()
+			if not weapon.is_empty() and not weapon.has("magazine") and attack_cooldown>float(weapon["cooldown"])*CombatRules.tempo(actor)-.28: pace*=.35
 			var surface := current_surface()
 			var previous_x := player_x
 			player_x = clampf(interior.stop_x(location_id,player_x,player_x + axis * pace * float(surface["pace"]) * actor.effort_factor() * delta,floor_level) if environment_active else player_x + axis * pace * float(surface["pace"]) * actor.effort_factor() * delta, 90 if floor_level == 0 else upper_left(), right_edge(floor_level))
@@ -387,8 +389,9 @@ func attack(actor: Survivor) -> bool:
 		extra_slots = maxi(0, extra_slots - old_slots + ceili((reserve_ammo + magazine) / 8.0))
 	interior.cancel(self)
 	_reset_route()
-	actor.fatigue = minf(100, actor.fatigue + (0.6 if not weapon.is_empty() or bag["tools"] > 0 else 1.2))
-	attack_cooldown = float(weapon.get("cooldown", 1.1))
+	var tempo := CombatRules.tempo(actor)
+	actor.fatigue = minf(100, actor.fatigue + CombatRules.effort(weapon))
+	attack_cooldown = float(weapon.get("cooldown", 1.1))*tempo
 	attack_windup = float(weapon.get("windup", 0.2))
 	noise_burst = 100 if weapon.has("magazine") or weapon.is_empty() else 8 if sneaking else 65
 	feedback = "准备%s · 距离%d" % [weapon.get("name", "徒手推搡"), weapon.get("reach", 75)]
@@ -458,20 +461,22 @@ func _resolve_attack(actor: Survivor) -> void:
 	if not weapon.is_empty():
 		var ambush: bool = not weapon.has("magazine") and sneaking and unaware and (player_x - float(target["x"])) * float(target["direction"]) < -10
 		var strength := CharacterAbilities.ranged_damage(actor,int(weapon["damage"])) if weapon.has("magazine") else CharacterAbilities.melee_damage(actor, int(weapon["damage"]), ambush)
-		var damage := mini(int(target["hp"]), strength)
+		var damage := mini(int(target["hp"]), CombatRules.damage(target,player_x,weapon,strength))
 		target["hp"] -= damage
 		if target["hp"] <= 0 and int(target["climb_target"]) != -1:
 			target["floor"] = floor_level
 			target["climb_target"] = -1
 			target["climb_progress"] = 0.0
 		actor.weapon_item["durability"] = maxi(0, int(actor.weapon_item["durability"]) - int(weapon["wear"]))
-		target["mode"] = "dead" if target["hp"] <= 0 else "stunned"
-		target["timer"] = 0.0 if target["hp"] <= 0 else 0.35
-		target["cooldown"] = 0.0
+		if target["hp"]<=0:
+			target["mode"]="dead";target["timer"]=0.0
+		elif CombatRules.interrupt(target,player_x,weapon,ambush):
+			target["mode"]="stunned";target["timer"]=CombatRules.stagger_seconds(target["kind"])
+		elif target["mode"] not in ["windup","stunned"]: target["mode"]="chase"
 		enemy_damaged.emit(target_index,Vector2(target["x"],enemy_y(target)),facing,damage,target["hp"] <= 0)
 		combat_resolved.emit("shot" if weapon.has("magazine") else "hit", Vector2(target["x"], enemy_y(target) - (60*float(EnemyCatalog.stats(target["kind"])["scale"]) if ranged else 50)), damage)
 		feedback = "%s%s −%d！敌人剩余生命%d，武器耐久%d。" % [weapon["name"], "背后突袭" if ambush else "命中", damage, target["hp"], actor.weapon_item["durability"]]
-	elif actor.metabolism >= 1 and bag["tools"] > 0:
+	elif not environment_active and actor.metabolism >= 1 and bag["tools"] > 0:
 		bag["tools"] -= 1
 		var damage: int = target["hp"]
 		target["hp"] = 0
@@ -487,7 +492,7 @@ func _resolve_attack(actor: Survivor) -> void:
 		enemy_damaged.emit(target_index,Vector2(target["x"],enemy_y(target)),facing,damage,true)
 		feedback = "命中 −40！消耗工具1，感染者已击倒。动静可能引来其他敌人。"
 	else:
-		if target["brace"] > 0:
+		if target["brace"] > 0 or (target["kind"]=="brute" and target["mode"]=="windup"):
 			feedback = "推搡被挡：感染者正在稳身，不扣生命；拉开距离或使用工具。"
 			combat_resolved.emit("blocked", Vector2(target["x"], player_y - 50), 0)
 			event_reported.emit(feedback)
@@ -495,8 +500,8 @@ func _resolve_attack(actor: Survivor) -> void:
 		actor.fatigue = minf(100, actor.fatigue + 2.8)
 		target["brace"] = 3.6
 		target["mode"] = "stunned"
-		target["timer"] = 1.6
-		if int(target["climb_target"]) == -1: target["x"] = clampf(float(target["x"]) + facing * 42, 90 if floor_level == 0 else upper_left(), right_edge(floor_level))
+		target["timer"] = .35 if target["kind"]=="brute" else 1.6
+		if int(target["climb_target"]) == -1: target["x"] = clampf(float(target["x"]) + facing * (12 if target["kind"]=="brute" else 42), 90 if floor_level == 0 else upper_left(), right_edge(floor_level))
 		feedback = "推开成功 · 不造成伤害！趁失衡后退，敌人生命仍为%d。" % target["hp"]
 		combat_resolved.emit("push", Vector2(target["x"], player_y - 50), 0)
 	_reset_search()
@@ -632,9 +637,15 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 		return
 	var bite_clear := same_floor and (not environment_active or interior.barrier(location_id,float(enemy["x"]),player_x,floor_level)<0) and CombatGeometry.obstruction(area()["covers"],Vector2(enemy["x"],enemy_y(enemy)-35),Vector2(player_x,player_y-35),floor_level).is_empty()
 	if enemy["mode"] == "windup":
+		# The runner commits to the last seen point; it cannot home through a dodge or door.
+		if kind=="runner" and enemy["timer"]<=.24 and enemy["timer"]>0:
+			var strike_x := float(enemy["target"])-float(enemy["direction"])*22
+			if (strike_x-float(enemy["x"]))*float(enemy["direction"])>0: _enemy_route(enemy,strike_x,int(enemy["floor"]),280,minf(delta,float(enemy["timer"])))
+			distance=absf(float(enemy["x"])-player_x)
+			bite_clear=same_floor and (not environment_active or interior.barrier(location_id,float(enemy["x"]),player_x,floor_level)<0) and CombatGeometry.obstruction(area()["covers"],Vector2(enemy["x"],enemy_y(enemy)-35),Vector2(player_x,player_y-35),floor_level).is_empty()
 		enemy["timer"] = maxf(0,float(enemy["timer"])-delta)
 		if enemy["timer"] == 0:
-			if bite_clear and distance < 62 and (player_x-float(enemy["x"]))*float(enemy["direction"]) >= -10 and invulnerable <= 0:
+			if bite_clear and distance < CombatRules.bite_range(kind) and (player_x-float(enemy["x"]))*float(enemy["direction"]) >= -10 and invulnerable <= 0:
 				var reduction := 1 - actor.protection()
 				var damage := roundi(float(EnemyCatalog.stats(kind)["damage"])*reduction)
 				actor.health = maxf(0, actor.health - damage)
@@ -644,7 +655,7 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 				actor.person.stress = minf(100, actor.person.stress + 8)
 				actor.person.trauma = minf(100, actor.person.trauma + 2)
 				actor.person.morale = maxf(0, actor.person.morale - 2)
-				invulnerable = 1.6
+				invulnerable = .65
 				_reset_route()
 				player_hurt.emit(Vector2(player_x,player_y),1.0 if player_x >= enemy["x"] else -1.0,damage)
 				player_x = interior.stop_x(location_id,player_x,clampf(player_x + (1 if player_x >= enemy["x"] else -1) * 42, 90 if floor_level == 0 else upper_left(), right_edge(floor_level)),floor_level) if environment_active else clampf(player_x + (1 if player_x >= enemy["x"] else -1) * 42, 90 if floor_level == 0 else upper_left(), right_edge(floor_level))
@@ -685,7 +696,7 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 	if enemy["suspicion"] >= 100:
 		if enemy["mode"] != "chase": event_reported.emit("感染者发现了你！留意蓄力，后退或打断。")
 		enemy["mode"] = "chase"
-	if enemy["mode"] == "chase" and sees and bite_clear and distance < 48 and enemy["cooldown"] <= 0:
+	if enemy["mode"] == "chase" and sees and bite_clear and distance < CombatRules.engage(kind) and enemy["cooldown"] <= 0:
 		enemy["mode"] = "windup"
 		if distance > 0.01: enemy["direction"] = signf(player_x-float(enemy["x"]))
 		enemy["timer"] = EnemyCatalog.stats(kind)["windup"]
@@ -697,7 +708,12 @@ func _tick_enemy(enemy: Dictionary, actor: Survivor, delta: float) -> void:
 			enemy["mode"] = "patrol"
 			enemy["suspicion"] = 0.0
 		else:
-			_enemy_route(enemy,float(enemy["target"]),int(enemy["target_floor"]),float(EnemyCatalog.stats(kind)["chase_speed"]) if enemy["mode"] == "chase" else 48,delta)
+			var approach: float = enemy["target"]
+			if same_floor and sees and enemy["mode"]=="chase":
+				if distance<=minf(48,CombatRules.engage(kind)*.65): return
+				var side := signf(player_x-float(enemy["x"]))
+				approach=clampf(player_x-side*minf(48,CombatRules.engage(kind)*.65),90 if floor_level==0 else upper_left(),right_edge(floor_level))
+			_enemy_route(enemy,approach,int(enemy["target_floor"]),float(EnemyCatalog.stats(kind)["chase_speed"]) if enemy["mode"] == "chase" else 48,delta)
 			return
 	# Return to the original floor and patrol by walking, never by teleporting.
 	if int(enemy["floor"]) != int(enemy["home_floor"]):
@@ -859,7 +875,7 @@ static func validate_snapshot(data: Variant, actors: Array, id: String = "street
 		if not data["active"] or target != -1 or site_defs[search]["floor"] != level or data["search_progress"] >= duration or not is_equal_approx(data["search_duration"], duration): return "搜索动作与容器不符"
 		if data["search_tool"] and (not site["locked"] or data["bag"]["tools"] < 1): return "破锁没有实际工具"
 	if not _i(data.get("migration_extra",0),0,1):return "迁移感染者数量无效"
-	if not data["enemies"] is Array or data["enemies"].size() != (definition["guards"].size() + (1 if int(data["population_day"]) % 3 == 0 else 0) + int(data.get("migration_extra",0))): return "感染者数量与迁入日期不符"
+	if not data["enemies"] is Array or data["enemies"].size()<definition["guards"].size() or data["enemies"].size()>mini(8,definition["guards"].size()+4): return "感染者数量超出区域巡群容量"
 	for enemy in data["enemies"]:
 		if not _keys(enemy, ["x", "floor", "min", "max", "direction", "mode", "suspicion", "target", "timer", "cooldown", "brace", "hp", "kind", "home_floor", "target_floor", "memory", "climb_target", "climb_progress"]): return "感染者字段无效"
 		if not _i(enemy["floor"], 0, 1) or not enemy["mode"] in MODES or not enemy["kind"] in ["walker", "runner", "brute"] or not _i(enemy["hp"], 0, EnemyCatalog.stats(enemy["kind"])["health"]) or not enemy["direction"] in [-1.0, 1.0]: return "感染者状态无效"

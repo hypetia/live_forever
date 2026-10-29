@@ -168,7 +168,7 @@ func _create_plan() -> void:
 		var x := 38.0 + index * 458
 		panel(overlay, Vector2(x, 169), Vector2(440, 145), Color(str(area["color"])).darkened(0.15))
 		label(overlay, area["name"] + "  /  风险" + area["risk"], Vector2(x + 16, 181), Vector2(405, 30), 21)
-		var summary := label(overlay, LocationEnvironment.BRIEFS[id]+"\n"+game.regions[id].condition_name() if game.expansion.unlocked(game, id) else "尚未开放：" + game.expansion.lock_reason(id), Vector2(x + 16, 220), Vector2(405, 46), 14)
+		var summary := label(overlay, LocationEnvironment.BRIEFS[id]+"\n"+RegionalThreats.brief(game,id) if game.expansion.unlocked(game, id) else "尚未开放：" + game.expansion.lock_reason(id), Vector2(x + 16, 220), Vector2(405, 46), 14)
 		summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		map_buttons[id] = button(overlay, "选择地点", Vector2(x + 16, 267), Vector2(405, 35), func(): game.choose_destination(id); refresh())
 		map_buttons[id].tooltip_text = area["summary"]+"\n"+LocationEnvironment.route_hint(id)+"\n通路状态："+("已打通" if game.regions[id].route_open else "待清障；原有楼梯始终可用")

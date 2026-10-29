@@ -53,7 +53,8 @@ func _draw() -> void:
   var scale: float=EnemyCatalog.stats(e['kind'])['scale'];var width:=55*scale
   draw_rect(Rect2(point+Vector2(-width*.5,-96*scale),Vector2(width,5)),Color('272d2c'))
   draw_rect(Rect2(point+Vector2(-width*.5,-96*scale),Vector2(width*float(e['hp'])/float(EnemyCatalog.stats(e['kind'])['health']),5)),Color('d5806a'))
-  if e['mode']=='windup':draw_arc(point+Vector2(0,-37),35,-PI/2,PI/2,24,Color('e1b56d'),3,true)
+  CombatRules.telegraph(self,e,point,scale)
+  if Rect2(point+Vector2(-40,-145),Vector2(80,145)).has_point(get_local_mouse_position()):CombatRules.details(self,game.FONT,e,point)
  effects.draw_particles(self,0)
  for id in s.participants:
   var actor:Survivor=game.survivors[id]

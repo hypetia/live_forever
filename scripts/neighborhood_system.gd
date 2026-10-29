@@ -74,18 +74,6 @@ func begin_trip(game: Node2D) -> void:
 	if f.location_id=="clinic" and not clinic["seen"]:
 		clinic["seen"]=true;clinic["first_day"]=day
 		game._log("诊所冷藏电源已停：从今晚起有3夜抢救期。发电机在楼下，药品在楼上；普通箱子不会补货。")
-	if f.location_id in MAPS:
-		var record: Dictionary=clinic if f.location_id=="clinic" else water
-		if game.districts.regions[f.location_id]["heat"]>=35 and day-int(record["migration_day"])>=3:
-			for index in range(f.enemies.size()):
-				if f.enemies[index]["hp"]>0:continue
-				var enemy: Dictionary=f.enemies[index]
-				enemy["hp"]=EnemyCatalog.stats(enemy["kind"])["health"];enemy["x"]=f.right_edge(0)-12
-				enemy["floor"]=0;enemy["home_floor"]=0;enemy["target_floor"]=0;enemy["target"]=enemy["x"];enemy["climb_target"]=-1;enemy["climb_progress"]=0
-				enemy["min"]=float(f.area()["width"])-550;enemy["max"]=f.right_edge(0);enemy["mode"]="patrol";enemy["direction"]=-1.0;enemy["suspicion"]=0;enemy["memory"]=0;enemy["timer"]=0;enemy["cooldown"]=0;enemy["brace"]=0
-				f.minds[index]=EnemyMind.make(f.location_id,index);record["migration_day"]=day
-				game._log("此前的动静引来一只感染者，从街区远端迁入；已清空的物资与其他伤亡保留。")
-				break
 
 func offers(node: String) -> Array[String]:
 	var out: Array[String]=[]

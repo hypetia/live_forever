@@ -92,10 +92,11 @@ func prepare_trip(game: Node2D) -> void:
  applied[key]=true
  if applied.size()>90:applied.erase(applied.keys()[0])
  if active(day,'scarcity') and not field.persistent_loot:
-  for site in field.sites:site['contents']['raw_food']=floori(int(site['contents']['raw_food'])*supply_factor(day))
+  for site in field.sites:
+   if site['contents'].has('raw_food'):site['contents']['raw_food']=floori(int(site['contents']['raw_food'])*supply_factor(day))
  if not active(day,'migration'):return
  var areas:Array=['works'] if diverted(day) else ['street','market']
- if not areas.has(field.location_id):return
+ if not areas.has(field.location_id) or RegionalThreats.secured(game,field.location_id):return
  # Add one real patrol before departure, with ordinary stats and independent memory.
  if field.migration_extra>0:return
  field.migration_extra=1

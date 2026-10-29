@@ -46,6 +46,7 @@ func _run() -> void:
 		attacker["floor"] = 0
 		attacker["mode"] = "windup"
 		attacker["timer"] = 0.01
+		attacker["target"]=state.player_x;attacker["target_floor"]=0;attacker["direction"]=signf(state.player_x-float(attacker["x"]))
 		var received: Array = []
 		state.player_hurt.connect(func(_point: Vector2,_direction: float,damage: int): received.append(damage))
 		state.tick(0.02,victim,{})
