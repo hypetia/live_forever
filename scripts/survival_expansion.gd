@@ -58,18 +58,28 @@ func grant(kind: String, owner: String = "") -> void:
 	gear.append({"id": next_id, "kind": kind, "durability": GearCatalog.ITEMS[kind]["durability"], "owner": owner})
 	next_id += 1
 
-func equip(game: Node2D, id: int, actor_id: int) -> bool:
-	if not game.cycle.phase in ["day", "planning"] or actor_id < 0 or actor_id >= game.survivors.size() or game.survivors[actor_id].health <= 0: return false
+func assign_gear(game: Node2D, id: int, actor_id: int) -> bool:
+	# Assignment is explicit and idempotent; identical kinds remain separate instances.
+	if game.game_over or not game.cycle.phase in ["day", "planning"]: return false
+	if actor_id < -1 or actor_id >= game.survivors.size(): return false
+	if actor_id >= 0 and game.survivors[actor_id].health <= 0: return false
 	for item in gear:
-		if item["id"] != id: continue
-		var owner: String = game.survivors[actor_id].person.persona
+		if int(item["id"]) != id: continue
+		var owner: String = "" if actor_id == -1 else game.survivors[actor_id].person.persona
 		var slot: String = GearCatalog.ITEMS[item["kind"]]["slot"]
-		var unequip: bool = item["owner"] == owner
-		for other in gear:
-			if other["owner"] == owner and GearCatalog.ITEMS[other["kind"]]["slot"] == slot: other["owner"] = ""
-		item["owner"] = "" if unequip else owner
+		if not owner.is_empty():
+			for other in gear:
+				if other["owner"] == owner and GearCatalog.ITEMS[other["kind"]]["slot"] == slot: other["owner"] = ""
+		item["owner"] = owner
 		sync(game)
 		return true
+	return false
+
+func equip(game: Node2D, id: int, actor_id: int) -> bool:
+	if actor_id < 0 or actor_id >= game.survivors.size(): return false
+	for item in gear:
+		if int(item["id"]) == id:
+			return assign_gear(game,id,-1 if item["owner"] == game.survivors[actor_id].person.persona else actor_id)
 	return false
 
 func equipped_slots(actor: Survivor) -> int:

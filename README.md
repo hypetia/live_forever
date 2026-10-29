@@ -1,12 +1,12 @@
-# Live Forever · 封锁区：余生 v1.17.0
+# Live Forever · 封锁区：余生 v1.18.0
 
-v1.17.0升级了人物、家具与场景的2D美术，并整合营地局势、同伴关系、自主配菜、食物疾病和生产循环。新素材共约9MB；继续采用2D图集与轻量骨骼动画。进入游戏后窗口标题会显示 `v1.17.0`。
+v1.18.0重点完善建造设施与装备操作：施工和完成状态使用独立素材，工作台、厨房升级后外观变化；同款多把武器按编号和耐久独立分配。按 **O** 打开单独的手持武器、护甲、衣物面板，夜间分工中也可直接点击每个人的装备栏。外出时仅查看随身装备。窗口标题显示 `v1.18.0`。
 
 单人僵尸生存游戏：白天经营、制作和照顾同伴，夜间亲自潜入搜刮、抵御尸群。保留九张地图、三个开局、十二名角色及个人线、35日撤离战役、无尽生存、迁居和前哨。体验本次营地新机制请新开战役。
 
-![v1.17实际游戏画面](docs/realism-shelter.png)
+![建造设施实际渲染](docs/facilities-built.png)
 
-[画面升级与实际截图](docs/REALISM_ART.md) · [营地玩法说明](docs/CAMP_LIFE.md) · [本版验证记录](docs/realism-validation.json)
+[设施与装备操作、实际截图](docs/FACILITIES_EQUIPMENT.md) · [人物和环境美术](docs/REALISM_ART.md) · [营地玩法说明](docs/CAMP_LIFE.md) · [本版验证记录](docs/equipment-validation.json)
 
 ## 下载后直接玩
 
@@ -14,16 +14,16 @@ v1.17.0升级了人物、家具与场景的2D美术，并整合营地局势、�
 
 | 用途 | GitHub直接下载 | 使用方法 |
 | --- | --- | --- |
-| Windows 64位游戏（约44MB） | [live_forever_v1.17.0_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.17.0/live_forever_v1.17.0_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
-| Linux x86_64游戏（约35MB） | [live_forever_v1.17.0_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.17.0/live_forever_v1.17.0_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
-| Windows一键验收工具 | [live_forever_v1.17.0_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.17.0/live_forever_v1.17.0_windows_acceptance.zip) | 主动运行 `windows_acceptance.cmd`，默认约30分钟 |
-| v1.17.0完整源码 | [live_forever_v1.17.0_source.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.17.0/live_forever_v1.17.0_source.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
+| Windows 64位游戏（约46MB） | [live_forever_v1.18.0_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.18.0/live_forever_v1.18.0_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
+| Linux x86_64游戏（约37MB） | [live_forever_v1.18.0_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.18.0/live_forever_v1.18.0_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
+| Windows一键验收工具 | [live_forever_v1.18.0_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.18.0/live_forever_v1.18.0_windows_acceptance.zip) | 主动运行 `windows_acceptance.cmd`，默认约30分钟 |
+| v1.18.0完整源码 | [live_forever_v1.18.0_source.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.18.0/live_forever_v1.18.0_source.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
 
 普通游戏不需要Godot、Python、登录、服务器或持续联网。验收工具是单独的程序，不会在正常游戏中替你操作。Windows包按官方模板导出；**尚未在Windows真实设备完成验收**。
 
-[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.17.0) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
+[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.18.0) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
 
-v1.17.0 运行包和对应源码托管在 `downloads-v1.17.0`；同版验收包在 `downloads-v1.17.0`，开发源码在 `main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
+v1.18.0 运行包和对应源码托管在 `downloads-v1.18.0`；同版验收包在 `downloads-v1.18.0`，开发源码在 `main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
 
 [角色设定说明（沿用）](docs/SELECTED_ROSTER_V27.md)
 

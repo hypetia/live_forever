@@ -166,7 +166,7 @@ func _ready() -> void:
 		)
 		equipment_name = _label("",Vector2(350,788),Vector2(340,23),15,GOLD)
 		for index in range(3):
-			var button := _button("",Vector2(350+index*76,817),Vector2(66,60),show_equipment)
+			var button := _button("",Vector2(350+index*76,817),Vector2(66,60),show_equipment.bind(index))
 			button.draw.connect(_equipment_icon.bind(button,index))
 			equipment_buttons.append(button)
 		equipment_dialog = AcceptDialog.new()
@@ -541,7 +541,9 @@ func _equipment_description(slot: Dictionary) -> String:
 	return "%s · 耐久%d/%d%s\n%s" % [slot["name"],slot["durability"],slot["maximum"]," · 已损坏，效果失效" if slot["broken"] else "",GearCatalog.describe(slot["kind"])]
 
 
-func show_equipment() -> void:
+func show_equipment(slot_index: int = 0) -> void:
+	if "equipment_view" in game and is_instance_valid(game.equipment_view):
+		game.equipment_view.open_for(game.expedition.actor_id,slot_index); return
 	if not quiet or not game.expedition.active or equipment_dialog.visible or game.departure_dialog.visible: return
 	var lines := PackedStringArray()
 	for slot in EquipmentArt.slots(game.survivors[game.expedition.actor_id]): lines.append(_equipment_description(slot))

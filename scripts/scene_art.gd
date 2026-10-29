@@ -49,8 +49,9 @@ func shelter(g: Node2D) -> void:
   g.draw_line(point+Vector2(-17,-21),point+Vector2(-17,0),Color("757c6d"),2,true)
  # Beds, shelving and clutter are part of the rooms, not an interface panel.
  RealismAssets.prop(g,0,Rect2(282,352,130,78))
- RealismAssets.prop(g,4,Rect2(882,516,75,122),Color(.76,.80,.72))
- for x in [315,352]:RealismAssets.prop(g,6,Rect2(x,608,35,32),Color(.8,.82,.77))
+ if not "cycle" in g or not g.cycle.builds.any(func(b):return int(b["slot"])==4):RealismAssets.prop(g,4,Rect2(882,516,75,122),Color(.76,.80,.72))
+ if not "cycle" in g or not g.cycle.builds.any(func(b):return int(b["slot"])==0):
+  for x in [315,352]:RealismAssets.prop(g,6,Rect2(x,608,35,32),Color(.8,.82,.77))
  # Local lamplight and animated dust give the still rooms a living surface.
  var glow := 0.95+sin(g.weather_time*2.4)*0.03+sin(g.weather_time*5.1)*0.02
  g.draw_line(Vector2(392,220),Vector2(392,275),Color("171c1b"),2,true)

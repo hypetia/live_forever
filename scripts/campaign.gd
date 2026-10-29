@@ -15,6 +15,7 @@ var neighborhood := NeighborhoodSystem.new()
 var neighborhood_view: NeighborhoodView
 var self_care := SelfCareSystem.new()
 var camp := CampLife.new()
+var equipment_view: EquipmentLoadout
 var camp_view: CampManagement
 var chronicle := CampaignChronicle.new()
 var siege := SiegeState.new()
@@ -87,7 +88,7 @@ func _ready() -> void:
 	scheduler.production_rate = func(id: String): return facilities.rate(id)
 	facilities.sync(self)
 	expansion.sync(self)
-	get_window().title = "封锁区：余生 · v1.17.0"
+	get_window().title = "封锁区：余生 · v1.18.0"
 	neighborhood.sync(self)
 	chronicle.sync(self)
 	scheduler.task_finished.connect(func(id: int,task: String): chronicle.job(self,id,task))
@@ -165,6 +166,7 @@ func _ready() -> void:
 	residence_view.game = self
 	add_child(residence_view)
 	camp_view=CampManagement.new();camp_view.game=self;add_child(camp_view)
+	equipment_view=EquipmentLoadout.new();equipment_view.game=self;add_child(equipment_view)
 	briefing = CampaignBriefing.new()
 	briefing.game = self
 	add_child(briefing)
@@ -322,6 +324,7 @@ func campaign_snapshot() -> Dictionary:
 
 
 func restore_campaign(data: Dictionary) -> void:
+	if is_instance_valid(equipment_view): equipment_view.dismiss_loaded()
 	expedition_view.bag_open = false
 	if is_instance_valid(expedition_view.stack_panel): expedition_view.stack_panel.hide()
 	if is_instance_valid(security_view): security_view.dismiss_loaded()
@@ -908,6 +911,7 @@ func _expedition_controls() -> Dictionary:
 
 
 func _day_keyboard_allowed() -> bool:
+	if is_instance_valid(equipment_view) and equipment_view.opened: return false
 	if is_instance_valid(camp_view) and camp_view.opened:return false
 	if is_instance_valid(chronicle_view) and chronicle_view.opened: return false
 	if is_instance_valid(district_view) and district_view.opened: return false
@@ -1064,6 +1068,12 @@ func cancel_selected() -> void:
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
+	if is_instance_valid(equipment_view) and equipment_view.opened:
+		if event is InputEventKey and event.pressed and not event.echo:
+			if event.physical_keycode in [KEY_ESCAPE,KEY_O] or (event.physical_keycode == KEY_ENTER and equipment_view.read_only): equipment_view.close()
+			elif event.physical_keycode == KEY_F6: save_game()
+			elif event.physical_keycode == KEY_F11: center._set_fullscreen(not game_audio.fullscreen)
+		get_viewport().set_input_as_handled(); return
 	if is_instance_valid(camp_view) and camp_view.opened:
 		if event is InputEventKey and event.pressed and not event.echo:
 			if event.physical_keycode in [KEY_ESCAPE,KEY_F5]:camp_view.close()
@@ -1157,6 +1167,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			expedition.reload(survivors[expedition.actor_id])
 			get_viewport().set_input_as_handled()
 			return
+		if event.physical_keycode == KEY_O and not _loot_open:
+			equipment_view.open_for(); get_viewport().set_input_as_handled(); return
 		if event.physical_keycode == KEY_K and cycle.phase in ["day", "planning"]:
 			interface.toggle_workshop()
 			get_viewport().set_input_as_handled()
@@ -1196,6 +1208,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if is_instance_valid(equipment_view) and equipment_view.opened: return
 	if is_instance_valid(neighborhood_view) and neighborhood_view.opened: return
 	if is_instance_valid(camp_view) and camp_view.opened:return
 	if is_instance_valid(chronicle_view) and chronicle_view.opened: return
@@ -1426,7 +1439,6 @@ func _sync_props() -> void:
 func _draw_house_details() -> void:
 	super._draw_house_details()
 	if camp.enabled:_draw_camp_production()
-	if cycle.builds.any(func(build): return build["slot"] == 4): draw_rect(Rect2(850, 520, 125, 120), Color("26302c"))
 	if not placement.is_empty():
 		for index in range(CampaignCycle.SLOTS.size()):
 			var point: Vector2 = CampaignCycle.SLOTS[index]
@@ -1436,33 +1448,19 @@ func _draw_house_details() -> void:
 	for build in cycle.builds:
 		var point: Vector2 = CampaignCycle.SLOTS[int(build["slot"])]
 		var complete: bool = build["state"] == "complete"
-		var tint := Color("7d8b70") if complete else Color("526c6b")
-		match build["type"]:
-			"bed":
-				draw_rect(Rect2(point + Vector2(-60, -29), Vector2(120, 15)), tint)
-				draw_rect(Rect2(point + Vector2(-54, -36), Vector2(26, 9)), tint.lightened(0.3))
-				draw_line(point + Vector2(-53, -15), point + Vector2(-53, 0), tint, 5)
-				draw_line(point + Vector2(53, -15), point + Vector2(53, 0), tint, 5)
-			"heater":
-				draw_rect(Rect2(point + Vector2(-27, -56), Vector2(54, 56)), tint)
-				draw_rect(Rect2(point + Vector2(-18, -40), Vector2(36, 24)), Color("d59b54") if expansion.heater_remaining > 0 else Color("192424"))
-				draw_line(point + Vector2(20, -56), point + Vector2(20, -110), tint, 9)
-			"filter":
-				draw_rect(Rect2(point + Vector2(-27, -53), Vector2(54, 53)), tint)
-				draw_colored_polygon(PackedVector2Array([point + Vector2(-44, -78), point + Vector2(44, -78), point + Vector2(9, -53)]), tint.lightened(0.2))
-			"barricade":
-				for x in [-36, -12, 12, 36]: draw_line(point + Vector2(x, -95), point + Vector2(x, 0), tint, 8)
-				draw_line(point + Vector2(-42, -65), point + Vector2(43, -36), tint.lightened(0.15), 7)
-		if not complete:
-			draw_string(FONT, point + Vector2(-50, -105), "施工中 · 可取消", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, GOLD)
+		if complete:
+			FacilityArt.built(self,build["type"],point,expansion.heater_remaining>0,weather_time)
+		else:
+			FacilityArt.construction(self,point,float(build["elapsed"])/float(CampaignCycle.RECIPES[build["type"]]["seconds"]))
+
 
 
 func _configure_manual() -> void:
 	for node in center.tabs.get_child(3).find_children("*", "Label", true, false):
 		if node.text.begins_with("1. 给留守者"):
-			node.text = "1. 点击人物或底部卡片选人；左键地面行走，双击奔跑，右键取消。\n2. 点床休息、点餐桌吃饭、点水桶走过去饮水。R让选中者自行用药。\n3. 点灶台／工作台选择配方与批数后确认。新命令替换旧命令，按住Shift可追加。\n4. B选择建设，再点绿色位置；人物会走过去施工，完成后才有作用。K打开装备与战役，人物需走到工作台制作；取暖炉需点燃。H打开家园，安排门窗加固、维护、音乐和迁居。\n5. 20:00进入夜间分工，也可点击结束白天。选择一位搜刮者，其他人守夜或睡眠。\n6. 选择目的地、携带物资再出发；每晚一次，提前归来也结算到清晨。"
+			node.text = "1. 点击人物或底部卡片选人；左键地面行走，双击奔跑，右键取消。\n2. 点床休息、点餐桌吃饭、点水桶走过去饮水。R让选中者自行用药。\n3. 点灶台／工作台选择配方与批数后确认。新命令替换旧命令，按住Shift可追加。\n4. B选择建设，再点绿色位置；人物会走过去施工，完成后才有作用。O打开独立装备栏，K打开制作与战役，人物需走到工作台制作；取暖炉需点燃。H打开家园，安排门窗加固、维护、音乐和迁居。\n5. 20:00进入夜间分工，也可点击结束白天。选择一位搜刮者，其他人守夜或睡眠。\n6. 选择目的地、携带物资再出发；每晚一次，提前归来也结算到清晨。"
 		elif node.text.begins_with("基地："):
-			node.text = "白天：A/D或方向键移动，Shift奔跑，楼梯口W/S上下楼；左键走动，双击奔跑，右键取消；1–6／Tab选人，B建设，F／G／C／R为快捷行动，H家园与迁居，Shift追加队列。\n夜间：点地面移动、点容器走近搜索；A/D与W/S也可控制。搜索后逐份拿取／放回，F尽量全部拿走，Esc关闭；整理时夜间时间继续，空格可明确暂停。\n点击敌人靠近并挥击，J也可攻击、L为手枪换弹、R背包用药、B背包饮水、I背包、T在入口撤退。20:00出发，06:00天亮；迟归会沿实际路线自动撤回并增加疲劳与压力。\n分工画面Enter确认，清晨Enter开始新的一天。F6保存、F9读档、F11全屏、Esc菜单。"
+			node.text = "白天：A/D或方向键移动，Shift奔跑，楼梯口W/S上下楼；左键走动，双击奔跑，右键取消；1–6／Tab选人，B建设，F／G／C／R为快捷行动，O装备，K制作，H家园与迁居，Shift追加队列。\n夜间：点地面移动、点容器走近搜索；A/D与W/S也可控制。搜索后逐份拿取／放回，F尽量全部拿走，Esc关闭；整理时夜间时间继续，空格可明确暂停。\n点击敌人靠近并挥击，J也可攻击、L为手枪换弹、R背包用药、B背包饮水、I背包、T在入口撤退。20:00出发，06:00天亮；迟归会沿实际路线自动撤回并增加疲劳与压力。\n分工画面Enter确认，清晨Enter开始新的一天。F6保存、F9读档、F11全屏、Esc菜单。"
 
 
 func actor_is_starving() -> bool:
@@ -1500,25 +1498,22 @@ func restore_camp(data: Dictionary) -> void:
 
 
 func _draw_camp_production() -> void:
-	for index in range(int(camp.food.infrastructure['plots'])):
-		var point:=Vector2(260+index*80,640)
-		RealismAssets.prop(self,10,Rect2(point-Vector2(34,30),Vector2(68,30)))
-		draw_rect(Rect2(point-Vector2(30,24),Vector2(60,8)),Color('292b21'))
-		if index<camp.food.plots.size():
-			var crop:Dictionary=camp.food.plots[index]
-			var grown:bool=expansion.day(self)>=int(crop['ready'])
-			CampFoodCatalog.draw_icon(self,crop['kind'],point-Vector2(0,32 if grown else 23),24 if grown else 12)
-	if camp.food.infrastructure['trap']:
-		draw_rect(Rect2(114,610,37,25),Color('544c3d'))
-		for x in range(118,151,7):draw_line(Vector2(x,609),Vector2(x,635),Color('a29878'),2)
-	if camp.food.infrastructure['pantry']:
-		draw_rect(Rect2(760,363,42,67),Color('55645c'))
-		draw_rect(Rect2(764,367,34,59),Color('263732'))
-		for y in [385,407]:draw_line(Vector2(765,y),Vector2(797,y),Color('a8a28a'),2)
-	if camp.situation.resilience['generator']:
-		draw_rect(Rect2(432,590,46,34),Color('6b7057'))
-		for x in range(438,471,6):draw_line(Vector2(x,600),Vector2(x,618),Color('282c29'),2)
-		draw_circle(Vector2(471,595),3,Color('c4b26a') if camp.situation.powered_day==cycle.night_day else Color('3c423a'))
+	var plots: int = int(camp.food.infrastructure["plots"])
+	if plots > 0:
+		if plots == 1: RealismAssets.prop(self,10,Rect2(416,402,77,28))
+		else: FacilityArt.prop(self,7,Rect2(416,322,77,108))
+		for index in range(mini(plots,camp.food.plots.size())):
+			var crop: Dictionary = camp.food.plots[index]
+			var grown: bool = ExpeditionState.day_at(simulation_time) >= int(crop["ready"])
+			var height := 31.0 if grown else 16.0
+			var tray := FacilityArt.fitted_rect(7,Rect2(416,322,77,108))
+			var ground := 406.0 if plots == 1 else tray.position.y+tray.size.y*(.10 if index == 0 else .59)
+			FacilityArt.prop(self,14 if crop["kind"] == "herbs" else 13,Rect2(425,ground-height,60,height))
+	if camp.food.infrastructure["trap"]: FacilityArt.prop(self,3,Rect2(48,610,64,30))
+	if camp.food.infrastructure["pantry"]: FacilityArt.prop(self,4,Rect2(414,477,76,72))
+	if camp.situation.resilience["generator"]:
+		FacilityArt.prop(self,5,Rect2(797,582,56,58))
+		draw_circle(Vector2(838,598),2,Color("d6c379") if camp.situation.powered_day==cycle.night_day else Color("41453b"))
 
 
 func _advance_world_step(step: float) -> void:

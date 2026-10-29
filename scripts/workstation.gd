@@ -113,6 +113,9 @@ func _external_job() -> Dictionary:
 
 
 func interaction_rect() -> Rect2:
+	if facility_id == "water":
+		var game := get_parent().get_parent()
+		if "camp" in game and game.camp.enabled and game.camp.food.infrastructure["filter"] or "expansion" in game and game.expansion.stage>=3: return Rect2(-28,-135,105,140)
 	return Rect2(-28, -135, 56, 140) if facility_id in ["water", "exit"] else Rect2(-70, -135, 150, 140)
 
 
@@ -123,23 +126,27 @@ func interaction_ready(actor: Survivor) -> bool:
 
 func _draw_painted() -> void:
 	if facility_id=='water':
-		RealismAssets.prop(self,12,Rect2(-29,-52,58,52))
+		var game := get_parent().get_parent()
+		if "camp" in game and game.camp.enabled and game.camp.food.infrastructure["filter"]:
+			FacilityArt.prop(self,6,Rect2(-28,-79,102,79))
+		elif "expansion" in game and game.expansion.stage>=3:
+			FacilityArt.prop(self,15,Rect2(-28,-79,102,79))
+		else: RealismAssets.prop(self,12,Rect2(-29,-52,58,52))
 		draw_line(Vector2(-17,-17),Vector2(12,-17),Color('738f92'),3,true)
 	elif facility_id=='table':
 		RealismAssets.prop(self,3,Rect2(-59,-51,118,51))
 		draw_arc(Vector2(-8,-43),8,0,TAU,20,Color('c0b49c'),2,true)
 	elif facility_id=='workbench':
-		RealismAssets.prop(self,1,Rect2(-60,-61,120,61))
+		if tier >= 2: FacilityArt.prop(self,8 if tier == 2 else 9,Rect2(-60,-103,120,103))
+		else: RealismAssets.prop(self,1,Rect2(-60,-61,120,61))
 		for radius in range(78,10,-9):draw_circle(Vector2(23,-53),radius,Color(.87,.71,.42,.007))
 		draw_line(Vector2(34,-52),Vector2(34,-91),Color('8c7b5d'),2,true)
 		draw_line(Vector2(34,-91),Vector2(15,-91),Color('9b8964'),2,true)
 		draw_colored_polygon(PackedVector2Array([Vector2(11,-92),Vector2(22,-92),Vector2(27,-83),Vector2(5,-83)]),Color('c7b98a'))
-		if tier>=2:
-			draw_rect(Rect2(-41,-102,43,28),Color('35413b'))
-			for x in [-33,-20,-7]:draw_line(Vector2(x,-98),Vector2(x+4,-78),Color('a0a392'),2,true)
-		if tier>=3:RealismAssets.prop(self,8,Rect2(-39,-54,31,19))
+
 	else:
-		RealismAssets.prop(self,2,Rect2(-23,-65,90,65),Color.WHITE,false,true)
+		if tier >= 2: FacilityArt.prop(self,10 if tier == 2 else 11,Rect2(-30,-117,100,117))
+		else: RealismAssets.prop(self,2,Rect2(-23,-65,90,65),Color.WHITE,false,true)
 		var cooking:=cooking_state()
 		if not cooking.is_empty():
 			var progress:float=cooking['progress'];var heat:=smoothstep(.15,.32,progress)
@@ -152,5 +159,3 @@ func _draw_painted() -> void:
 				draw_rect(Rect2(-38,-43,24,4),Color('a88b5e'))
 				for i in range(4):draw_circle(Vector2(-34+i*5,-45),2,Color('8e9b68') if i%2 else Color('a47a68'))
 			elif progress>.82:draw_arc(Vector2(-27,-45),9,0,PI,14,Color('c6b492'),4,true)
-		if tier>=2:draw_line(Vector2(52,-46),Vector2(52,-105),Color('777f73'),7,true)
-		if tier>=3:RealismAssets.prop(self,8,Rect2(31,-54,29,17))

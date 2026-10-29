@@ -128,7 +128,7 @@ func position_for(game: Node2D,kind: String,target: int=-1) -> Vector2:
   'bed':return game.bed.work_position()
   'patient':return game.survivors[target].position+Vector2(-42 if game.survivors[target].position.x>180 else 42,0)
   'exit':return Vector2(150,640)
-  _:return Vector2(300,640)
+  _:return Vector2(445,430)
 func station(kind: String) -> String:
  var value:String=CampFoodCatalog.RECIPES[kind]['station']
  return value if value in ['stove','workbench','table','bed'] else ''

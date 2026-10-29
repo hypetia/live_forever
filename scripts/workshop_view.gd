@@ -5,6 +5,7 @@ extends RefCounted
 static func render(ui: CampaignInterface) -> Panel:
 	var game := ui.game
 	ui.workshop_recipes.clear()
+	ui.workshop_owner_choices.clear()
 	ui.workshop_upgrade = null
 	var window := ui.panel(ui.root,Vector2(25,20),Vector2(1390,860))
 	ui.label(window,"设施与装备 · 已暂停",Vector2(25,17),Vector2(1080,40),27,game.GOLD)
@@ -44,7 +45,7 @@ static func render(ui: CampaignInterface) -> Panel:
 		else: ui.label(window,"已达到最高等级",Vector2(1030,188),Vector2(305,35),19,game.GOLD)
 	elif ui.workshop_section == "storage":
 		ui.label(window,"装备仓库 · 弹药%d发" % game.expansion.ammo,Vector2(25,183),Vector2(1200,35),23,game.GOLD)
-		ui.label(window,"分配给当前选中者；已装备物品可卸下。维修材料2，恢复60耐久，低级工作台也可修理旧装备。",Vector2(25,227),Vector2(1280,32),16)
+		ui.label(window,"每件装备单独编号，在下拉框中指定保管人。维修材料2，恢复60耐久，低级工作台也可修理旧装备。",Vector2(25,227),Vector2(1280,32),16)
 	else:
 		ui.label(window,"第%d/35天 · %s" % [game.expansion.day(game),SurvivalExpansion.STAGES[game.expansion.stage]],Vector2(25,179),Vector2(1200,33),23,game.GOLD)
 		ui.label(window,game.expansion.objective(game),Vector2(25,221),Vector2(1300,50),17)
@@ -144,11 +145,24 @@ static func _storage_card(ui: CampaignInterface, body: Control, item: Dictionary
 	var kind: String = item["kind"]
 	var card := ui.panel(body,Vector2((index%2)*650,(index/2)*180),Vector2(630,166),GameUi.SURFACE)
 	card.draw.connect(func(): EquipmentArt.icon(card,{"kind":kind,"slot":GearCatalog.ITEMS[kind]["slot"],"broken":item["durability"] <= 0},Vector2(35,32)))
-	ui.label(card,GearCatalog.ITEMS[kind]["name"],Vector2(65,15),Vector2(530,30),20,game.GOLD)
+	ui.label(card,GearCatalog.ITEMS[kind]["name"]+" · #%02d" % int(item["id"]),Vector2(65,15),Vector2(530,30),20,game.GOLD)
 	ui.label(card,"耐久%d/%d · %s" % [item["durability"],GearCatalog.ITEMS[kind]["durability"],"仓库" if item["owner"] == "" else PeopleCatalog.DATA[item["owner"]]["name"]],Vector2(16,57),Vector2(590,30),17)
 	ui.label(card,GearCatalog.describe(kind),Vector2(16,92),Vector2(600,25),14)
-	var equip := ui.button(card,"装备 / 卸下",Vector2(16,122),Vector2(270,32),func(): game.expansion.equip(game,int(item["id"]),game.selected_id); ui._create_workshop())
-	equip.disabled = not game.cycle.phase in ["day","planning"] or game.survivors[game.selected_id].health <= 0
+	var owner_choice := OptionButton.new()
+	owner_choice.position = Vector2(16,122); owner_choice.size = Vector2(270,32)
+	owner_choice.add_item("仓库（未装备）",0)
+	for actor_id in range(game.survivors.size()):
+		var actor: Survivor = game.survivors[actor_id]
+		if actor.health <= 0: continue
+		owner_choice.add_item(actor.display_name,actor_id+1)
+		if item["owner"] == actor.person.persona: owner_choice.select(owner_choice.item_count-1)
+	owner_choice.item_selected.connect(func(row: int):
+		game.expansion.assign_gear(game,int(item["id"]),owner_choice.get_item_id(row)-1)
+		ui._create_workshop()
+	)
+	owner_choice.disabled = not game.cycle.phase in ["day","planning"]
+	card.add_child(owner_choice)
+	ui.workshop_owner_choices[int(item["id"])] = owner_choice
 	var repair := ui.button(card,"维修 · 材料2",Vector2(316,122),Vector2(300,32),func():
 		if game.expansion.start_job(game,"repair",int(item["id"])): ui.close_workshop()
 		else: ui._create_workshop()

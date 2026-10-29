@@ -19,14 +19,14 @@ func _run() -> void:
 	check(view.equipment_name.text == "猎刀","equipped weapon name is visible without a hover")
 	check(view.equipment_buttons[1].tooltip_text.contains("防咬背心"),"armor inspection matches the actual loadout")
 	await click_at(view.equipment_buttons[0].get_global_rect().get_center())
-	check(view.equipment_dialog.visible and game.paused,"clicking equipment opens details and pauses danger")
-	check(view.equipment_dialog.dialog_text.contains("60/60") and view.equipment_dialog.dialog_text.contains("厚冬衣"),"details include exact durability and all equipped slots")
+	check(game.equipment_view.opened and game.paused,"clicking equipment opens details and pauses danger")
+	check(game.equipment_view.slot_buttons.size() == 3 and game.equipment_view.slot_buttons[2].tooltip_text == GearCatalog.describe("coat"),"details include exact durability and all equipped slots")
 	await keypress(KEY_ENTER)
-	check(not view.equipment_dialog.visible and not game.paused,"closing equipment restores running time")
+	check(not game.equipment_view.opened and not game.paused,"closing equipment restores running time")
 	game.paused = true
 	await click_at(view.equipment_buttons[1].get_global_rect().get_center())
 	await keypress(KEY_ESCAPE)
-	check(game.paused and not view.equipment_dialog.visible and not game.center.visible,"equipment Escape preserves pause without opening another menu")
+	check(game.paused and not game.equipment_view.opened and not game.center.visible,"equipment Escape preserves pause without opening another menu")
 	game.paused = false
 	# Mouse movement reaches the actual edge rather than stopping nine units short.
 	await click_at(game.world_offset()+Vector2(65,610)*game.world_scale())

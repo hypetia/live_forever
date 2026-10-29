@@ -20,6 +20,7 @@ func _ready() -> void:
  var l:=Label.new();l.text='防守暂停\n守夜同伴会协战；选择人物可亲自接管。';l.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;box.add_child(l)
  for pair in [['继续防守 · 空格',func():game.toggle_pause()],['保存 F6',func():game.save_game()],['读取存档 F9',func():game.request_load()],['退出',func():game.exit_dialog.popup_centered()]]:
   var b:=Button.new();b.text=pair[0];b.custom_minimum_size=Vector2(410,42);box.add_child(b);b.pressed.connect(pair[1])
+ hud.hide();visible=false;pause_panel.hide()
 func _process(delta: float) -> void:
  hud.visible=game.siege.active;visible=game.siege.active
  if not visible:

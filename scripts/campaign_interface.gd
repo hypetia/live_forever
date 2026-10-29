@@ -11,6 +11,8 @@ var district_button: Button
 var outpost_buttons: Dictionary = {}
 var role_options: Array[OptionButton] = []
 var role_stats: Array[Label] = []
+var role_equipment_buttons: Dictionary = {}
+var equipment_button: Button
 var supply_buttons: Dictionary = {}
 var supply_labels: Dictionary = {}
 var plan_error: Label
@@ -30,6 +32,7 @@ var workshop_pause := false
 var workshop_open := false
 var workshop_section := "workbench"
 var workshop_recipes: Dictionary = {}
+var workshop_owner_choices: Dictionary = {}
 var workshop_upgrade: Button
 var workshop_summary: Label
 var kitchen_batches: SpinBox
@@ -60,10 +63,11 @@ func _ready() -> void:
 	add_child(root)
 	build_button = button(root, "建设 B", Vector2(1040, 150), Vector2(160, 42), toggle_build_menu)
 	placement_hint = label(root, "", Vector2(32, 246), Vector2(1000, 38), 17, game.GOLD)
-	workshop_button = button(root, "装备 / 战役 K", Vector2(1212, 150), Vector2(200, 42), toggle_workshop)
+	workshop_button = button(root, "制作 / 战役 K", Vector2(1212, 150), Vector2(200, 42), toggle_workshop)
 	climate_label = label(root, "", Vector2(32, 151), Vector2(990, 62), 15)
 	briefing_button = button(root,"街区动态 U",Vector2(1218,748),Vector2(190,36),func(): game.briefing.toggle())
 	district_button = button(root,"街区 Y",Vector2(32,90),Vector2(134,34),func(): game.district_view.toggle())
+	equipment_button = button(root,"装备 O",Vector2(850,748),Vector2(140,36),func(): game.equipment_view.open_for())
 	refresh(true)
 
 
@@ -112,6 +116,7 @@ func refresh(force: bool = false) -> void:
 	district_button.visible = game.cycle.phase in ["day","scavenge","returning"]
 	briefing_button.visible = game.cycle.phase == "day" and game.placement.is_empty() and not game.context_open
 	briefing_button.text = "补给待领取 U" if game.director.status == "ready" else "街区动态 U"
+	equipment_button.visible = game.cycle.phase == "day"
 	workshop_button.visible = game.cycle.phase == "day"
 	climate_label.visible = game.cycle.phase == "day"
 	if climate_label.visible:
@@ -128,6 +133,7 @@ func refresh(force: bool = false) -> void:
 			overlay.queue_free()
 		role_options.clear()
 		role_stats.clear()
+		role_equipment_buttons.clear()
 		supply_buttons.clear()
 		supply_labels.clear()
 		map_buttons.clear()
@@ -155,7 +161,7 @@ func _create_plan() -> void:
 	button(overlay, "‹ 上一组", Vector2(770, 122), Vector2(150, 34), _page_maps.bind(-1))
 	label(overlay, "%d / 3" % (map_page + 1), Vector2(935, 122), Vector2(100, 32))
 	button(overlay, "下一组 ›", Vector2(1040, 122), Vector2(150, 34), _page_maps.bind(1))
-	button(overlay, "装备 / 战役 K", Vector2(1200, 122), Vector2(195, 34), toggle_workshop)
+	button(overlay, "装备 O", Vector2(1200, 122), Vector2(195, 34), func(): game.equipment_view.open_for())
 	for index in range(3):
 		var id: String = LocationCatalog.ALL_IDS[map_page * 3 + index]
 		var area := LocationCatalog.area(id)
@@ -170,14 +176,20 @@ func _create_plan() -> void:
 	var live_row := 0
 	for index in range(game.survivors.size()):
 		var actor: Survivor = game.survivors[index]
-		var y := 377.0 + live_row * 66
+		var y := 377.0 + live_row * 79
 		var row_start := overlay.get_child_count()
-		panel(overlay, Vector2(38, y), Vector2(665, 58))
-		label(overlay, actor.display_name + " · " + actor.speciality, Vector2(53, y + 4), Vector2(220, 24), 16, actor.tint.lightened(0.2))
-		role_stats.append(label(overlay, "", Vector2(53, y + 30), Vector2(455, 24), 13))
+		panel(overlay, Vector2(38, y), Vector2(665, 73))
+		label(overlay, actor.display_name + " · " + actor.speciality, Vector2(53, y + 4), Vector2(230, 24), 16, actor.tint.lightened(0.2))
+		role_stats.append(label(overlay, "", Vector2(53, y + 25), Vector2(235, 43), 13))
+		role_stats[-1].add_theme_constant_override("line_spacing",-8)
+		role_equipment_buttons[index] = []
+		for slot_index in range(3):
+			var gear_button := button(overlay,"",Vector2(292+slot_index*76,y+5),Vector2(70,63),func(): game.equipment_view.open_for(index,slot_index))
+			gear_button.draw.connect(_draw_plan_gear.bind(gear_button,index,slot_index))
+			role_equipment_buttons[index].append(gear_button)
 		var option := OptionButton.new()
-		option.position = Vector2(510, y + 9)
-		option.size = Vector2(178, 40)
+		option.position = Vector2(529, y + 17)
+		option.size = Vector2(158, 40)
 		option.add_theme_font_override("font", game.FONT)
 		option.add_theme_font_size_override("font_size", 18)
 		for name in CampaignCycle.ROLE_NAMES: option.add_item(name)
@@ -226,7 +238,13 @@ func _refresh_plan() -> void:
 		role_options[index].set_item_disabled(4, actor.health > 0)
 		role_options[index].set_item_disabled(5,not game.districts.regions[game.districts.target]["built"])
 		role_options[index].get_popup().set_item_tooltip(5,"先在现场建立前哨，Y选择轮值目标。每夜预留燃料1，轮值者不能同时守夜或睡眠。")
-		role_stats[index].text = "生命%d 精神%d 饱腹%d · %s%d · %d格" % [Vitals.value(actor,"health"), Vitals.value(actor,"vigor"), Vitals.value(actor,"fullness"), actor.weapon().get("name", "徒手"), actor.weapon_item.get("durability", 0), CampaignCycle.BAGS[actor.person.persona]]
+		role_stats[index].text = "生命%d 精神%d\n饱腹%d · %d格" % [Vitals.value(actor,"health"),Vitals.value(actor,"vigor"),Vitals.value(actor,"fullness"),CampaignCycle.BAGS[actor.person.persona]]
+		for slot_index in range(3):
+			var entry: Dictionary = EquipmentArt.slots(actor)[slot_index]
+			var gear_button: Button = role_equipment_buttons[index][slot_index]
+			gear_button.tooltip_text = EquipmentLoadout.SLOT_NAMES[slot_index]+"："+entry["name"]+" · 点击分配"
+			gear_button.queue_redraw()
+
 	var total := BackpackStacks.slots(game.cycle.loadout)
 	total += game.expansion.reserved_slots(game)
 	ammo_label.text = "弹药库存%d / 携带%d；取暖：%s" % [game.expansion.ammo, game.expansion.ammo_loadout, "预留燃料" if game.expansion.use_night_heat else "关闭（K调整）"]
@@ -503,3 +521,11 @@ func _create_workshop() -> void:
 
 func _loot_icon(action: Button, resource: String) -> void:
 	HudIcons.draw(action,resource,Vector2(50,30),29,Color("637064") if action.disabled else game.GOLD)
+
+func _draw_plan_gear(button_node: Button, actor_id: int, slot_index: int) -> void:
+	var entry: Dictionary = EquipmentArt.slots(game.survivors[actor_id])[slot_index]
+	EquipmentArt.icon(button_node,entry,Vector2(34,25))
+	button_node.draw_string(game.FONT,Vector2(5,52),entry["name"],HORIZONTAL_ALIGNMENT_CENTER,60,12,game.GOLD)
+	if not entry["kind"].is_empty():
+		button_node.draw_rect(Rect2(6,57,58,3),Color("34453f"))
+		button_node.draw_rect(Rect2(6,57,58*entry["ratio"],3),Color("c5ab75") if not entry["broken"] else Color("dc816b"))
