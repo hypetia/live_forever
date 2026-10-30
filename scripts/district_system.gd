@@ -117,7 +117,7 @@ func tick_work(game: Node2D,delta: float,controls: Dictionary) -> void:
 	if interrupted:
 		work.clear();game._log("前哨行动中止；未完成不扣施工物资。")
 		return
-	work["elapsed"] = float(work["elapsed"])+delta*(1.2 if actor.person.persona == "lin" else 1.0)*actor.person.bonus("craft")
+	work["elapsed"] = float(work["elapsed"])+delta*(1.2 if actor.person.persona == "lin" else 1.0)*actor.person.bonus("craft")*(1.25 if work["action"] in ["build","repair"] and FieldTools.can_use(actor,work["action"]) else 1.0)
 	f.noise_burst = maxf(f.noise_burst,48 if work["action"] == "suppress" else 28)
 	if work["elapsed"] + .000001 < float(SECONDS[work["action"]]): return
 	var action: String = work["action"]
@@ -127,6 +127,7 @@ func tick_work(game: Node2D,delta: float,controls: Dictionary) -> void:
 		"build": r["built"] = true;r["condition"] = 100.0
 		"repair": r["condition"] = minf(100,float(r["condition"])+55)
 		"suppress": r["heat"] = maxf(0,float(r["heat"])-25)
+	if action in ["build","repair"]:FieldTools.spend(actor,action)
 	work.clear();actor.person.gain("craft",10)
 	game._log(ACTION_NAMES[action]+"完成；现场状态已保留。")
 	game.expansion.sync(game)

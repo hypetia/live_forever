@@ -5,7 +5,10 @@ func fresh() -> Node2D:
 func valid(game: Node2D,label: String) -> void:
  var error:=SaveSystem.validate(SaveSystem.capture(game));expect(error.is_empty(),label+': '+error)
 func trip(clear: bool = true) -> Node2D:
- var game:=fresh();game.end_day();game.cycle.roles.assign(['guard','bed','scavenge']);game.cycle.loadout={'tools':1}
+ var game:=fresh()
+ var toolkit:Dictionary=game.expansion.gear.filter(func(item):return item['kind']=='toolkit')[0]
+ game.expansion.assign_gear(game,toolkit['id'],2)
+ game.end_day();game.cycle.roles.assign(['guard','bed','scavenge']);game.cycle.loadout={'tools':1}
  expect(game.start_expedition(),'ordinary first-night departure commits the actual carried tool')
  if clear:
   for e in game.expedition.enemies:e['hp']=0;e['mode']='dead'
@@ -40,7 +43,7 @@ func _run() -> void:
  expect(not f.interior.doors[0]['open'],'release and use again closes the real door')
  valid(game,'closed physical door snapshot')
  for n in range(200):f.tick(.02,actor,{'window':true})
- expect(f.interior.doors[0]['window']==1 and f.bag['tools']==0,'quiet window opening consumes one actual tool on completion')
+ expect(f.interior.doors[0]['window']==1 and f.bag['tools']==1 and actor.tool_item['durability']==92,'quiet window completion wears the equipped toolkit and preserves components')
  f.tick(.01,actor,{})
  var from:=f.player_x
  for n in range(80):f.tick(.02,actor,{'window':true})
@@ -52,7 +55,7 @@ func _run() -> void:
   game.advance_simulation(.02)
   if game.departure_dialog.visible:game.confirm_departure();break
  expect(game.cycle.phase=='dawn','T return traverses and opens closed intervening doors rather than getting stuck')
- expect(game.inventory.amount('tools')==before_stock['tools'],'spent opening tool is not refunded on return')
+ expect(game.inventory.amount('tools')==before_stock['tools']+1 and actor.tool_item['durability']==92,'return restores carried components while retaining actual tool wear')
  valid(game,'return with room history')
  game.free()
  game=trip();f=game.expedition;actor=game.survivors[2];x=InteriorState.layout('street')[0]['x'];f.player_x=x-30

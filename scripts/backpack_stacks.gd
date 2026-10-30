@@ -1,7 +1,7 @@
 class_name BackpackStacks
 extends RefCounted
 ## Physical units stay authoritative; slots are derived, never saved as duplicates.
-const LIMITS := {"raw_food":4,"water":4,"fuel":4,"meals":4,"materials":8,"tools":1,"medicine":2}
+const LIMITS := {"raw_food":4,"water":4,"fuel":4,"meals":4,"materials":8,"tools":4,"medicine":2}
 const AMMO_LIMIT := 8
 
 static func limit(resource: String, stacked: bool = true) -> int:
@@ -32,7 +32,7 @@ static func entries(items: Dictionary, stacked: bool = true) -> Array[Dictionary
 
 static func carried(field: ExpeditionState, actor: Survivor, parts: Array,provisions: Array=[]) -> Array[Dictionary]:
 	var result := entries(field.bag,field.stacked)
-	for item in [actor.weapon_item,actor.armor_item]:
+	for item in [actor.weapon_item,actor.armor_item,actor.tool_item]:
 		if not item.is_empty(): result.append({"kind":"gear","key":item["kind"],"count":1,"limit":1,"durability":item["durability"]})
 	var rounds := field.reserve_ammo+field.magazine
 	while rounds > 0:

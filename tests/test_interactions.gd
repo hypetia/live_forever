@@ -71,6 +71,7 @@ func _run() -> void:
 	field.player_x = 1520
 	var index := 1
 	for key in field.sites[index]["contents"]: field.sites[index]["contents"][key] = 0
+	game.production.recovered.append("works_tools");game.expansion.sync(game)
 	var pending := InteractionFeedback.site(game,index)
 	expect(not pending["supplied"] and pending["pending"] and pending["body"] == InteractionFeedback.EMPTY_BODY,"quest marker is separate; zero ordinary supplies never keep a coloured crate")
 	game.expansion.carried.append("relay")
@@ -95,6 +96,9 @@ func _run() -> void:
 	game.free()
 
 	game = campaign()
+	# Declared total-depletion fixture includes the new physical tool caches.
+	for key in WorkshopProduction.CACHES:game.production.recovered.append(key)
+	game.expansion.sync(game)
 	for id in LocationCatalog.ALL_IDS:
 		game.expedition = game.regions[id]
 		field = game.expedition

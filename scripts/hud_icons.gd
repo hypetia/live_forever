@@ -21,7 +21,12 @@ static func draw(c: CanvasItem, kind: String, at: Vector2, size: float, color: C
 			c.draw_arc(Vector2.ZERO,4,0,TAU,16,color,1,true)
 		"fuel", "stove":
 			c.draw_colored_polygon(PackedVector2Array([Vector2(1,-10),Vector2(-6,0),Vector2(-5,7),Vector2(2,9),Vector2(7,3),Vector2(4,-4),Vector2(1,2)]),color)
-		"tools", "workbench":
+		"tools":
+			c.draw_arc(Vector2.ZERO,6,0,TAU,16,color,2,true)
+			for n in range(8):
+				var direction:=Vector2.from_angle(n*TAU/8)
+				c.draw_line(direction*6,direction*10,color,3,true)
+		"workbench":
 			c.draw_line(Vector2(-7,8),Vector2(5,-6),color,4,true)
 			c.draw_line(Vector2(-1,-8),Vector2(9,0),color,4,true)
 		"materials":

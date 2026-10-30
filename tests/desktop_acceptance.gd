@@ -123,6 +123,7 @@ func _run() -> void:
 		record(game.cycle.phase == "planning" and design.encloses(game.interface.depart_button.get_global_rect()) and game.interface.role_options.size() == 3, "night assignment fits and names all roles at %dx%d" % [size.x, size.y])
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png(output.path_join("night_%dx%d.png" % [size.x, size.y]))
+		game.expansion.grant("toolkit",game.survivors[game.cycle.scavenger()].person.persona);game.expansion.sync(game)
 		game.start_expedition()
 		game.paused = true
 		var field: ExpeditionState = game.expedition
@@ -130,7 +131,7 @@ func _run() -> void:
 		field._search(10,game.survivors[field.actor_id])
 		game._process(0)
 		game.interface._take_all()
-		record(game._loot_open and field.bag["raw_food"] == 2 and field.bag["water"] == 1 and field.used_capacity() == 3,"actual units are grouped into stacks at %dx%d" % [size.x,size.y])
+		record(game._loot_open and field.bag["raw_food"] == 2 and field.bag["water"] == 1 and field.used_capacity() == 6 and game.camp.food.amount("cans",game.camp.food.cargo)==2 and game.camp.food.amount("drinks",game.camp.food.cargo)==1,"actual units are grouped into stacks at %dx%d" % [size.x,size.y])
 		record(design.encloses(game.interface.cargo_grid.get_global_rect()) and design.encloses(game.interface.container_grid.get_global_rect()),"both physical stack grids fit at %dx%d" % [size.x,size.y])
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png(output.path_join("stacks_%dx%d.png" % [size.x,size.y]))
@@ -139,12 +140,12 @@ func _run() -> void:
 		game.expedition_view.toggle_bag()
 		# Declared clearance fixture; timed action, UI and snapshot APIs are real.
 		field.player_x = field.route_x();field.bag["tools"] = 1
-		field._clear_route(.5);game._process(0)
+		field._clear_route(.5,game.survivors[field.actor_id]);game._process(0)
 		record(field.route_progress == .5 and field.bag["tools"] == 1 and game.expedition_view.search_bar.visible,"timed map clearance is visible before payment at %dx%d" % [size.x,size.y])
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png(output.path_join("map_route_%dx%d.png" % [size.x,size.y]))
-		field._clear_route(2.5)
-		record(field.route_open and field.bag["tools"] == 0 and game._route_controls(field.route_x(),1,false).get("climb") == 1,"cleared access consumes one tool and enters real routing at %dx%d" % [size.x,size.y])
+		field._clear_route(2.5,game.survivors[field.actor_id])
+		record(field.route_open and field.bag["tools"] == 1 and game.survivors[field.actor_id].tool_item["durability"]==88 and game._route_controls(field.route_x(),1,false).get("climb") == 1,"cleared access wears the reusable toolkit and enters real routing at %dx%d" % [size.x,size.y])
 		var route_snapshot := SaveSystem.capture(game)
 		record(SaveSystem.apply_state(game,route_snapshot).is_empty() and game.expedition.route_open,"opened map access survives actual restore at %dx%d" % [size.x,size.y])
 		# Explicit field-work fixture. The separate two-night journey uses no grants.
@@ -184,6 +185,12 @@ func _run() -> void:
 	for frame in range(15): await get_tree().process_frame
 	record(DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_WINDOWED, "actual fullscreen returns to a movable window")
 	root.size = Vector2i(mini(1440, available.x), mini(900, available.y))
+	if args.has("--preflight-only"):
+		report["preflight_only"]=true
+		report["status"]="preflight_passed" if checks.all(func(entry):return entry["passed"]) else "failed"
+		write_report()
+		get_tree().quit(0 if report["status"]=="preflight_passed" else 1)
+		return
 	pilot.setup(game)
 	game.persistence_enabled = true
 	started = Time.get_ticks_msec()

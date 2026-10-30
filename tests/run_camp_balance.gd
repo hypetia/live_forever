@@ -21,7 +21,7 @@ func _run() -> void:
   if day!=previous_day:
    previous_day=day
    issue=SaveSystem.validate(SaveSystem.capture(game))
-   records.append({'day':day,'health':game.survivors.map(func(a):return a.health),'needs':game.survivors.map(func(a):return [a.hunger,a.person.thirst,a.fatigue,a.infection,a.illness]),'stock':game.inventory.snapshot(),'camp':game.camp_snapshot(),'stage':game.expansion.stage,'trips':pilot.trips,'sieges':pilot.siege_count,'error':issue})
+   records.append({'day':day,'health':game.survivors.map(func(a):return a.health),'needs':game.survivors.map(func(a):return [a.hunger,a.person.thirst,a.fatigue,a.infection,a.illness]),'stock':game.inventory.snapshot(),'production':game.production_snapshot(),'camp':game.camp_snapshot(),'stage':game.expansion.stage,'trips':pilot.trips,'sieges':pilot.siege_count,'error':issue})
    print('TACTICAL DAY ',scenario,' / ',style,' ',day,' stage ',game.expansion.stage,' hp ',game.survivors.map(func(a):return roundi(a.health)),' stock ',game.inventory.snapshot(),' valid ',issue)
    var f:=FileAccess.open(output+'.checkpoint.json',FileAccess.WRITE);f.store_string(JSON.stringify({'records':records,'snapshot':SaveSystem.capture(game)},' '));f.close()
    if not issue.is_empty():break

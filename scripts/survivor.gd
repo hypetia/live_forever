@@ -34,6 +34,7 @@ var cold_exposure := 0.0
 var weapon_item: Dictionary = {}
 var armor_item: Dictionary = {}
 var coat_item: Dictionary = {}
+var tool_item: Dictionary = {}
 var warned := {"hunger": false, "fatigue": false, "health": false, "infection": false}
 var feedback := "等待你的安排"
 var movement_clock := 0.0

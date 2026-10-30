@@ -4,7 +4,8 @@ extends RefCounted
 
 signal changed
 
-const NAMES := {"raw_food": "杂粮", "water": "水", "fuel": "燃料", "meals": "熟食", "materials": "材料", "tools": "工具", "medicine": "药品"}
+## The internal tools key represents consumable components; reusable tools are gear.
+const NAMES := {"raw_food": "杂粮", "water": "水", "fuel": "燃料", "meals": "熟食", "materials": "材料", "tools": "机械零件", "medicine": "药品"}
 var _stock := {"raw_food": 4, "water": 4, "fuel": 3, "meals": 0, "materials": 8, "tools": 0, "medicine": 1}
 var history: Array[Dictionary] = []
 

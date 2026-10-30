@@ -25,6 +25,8 @@ func _run() -> void:
  check(game.new_dialog.visible and game.inventory.snapshot()==stock,'scenario selection confirms before replacing real supplies')
  game.new_dialog.get_cancel_button().pressed.emit();await process_frame
  check(game.inventory.snapshot()==stock,'cancel preserves the current campaign')
+ var toolkit:Dictionary=game.expansion.gear.filter(func(item):return item['kind']=='toolkit')[0]
+ game.expansion.assign_gear(game,toolkit['id'],2)
  game.paused=false;game.end_day();game.cycle.roles.assign(['guard','bed','scavenge']);game.cycle.loadout={'tools':1};game.start_expedition()
  # Explicit rendering fixture positions the player beside the first partition;
  # all interaction after positioning uses actual dispatched keys.
@@ -39,7 +41,7 @@ func _run() -> void:
  await held_key(KEY_E,true);sim(game,1.7);await held_key(KEY_E,false);sim(game,.05)
  check(not f.interior.doors[0]['open'],'a second held E closes the door')
  await held_key(KEY_X,true);sim(game,3.5);await held_key(KEY_X,false);sim(game,.05)
- check(f.interior.doors[0]['window']==1 and f.bag['tools']==0,'actual X input quietly opens a window and pays once')
+ check(f.interior.doors[0]['window']==1 and f.bag['tools']==1 and game.survivors[f.actor_id].tool_item['durability']==92,'actual X input quietly opens a window and wears the equipped kit once')
  await held_key(KEY_X,true);sim(game,1.3);await held_key(KEY_X,false);sim(game,.05)
  check(f.player_x>x,'second X input vaults through the actual window')
  check(SaveSystem.validate(SaveSystem.capture(game)).is_empty(),'graphical room interaction stays saveable')

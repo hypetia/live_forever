@@ -34,7 +34,7 @@ static func route_seconds(id: String, tool: bool) -> float:
  return float(MAPS[id]["tool_time"] if tool else MAPS[id]["force_time"])
 static func route_hint(id: String) -> String:
  var p: Dictionary = MAPS[id]
- return "%s：工具1件 / %.0f秒；徒手清障%.0f秒、动静大。" % [p["route_name"],p["tool_time"],p["force_time"]]
+ return "%s：工具包磨损12 / %.0f秒；徒手清障%.0f秒、动静大。" % [p["route_name"],p["tool_time"],p["force_time"]]
 
 const BRIEFS := {
  "street":"食物与水 · 街面积水 / 碎玻璃",

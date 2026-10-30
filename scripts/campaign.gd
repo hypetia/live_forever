@@ -15,6 +15,7 @@ var neighborhood := NeighborhoodSystem.new()
 var neighborhood_view: NeighborhoodView
 var self_care := SelfCareSystem.new()
 var camp := CampLife.new()
+var production := WorkshopProduction.new()
 var equipment_view: EquipmentLoadout
 var camp_view: CampManagement
 var chronicle := CampaignChronicle.new()
@@ -85,10 +86,14 @@ func _ready() -> void:
 	scheduler.external_busy = _external_busy
 	scheduler.station_reserved = func(id: String): return expansion.reserves_station(self,id) or camp.reserves(id)
 	scheduler.actor_rate = func(actor: Survivor):return camp.relations.work_factor(self,actor) if camp.enabled else 1.0
-	scheduler.production_rate = func(id: String): return facilities.rate(id)
+	scheduler.production_rate = func(id: String): return facilities.rate(id)*(production.rate() if id=="workbench" else 1.0)
+	scheduler.task_finished.connect(func(id: int,task: String):production.finished(self,id,task))
+	scheduler.tasks_cancelled.connect(func(id: int):production.interrupt(self,id))
+	scheduler.task_failed.connect(func(id: int):production.interrupt(self,id))
+	scheduler.survivor_lost.connect(func(id: int):production.interrupt(self,id))
 	facilities.sync(self)
 	expansion.sync(self)
-	get_window().title = "封锁区：余生 · v1.20.0"
+	get_window().title = "封锁区：余生 · v1.21.0"
 	neighborhood.sync(self)
 	chronicle.sync(self)
 	scheduler.task_finished.connect(func(id: int,task: String): chronicle.job(self,id,task))
@@ -183,6 +188,14 @@ func _ready() -> void:
 	_refresh_hud()
 
 
+func production_snapshot() -> Dictionary:
+	return production.snapshot()
+
+func restore_production(data: Dictionary) -> void:
+	production.restore(data)
+	expansion.sync(self)
+
+
 func neighborhood_snapshot() -> Dictionary:
 	return neighborhood.snapshot()
 
@@ -258,7 +271,6 @@ func restore_districts(data: Dictionary) -> void:
 
 func expedition_drop(resource: String) -> void:
 	super.expedition_drop(resource)
-	if resource == "tools" and not expedition.interior.action.is_empty() and expedition.interior.action.get("quiet",false) and expedition.bag["tools"]<1: expedition.interior.action.clear()
 	if not districts.work.is_empty():
 		var cost: Dictionary = DistrictSystem.COSTS[districts.work["action"]]
 		if cost.has(resource) and expedition.bag[resource] < cost[resource]: districts.work.clear()
@@ -463,6 +475,7 @@ func _day_step(step: float) -> void:
 	chronicle.tick_day(self,step)
 	camp.tick(self,step)
 	self_care.sync(self)
+	production.tick(self)
 	residence.noise = maxf(0, residence.noise - step * 0.006)
 	for actor in survivors:
 		if actor.route.is_empty(): actor.move_multiplier = 1
@@ -1036,7 +1049,7 @@ func assign_selected() -> void:
 			if available[key] < int(TaskCatalog.TASKS[selected_task]["cost"][key]):
 				_log("物资不足，保留原行动：" + ShelterInventory.describe(TaskCatalog.TASKS[selected_task]["cost"]))
 				return
-	_cancel_external(selected_id)
+	_cancel_external(selected_id,true,append)
 	if not append: scheduler.cancel(actor)
 	var count := int(batch_count.value) if is_instance_valid(batch_count) and selected_task in ["cook", "craft", "repair"] else 1
 	for index in range(count):
@@ -1343,7 +1356,8 @@ func _external_busy(id: int) -> bool:
 	return camp.busy(id) or self_care.busy(self,id) or (not chronicle.work.is_empty() and int(chronicle.work["actor"])==id) or shelter_keyboard.actor_id == id or expansion.jobs.any(func(job): return job["actor"] == id) or cycle.builds.any(func(build): return build["state"] == "blueprint" and build["actor"] == id) or cycle.actions.any(func(action): return action["actor"] == id)
 
 
-func _cancel_external(id: int, refund: bool = true) -> void:
+func _cancel_external(id: int, refund: bool = true, preserve_current: bool = false) -> void:
+	production.interrupt(self,id,preserve_current)
 	camp.cancel(self,id,refund)
 	self_care.manual(self,id)
 	chronicle.cancel(self,id)
@@ -1367,6 +1381,7 @@ func _cancel_external(id: int, refund: bool = true) -> void:
 
 
 func _cancel_all_day_work() -> void:
+	production.ending_day=true
 	shelter_keyboard.stop(self)
 	for actor in survivors:
 		_cancel_external(actor.survivor_id)
@@ -1377,6 +1392,7 @@ func _cancel_all_day_work() -> void:
 			actor.route.clear()
 			actor.state = Survivor.TaskState.IDLE
 
+	production.ending_day=false
 
 func _tick_external(step: float) -> void:
 	for actor in survivors:

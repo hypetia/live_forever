@@ -2,6 +2,8 @@ class_name GearCatalog
 extends RefCounted
 ## Original balance, not a transcription of another game's item data.
 const ITEMS := {
+	"toolkit": {"name":"工具包","slot":"tool","cost":{"materials":2,"tools":1},"seconds":18.0,"durability":100},
+	"lockpick": {"name":"简易开锁器","slot":"tool","cost":{"materials":1},"seconds":6.0,"durability":1},
 	"knife": {"name": "猎刀", "slot": "weapon", "cost": {"materials": 2}, "seconds": 16.0, "damage": 18, "effort":1.5, "impact":"light", "reach": 70.0, "cooldown": 0.7, "windup": 0.16, "durability": 60, "wear": 2},
 	"bat": {"name": "钉棒", "slot": "weapon", "cost": {"materials": 3}, "seconds": 22.0, "damage": 26, "effort":2.8, "impact":"heavy", "reach": 88.0, "cooldown": 1.0, "windup": 0.26, "durability": 96, "wear": 3},
 	"spear": {"name": "铁矛", "slot": "weapon", "cost": {"materials": 4, "tools": 1}, "seconds": 28.0, "damage": 30, "effort":2.4, "impact":"pierce", "reach": 125.0, "cooldown": 1.15, "windup": 0.3, "durability": 100, "wear": 3},
@@ -11,6 +13,7 @@ const ITEMS := {
 	"coat": {"name": "厚冬衣", "slot": "coat", "cost": {"materials": 4, "fuel": 1}, "seconds": 28.0, "warmth": 16.0, "durability": 100},
 }
 const PROJECTS := {
+	"service_tools": {"name":"保养工作台工具","cost":{"materials":1,"tools":1},"seconds":12.0},
 	"ammo": {"name": "弹药8发", "cost": {"materials": 1, "fuel": 1}, "seconds": 18.0},
 	"radio": {"name": "修复电台", "cost": {"materials": 4, "tools": 1}, "part": "relay", "seconds": 38.0},
 	"pump": {"name": "修复净水泵", "cost": {"materials": 5, "tools": 1}, "part": "filter_core", "seconds": 42.0},
@@ -29,5 +32,7 @@ static func recipe(id: String) -> Dictionary:
 
 static func describe(kind: String) -> String:
 	var item: Dictionary = ITEMS[kind]
+	if kind=="toolkit":return "破锁／拆窗8，清障12耐久；前哨施工+25%；可维修。"
+	if kind=="lockpick":return "快速打开一个锁柜，完成后消耗；不能拆窗或清障。"
 	if item["slot"] == "weapon": return "伤害%d / 距离%d / 间隔%.2f秒%s" % [item["damage"], item["reach"], item["cooldown"], " / 六发弹匣，L换弹" if item.has("magazine") else " / 命中磨损"]
 	return "防咬%d%% / 保暖+%d℃" % [roundi(float(item.get("protection", 0)) * 100), item.get("warmth", 0)]

@@ -11,6 +11,7 @@ func _run() -> void:
 		# Declared unlocked-map presentation fixture, not a natural campaign journey.
 		game.expansion.stage = 4;game.simulation_time = 27*720
 		game.inventory.deposit({"tools":1},"declared map GUI fixture")
+		game.expansion.grant("toolkit",game.survivors[2].person.persona);game.expansion.sync(game)
 		game.end_day();game.choose_destination(id);game.cycle.loadout = {"tools":1}
 		check(game.start_expedition(),id+" starts its actual map through the normal departure API")
 		var field: ExpeditionState = game.expedition
@@ -25,7 +26,7 @@ func _run() -> void:
 		check(field.route_progress > 0 and not field.route_open and not game.expedition_view.search_button.disabled,id+" mouse approaches into range and shows live clearing")
 		check(game.expedition_view.search_bar.visible and game.expedition_view.search_bar.value > 0,id+" clearing has a visible in-world progress bar")
 		sim(game,6)
-		check(field.route_open and field.bag["tools"] == 0,id+" mouse action completes once and consumes the carried tool")
+		check(field.route_open and field.bag["tools"] == 1 and game.survivors[field.actor_id].tool_item["durability"]==88,id+" mouse action completes once and wears the equipped toolkit")
 		game.expedition_view.search_held = false
 		# Physical W input drives the same ladder used by mouse routing.
 		var event := InputEventKey.new();event.keycode = KEY_W;event.physical_keycode = KEY_W;event.pressed = true

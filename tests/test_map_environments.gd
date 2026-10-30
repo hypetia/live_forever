@@ -18,6 +18,7 @@ func _run() -> void:
 	var actor := Survivor.new()
 	actor.metabolism = .1
 	for id: String in LocationCatalog.ALL_IDS:
+		actor.tool_item={"kind":"toolkit","durability":100}
 		var profile := LocationEnvironment.profile(id)
 		var field := field_at(id)
 		expect(profile["rooms"].size() >= 3 and profile["containers"].size() == field.sites.size(),id+" has room groups and an actual container style for every site")
@@ -25,7 +26,7 @@ func _run() -> void:
 		for z: Array in profile["zones"]:
 			expect(z[0] < z[1] and z[0] >= (90 if z[2] == 0 else field.upper_left()) and z[1] <= field.right_edge(int(z[2])),id+" surface interval matches a real walkable floor")
 		var original: Array = field.sites.duplicate(true)
-		field._clear_route(.5)
+		field._clear_route(.5,actor)
 		expect(field.route_progress == .5 and field.route_tool and field.bag["tools"] == 1,id+" tooling is timed and not prepaid")
 		valid_field(field,id+" partial clearing saves")
 		var paused := field.route_progress
@@ -34,10 +35,10 @@ func _run() -> void:
 		var loaded := ExpeditionState.new(id)
 		loaded.environment_active = true
 		loaded.restore_validated(field.snapshot())
-		loaded._clear_route(LocationEnvironment.route_seconds(id,true)-.5)
-		expect(loaded.route_open and loaded.bag["tools"] == 0 and loaded.sites == original,id+" clearing spends exactly one tool without granting loot")
-		loaded._clear_route(100)
-		expect(loaded.bag["tools"] == 0,id+" completed clearing cannot spend again")
+		loaded._clear_route(LocationEnvironment.route_seconds(id,true)-.5,actor)
+		expect(loaded.route_open and loaded.bag["tools"] == 1 and actor.tool_item["durability"]==88 and loaded.sites == original,id+" clearing wears the same toolkit without consuming components or granting loot")
+		loaded._clear_route(100,actor)
+		expect(loaded.bag["tools"] == 1 and actor.tool_item["durability"]==88,id+" completed clearing cannot spend again")
 		valid_field(loaded,id+" completed route saves")
 		expect(loaded.nearest_ladder(loaded.route_x()+10) == loaded.route_x() and loaded.route_ladder(loaded.route_x()-50,loaded.route_x()+20) == loaded.route_x(),id+" physical route planner chooses the opened nearby ladder")
 		loaded.tick(.01,actor,{"climb":1})
@@ -52,15 +53,17 @@ func _run() -> void:
 		loaded.refresh_for_day(2)
 		expect(loaded.route_open and loaded.condition == 1,id+" return and daily migration preserve clearance while changing announced conditions")
 		valid_field(loaded,id+" inactive world saves after daily refresh")
+		actor.tool_item={}
 		var forced := field_at(id,0)
-		forced._clear_route(LocationEnvironment.route_seconds(id,false)-.1)
+		forced._clear_route(LocationEnvironment.route_seconds(id,false)-.1,actor)
 		expect(not forced.route_open and forced.noise_burst == 95,id+" no-tool alternative is slower and conspicuously noisy")
-		forced._clear_route(.1)
+		forced._clear_route(.1,actor)
 		expect(forced.route_open and forced.bag["tools"] == 0,id+" no-tool alternative remains viable")
+		actor.tool_item={"kind":"toolkit","durability":100}
 		field = field_at(id)
-		field._clear_route(.5);field.tick(.02,actor,{"axis":-1})
+		field._clear_route(.5,actor);field.tick(.02,actor,{"axis":-1})
 		expect(field.route_progress == 0 and not field.route_tool and field.bag["tools"] == 1,id+" walking cancels without spending")
-		field.player_x = field.route_x();field._clear_route(.5);field.drop("tools")
+		field.player_x = field.route_x();field._clear_route(.5,actor);field.drop("tools")
 		expect(field.route_progress == 0,id+" dropping the held tool cancels clearing safely")
 		for condition in [0,1]:
 			field = field_at(id,0);field.condition = condition
@@ -93,7 +96,7 @@ func _run() -> void:
 	controls = game._route_controls(110,0,true)
 	expect(controls.get("climb") == -1,"T return prefers the nearby opened landing when horizontal route lengths are equal")
 	world.player_x = world.route_x();world.floor_level = 0;world.player_y = 620
-	world.route_open = false;world.bag["tools"] = 1;world._clear_route(.5)
+	world.route_open = false;world.bag["tools"] = 1;world._clear_route(.5,game.survivors[world.actor_id])
 	valid(game,"campaign clearing snapshot")
 	var snapshot := SaveSystem.capture(game)
 	var bad := snapshot.duplicate(true);bad["expedition"]["route_open"] = true

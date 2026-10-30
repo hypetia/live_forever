@@ -13,7 +13,7 @@ func _run() -> void:
 	await keypress(KEY_O)
 	var view: EquipmentLoadout = g.equipment_view
 	check(view.opened and g.paused,"O opens a dedicated paused equipment screen")
-	check(view.item_buttons.size()==3 and view.slot_buttons.size()==3,"three identical weapons and three distinct equipment slots are shown")
+	check(view.item_buttons.size()==3 and view.slot_buttons.size()==4,"three identical weapons and four distinct equipment slots are shown")
 	await click_at(view.actor_buttons[0].get_global_rect().get_center())
 	await click_at(view.item_buttons[2].get_global_rect().get_center())
 	check(g.survivors[0].weapon_item.get("id")==2,"actual item button assigns exact second knife to first person")
@@ -40,7 +40,7 @@ func _run() -> void:
 	await keypress(KEY_O);await keypress(KEY_O)
 	check(not g.interface.workshop_open and not g.paused,"opening from workshop restores original running clock on close")
 	g.end_day();await process_frame
-	check(g.interface.role_equipment_buttons.size()==3,"every night role has its own three equipment buttons")
+	check(g.interface.role_equipment_buttons.size()==3,"every night role has its own four equipment buttons")
 	await click_at(g.interface.role_equipment_buttons[1][0].get_global_rect().get_center())
 	check(view.opened and view.selected_actor==1 and view.selected_slot==0,"night role opens the selected person's held weapon slot")
 	await keypress(KEY_ENTER)

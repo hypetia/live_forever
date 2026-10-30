@@ -41,6 +41,7 @@ func render(entries: Array[Dictionary], capacity: int) -> void:
 			cell.tooltip_text = "%s · 本格%d / %d" % [name,entry["count"],entry["limit"]]
 			if entry["kind"] == "provision":cell.tooltip_text+="\n食材保鲜日期随转移保留；在外出背包可使用罐头、肉干和饮料。"
 			if entry["kind"] == "resource": cell.tooltip_text += "\n"+resource_hint
+			elif entry["kind"]=="tool_cache":cell.tooltip_text+="\n回收工具包 · 耐久%d · 活着带回后入库"%entry["durability"]
 			elif entry["kind"] == "gear": cell.tooltip_text += "\n随身装备 · 耐久%d · 不能放入物资容器" % entry["durability"]
 			elif entry["kind"] == "ammo": cell.tooltip_text += "\n包括弹匣中的子弹"
 			var count := Label.new()
@@ -66,7 +67,7 @@ func _icon(cell: Button, entry: Dictionary) -> void:
 	match str(entry["kind"]):
 		"provision":CampFoodCatalog.draw_icon(cell,entry["key"],point,24)
 		"resource": HudIcons.draw(cell,entry["key"],point,27,color)
-		"gear": EquipmentArt.icon(cell,{"slot":GearCatalog.ITEMS[entry["key"]]["slot"],"kind":entry["key"],"broken":entry["durability"] <= 0},point)
+		"gear", "tool_cache": EquipmentArt.icon(cell,{"slot":GearCatalog.ITEMS[entry["key"]]["slot"],"kind":entry["key"],"broken":entry["durability"] <= 0},point)
 		"ammo":
 			for x in [-9,0,9]:
 				cell.draw_rect(Rect2(point+Vector2(x-2,-7),Vector2(5,17)),color)

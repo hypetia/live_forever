@@ -49,7 +49,7 @@ func _run() -> void:
  f.tick(.5,actor,{})
  expect(f.interior.action.get('quiet',false) and f.interior.doors[0]['window']==0 and f.bag['tools']==tools,'lifting a window in progress does not spend its tool or prematurely open it')
  for i in range(180):f.tick(.02,actor,{})
- expect(f.interior.doors[0]['window']==1 and f.bag['tools']==tools-1 and completed.back()==['window',0,true],'quiet window completion still spends exactly one actual tool')
+ expect(f.interior.doors[0]['window']==1 and f.bag['tools']==tools and actor.tool_item['durability']==92 and completed.back()==['window',0,true],'quiet window completion applies one durability charge to the actual reusable tool')
  valid(game,'completed door and window feedback');game.free()
  game=fresh()
  for a:Survivor in game.survivors:game.self_care.set_enabled(game,a,false)

@@ -9,6 +9,9 @@ var build_button: Button
 var placement_hint: Label
 var district_button: Button
 var outpost_buttons: Dictionary = {}
+var production_counts:Dictionary={}
+var production_modes:Dictionary={}
+var production_actions:Dictionary={}
 var role_options: Array[OptionButton] = []
 var role_stats: Array[Label] = []
 var plan_stock_labels: Dictionary = {}
@@ -198,8 +201,8 @@ func _create_plan() -> void:
 		role_stats.append(label(overlay,"",Vector2(484,y+40),Vector2(283,25),16,GameUi.SECONDARY))
 		label(overlay,actor.speciality+"  /  背包%d格"%CampaignCycle.BAGS[actor.person.persona],Vector2(484,y+72),Vector2(275,22),15,GameUi.MUTED)
 		role_equipment_buttons[index]=[]
-		for slot_index in range(3):
-			var gear_button:=button(overlay,"",Vector2(778+slot_index*78,y+53),Vector2(70,44),func():game.equipment_view.open_for(index,slot_index))
+		for slot_index in range(4):
+			var gear_button:=button(overlay,"",Vector2(778+slot_index*59,y+53),Vector2(54,44),func():game.equipment_view.open_for(index,slot_index))
 			gear_button.draw.connect(_draw_plan_gear.bind(gear_button,index,slot_index))
 			role_equipment_buttons[index].append(gear_button)
 		var option:=OptionButton.new();option.position=Vector2(792,y+9);option.size=Vector2(210,34)
@@ -213,7 +216,7 @@ func _create_plan() -> void:
 		if actor.health>0:live_row+=1
 	plan_capacity=label(overlay,"",Vector2(1044,200),Vector2(360,28),19)
 	plan_capacity.mouse_filter=Control.MOUSE_FILTER_PASS
-	plan_capacity.tooltip_text="武器、护甲各占1格，弹药每8发占1格；衣物不占格。\n睡床恢复精神65，地铺恢复35；守夜消耗28，搜刮35，驻守45。"
+	plan_capacity.tooltip_text="武器、护甲、工具各占1格，弹药每8发占1格；衣物不占格。\n睡床恢复精神65，地铺恢复35；守夜消耗28，搜刮35，驻守45。"
 	label(overlay,"物资",Vector2(1056,242),Vector2(120,24),16,GameUi.MUTED)
 	label(overlay,"库存",Vector2(1190,242),Vector2(48,24),16,GameUi.MUTED)
 	label(overlay,"携带",Vector2(1292,242),Vector2(80,24),16,GameUi.MUTED)
@@ -270,7 +273,7 @@ func _refresh_plan() -> void:
 		role_stats[index].add_theme_color_override("font_color",GameUi.DANGER if mini(Vitals.value(actor,"health"),mini(Vitals.value(actor,"vigor"),Vitals.value(actor,"fullness")))<=20 else GameUi.SECONDARY)
 		plan_rows[index].tooltip_text=Vitals.summary(actor)+"\n背包%d格"%CampaignCycle.BAGS[actor.person.persona]
 		plan_rows[index].queue_redraw()
-		for slot_index in range(3):
+		for slot_index in range(4):
 			var entry: Dictionary = EquipmentArt.slots(actor)[slot_index]
 			var gear_button: Button = role_equipment_buttons[index][slot_index]
 			gear_button.tooltip_text = EquipmentLoadout.SLOT_NAMES[slot_index]+"："+entry["name"]+" · 点击分配"
@@ -281,7 +284,7 @@ func _refresh_plan() -> void:
 	ammo_label.text=str(game.expansion.ammo_loadout)
 	plan_ammo_stock.text=str(game.expansion.ammo)
 	plan_capacity.text="%d / %d 格"%[total,game.cycle.capacity(game)]
-	plan_capacity.tooltip_text="武器、护甲各占1格，弹药每8发占1格；衣物不占格。"
+	plan_capacity.tooltip_text="武器、护甲、工具各占1格，弹药每8发占1格；衣物不占格。"
 	if game.districts.operator(game)>=0:plan_capacity.tooltip_text+="\n轮值预留燃料1："+LocationCatalog.area(game.districts.target)["name"]
 	plan_heat.set_pressed_no_signal(game.expansion.use_night_heat)
 	plan_heat.disabled=not game.cycle.has_build("heater")
@@ -407,7 +410,7 @@ func _refresh_loot() -> void:
 	for action in outpost_buttons:
 		var node: Button = outpost_buttons[action]
 		node.visible = at_outpost
-		node.text = {"build":"建立前哨 · 材料5 工具1","repair":"修整前哨 · 材料2","suppress":"清理街区 · 材料1 燃料1"}[action]
+		node.text = {"build":"建立前哨 · 材料5 零件1","repair":"修整前哨 · 材料2","suppress":"清理街区 · 材料1 燃料1"}[action]
 		node.add_theme_font_size_override("font_size",17)
 		var action_error: String = game.districts.action_error(game,action)
 		node.disabled = not action_error.is_empty()
@@ -421,8 +424,11 @@ func _refresh_loot() -> void:
 		var part: Dictionary = GearCatalog.PARTS[key]
 		if part["map"] == field.location_id and part["site"] == field.loot_site and not game.expansion.collected.has(key) and not game.expansion.carried.has(key):
 			contents.append({"kind":"part","key":key,"count":1,"limit":1})
+	contents.append_array(game.production.cache_entries(game))
 	container_grid.render(contents,16)
-	cargo_grid.render(BackpackStacks.carried(field,game.survivors[field.actor_id],game.expansion.carried,game.camp.food.cargo_entries() if game.camp.enabled else []),field.capacity)
+	var carried:=BackpackStacks.carried(field,game.survivors[field.actor_id],game.expansion.carried,game.camp.food.cargo_entries() if game.camp.enabled else [])
+	carried.append_array(game.production.cargo_entries())
+	cargo_grid.render(carried,field.capacity)
 	loot_buttons = container_grid.first_resources
 	loot_returns = cargo_grid.first_resources
 
@@ -434,6 +440,7 @@ func _can_grid_take(entry: Dictionary) -> bool:
 
 func _can_grid_put(entry: Dictionary) -> bool:
 	if entry["kind"]=="provision":return game.camp.food.cache_room(game,entry["key"])>0
+	if entry["kind"]=="tool_cache":return game.production.cache_entries(game).is_empty() and WorkshopProduction.CACHES[entry["cache"]]["map"]==game.expedition.location_id and WorkshopProduction.CACHES[entry["cache"]]["site"]==game.expedition.loot_site
 	if entry["kind"] == "part":
 		var part: Dictionary = GearCatalog.PARTS[entry["key"]]
 		return part["map"] == game.expedition.location_id and part["site"] == game.expedition.loot_site
@@ -444,14 +451,16 @@ func _can_grid_put(entry: Dictionary) -> bool:
 
 
 func _grid_take(entry: Dictionary, count: int) -> void:
-	if entry["kind"]=="provision":game.camp.food.transfer(game,entry["key"],count)
+	if entry["kind"]=="tool_cache":game.production.transfer(game,entry["cache"])
+	elif entry["kind"]=="provision":game.camp.food.transfer(game,entry["key"],count)
 	elif entry["kind"] == "resource": game.expedition.take_loot(entry["key"],count,game.survivors[game.expedition.actor_id])
 	else: game.expansion.take_part(game)
 	refresh()
 
 
 func _grid_put(entry: Dictionary, count: int) -> void:
-	if entry["kind"]=="provision":game.camp.food.transfer(game,entry["key"],count,true)
+	if entry["kind"]=="tool_cache":game.production.transfer(game,entry["cache"],true)
+	elif entry["kind"]=="provision":game.camp.food.transfer(game,entry["key"],count,true)
 	elif entry["kind"] == "resource": game.expedition.put_loot(entry["key"],count)
 	elif entry["kind"] == "part": game.expansion.take_part(game)
 	refresh()
@@ -468,6 +477,7 @@ func _put(key: String) -> void:
 
 
 func _take_all() -> void:
+	for entry in game.production.cache_entries(game):game.production.transfer(game,entry["cache"])
 	for key in ShelterInventory.NAMES: game.expedition.take_loot(key, 1000, game.survivors[game.expedition.actor_id])
 	if game.camp.enabled:
 		for key in CampFoodCatalog.ITEMS:game.camp.food.transfer(game,key,1000)
@@ -551,11 +561,11 @@ func _loot_icon(action: Button, resource: String) -> void:
 
 func _draw_plan_gear(button_node: Button, actor_id: int, slot_index: int) -> void:
 	var entry: Dictionary=EquipmentArt.slots(game.survivors[actor_id])[slot_index]
-	EquipmentArt.icon(button_node,entry,Vector2(34,14))
-	button_node.draw_string(game.FONT,Vector2(5,37),entry["name"],HORIZONTAL_ALIGNMENT_CENTER,60,13,GameUi.TEXT)
+	EquipmentArt.icon(button_node,entry,Vector2(26,14))
+	button_node.draw_string(game.FONT,Vector2(1,37),("开锁器" if entry["kind"]=="lockpick" else entry["name"]),HORIZONTAL_ALIGNMENT_CENTER,52,12,GameUi.TEXT)
 	if not entry["kind"].is_empty():
-		button_node.draw_rect(Rect2(6,40,58,2),GameUi.BORDER)
-		button_node.draw_rect(Rect2(6,40,58*entry["ratio"],2),GameUi.ACCENT if not entry["broken"] else GameUi.DANGER)
+		button_node.draw_rect(Rect2(4,40,46,2),GameUi.BORDER)
+		button_node.draw_rect(Rect2(4,40,46*entry["ratio"],2),GameUi.ACCENT if not entry["broken"] else GameUi.DANGER)
 
 func _draw_plan_map(row: Button,id: String) -> void:
 	var area:=LocationCatalog.area(id)

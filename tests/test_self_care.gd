@@ -59,6 +59,8 @@ func _run() -> void:
 	var fixture: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://tests/fixtures/v16_autonomy_upgrade_campaign.json"))
 	var original: Dictionary = JSON.parse_string(fixture["data_json"])
 	var upgraded: Dictionary = SaveSystem.migrate_v17(SaveSystem.migrate_v16(original))
+	# This archived autonomy fixture predates the independent production subsystem.
+	upgraded["production"]=WorkshopProduction.new().snapshot()
 	expect(SaveSystem.validate(upgraded).is_empty(),"authentic previous-release snapshot migrates to basic autonomy")
 	expect(upgraded["stock"] == original["stock"] and upgraded["actors"] == original["actors"] and upgraded["districts"] == original["districts"],"migration changes no stock, character state, existing cooking choices or district history")
 	expect(upgraded["self_care"]["members"].values().all(func(r):return r["enabled"] and r["action"].is_empty()),"older living residents receive basic care without inventing active tasks")

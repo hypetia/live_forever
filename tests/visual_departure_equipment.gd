@@ -15,12 +15,12 @@ func _run() -> void:
 	var actor: Survivor = game.survivors[field.actor_id]
 	game._process(0)
 	var view: ExpeditionView = game.expedition_view
-	check(view.equipment_buttons.size() == 3 and view.equipment_buttons[0].is_visible_in_tree(),"night exposes three compact real equipment slots")
+	check(view.equipment_buttons.size() == 4 and view.equipment_buttons[0].is_visible_in_tree(),"night exposes four compact real equipment slots")
 	check(view.equipment_name.text == "猎刀","equipped weapon name is visible without a hover")
 	check(view.equipment_buttons[1].tooltip_text.contains("防咬背心"),"armor inspection matches the actual loadout")
 	await click_at(view.equipment_buttons[0].get_global_rect().get_center())
 	check(game.equipment_view.opened and game.paused,"clicking equipment opens details and pauses danger")
-	check(game.equipment_view.slot_buttons.size() == 3 and game.equipment_view.slot_buttons[2].tooltip_text == GearCatalog.describe("coat"),"details include exact durability and all equipped slots")
+	check(game.equipment_view.slot_buttons.size() == 4 and game.equipment_view.slot_buttons[2].tooltip_text == GearCatalog.describe("coat"),"details include exact durability and all equipped slots")
 	await keypress(KEY_ENTER)
 	check(not game.equipment_view.opened and not game.paused,"closing equipment restores running time")
 	game.paused = true

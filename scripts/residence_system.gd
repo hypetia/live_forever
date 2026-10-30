@@ -183,7 +183,7 @@ func finish_move(game: Node2D, report: Array[String]) -> void:
 		salvage += int(PROJECTS[kind]["cost"].get("materials",0) * security[kind] * condition / 200)
 		security[kind] = 0
 	game.cycle.builds.clear()
-	game.inventory.deposit({"materials": salvage}, "拆解旧址固定设施回收半数材料，工具不返还")
+	game.inventory.deposit({"materials": salvage}, "拆解旧址固定设施回收半数材料，零件不返还")
 	current = convoy
 	convoy = ""
 	last_move_day = ExpeditionState.day_at(game.simulation_time)

@@ -26,7 +26,9 @@ func apply_scenario(game: Node2D,id: String) -> void:
  game.people.event_reported.connect(game._log)
  game.inventory.restore_validated(config['stock'],[])
  game.expansion.gear.clear();game.expansion.next_id=1
+ game.production=WorkshopProduction.new()
  for pair in config['weapons']:game.expansion.grant(pair[0],pair[1])
+ game.expansion.grant("toolkit")
  for actor: Survivor in game.survivors:
   actor.metabolism=.4;actor.hunger=40;actor.fatigue=25;actor.person.thirst=20
  game.self_care.members.clear();game.self_care.sync(game)

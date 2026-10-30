@@ -5,6 +5,8 @@ func tick(delta: float) -> void:
  if game.expedition.active and game.expedition.loot_site>=0:
   game.camp.food.open_cache(game)
   if game.expedition.capacity-game.expedition.used_capacity()>3:
+   for entry in game.production.cache_entries(game):game.production.transfer(game,entry["cache"])
+  if game.expedition.capacity-game.expedition.used_capacity()>3:
    for kind in ['vegetables','meat','herbs','seeds','cans','drinks']:
     if game.camp.food.slots()>=2:break
     if game.camp.food.amount(kind)<5:game.camp.food.transfer(game,kind,2)

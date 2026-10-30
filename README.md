@@ -1,12 +1,12 @@
-# Live Forever · 封锁区：余生 v1.20.0
+# Live Forever · 封锁区：余生 v1.21.0
 
-v1.20.0重新整理夜间准备、制作、装备、营地和人物界面。“谁去，谁留下”等口语化标题改为明确的功能名称；九个地点、人员岗位与携带物资分栏显示。统一深灰底色、米白正文与琥珀色选中标记，缩短常驻说明，规则和效果可悬停查看。保留上一版战斗与巡群机制。窗口标题显示 `v1.20.0`。
+v1.21.0拆分工具与配方耗材：机械零件用于装配；工作台配套工具与外出工具包可重复使用、磨损和维修，另有一次性开锁器。K工作台支持按批数生产或补到指定库存；O装备新增工具栏，野外能找到并带回旧工具包。同时修复夜间营地按钮遮挡地面点击。窗口标题显示 `v1.21.0`。
 
 单人僵尸生存游戏：白天经营、制作和照顾同伴，夜间亲自潜入搜刮、抵御尸群。保留九张地图、三个开局、十二名角色及个人线、35日撤离战役、无尽生存、迁居和前哨。建议按F2新开战役体验当前版本。
 
-![夜间准备：实际运行画面](docs/ui-planning-1440x900.png)
+![工作台工具与生产计划：实际运行画面](docs/tools-workbench.png)
 
-[界面改版与实际截图](docs/UI_REDESIGN.md) · [战斗压力、反制与区域巡群](docs/COMBAT_PRESSURE.md) · [设施与装备操作、实际截图](docs/FACILITIES_EQUIPMENT.md) · [人物和环境美术](docs/REALISM_ART.md) · [营地玩法说明](docs/CAMP_LIFE.md) · [本版验证记录](docs/ui-validation.json)
+[工具、维护与生产计划](docs/TOOLS_PRODUCTION.md) · [界面改版与实际截图](docs/UI_REDESIGN.md) · [战斗压力、反制与区域巡群](docs/COMBAT_PRESSURE.md) · [设施与装备操作、实际截图](docs/FACILITIES_EQUIPMENT.md) · [人物和环境美术](docs/REALISM_ART.md) · [营地玩法说明](docs/CAMP_LIFE.md) · [本版验证记录](docs/tools-production-validation.json)
 
 ## 下载后直接玩
 
@@ -14,16 +14,16 @@ v1.20.0重新整理夜间准备、制作、装备、营地和人物界面。“�
 
 | 用途 | GitHub直接下载 | 使用方法 |
 | --- | --- | --- |
-| Windows 64位游戏（约46MB） | [live_forever_v1.20.0_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.20.0/live_forever_v1.20.0_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
-| Linux x86_64游戏（约37MB） | [live_forever_v1.20.0_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.20.0/live_forever_v1.20.0_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
-| Windows一键验收工具 | [live_forever_v1.20.0_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.20.0/live_forever_v1.20.0_windows_acceptance.zip) | 主动运行 `windows_acceptance.cmd`，默认约30分钟 |
-| v1.20.0完整源码 | [live_forever_v1.20.0_source.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.20.0/live_forever_v1.20.0_source.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
+| Windows 64位游戏（约46MB） | [live_forever_v1.21.0_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.21.0/live_forever_v1.21.0_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
+| Linux x86_64游戏（约37MB） | [live_forever_v1.21.0_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.21.0/live_forever_v1.21.0_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
+| Windows一键验收工具 | [live_forever_v1.21.0_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.21.0/live_forever_v1.21.0_windows_acceptance.zip) | 主动运行 `windows_acceptance.cmd`，默认约30分钟 |
+| v1.21.0完整源码 | [live_forever_v1.21.0_source.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.21.0/live_forever_v1.21.0_source.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
 
 普通游戏不需要Godot、Python、登录、服务器或持续联网。验收工具是单独的程序，不会在正常游戏中替你操作。Windows包按官方模板导出；**尚未在Windows真实设备完成验收**。
 
-[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.20.0) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
+[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.21.0) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
 
-v1.20.0 运行包和对应源码托管在 `downloads-v1.20.0`；同版验收包在 `downloads-v1.20.0`，开发源码在 `main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
+v1.21.0 运行包和对应源码托管在 `downloads-v1.21.0`；同版验收包在 `downloads-v1.21.0`，开发源码在 `main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
 
 [角色设定说明（沿用）](docs/SELECTED_ROSTER_V27.md)
 
@@ -129,7 +129,7 @@ python tests/run_checks.py --graphics --artifacts /tmp/live-forever-checks
 python tools/build_desktop.py --acceptance --output builds --logs builds/logs
 ```
 
-本轮界面、操作和导出检查见[v1.20报告](docs/ui-validation.json)。街区项目、救援与供水的历史验证见[v1.13报告](docs/v23-validation.json)。此前[v1.12报告](docs/v22-validation.json)中的60天结果属于上一版本，不能代替本版所有长期策略的验证。历史核心场景失败策略仍保留，可用`--legacy-prototype-long-runs`显式复现，默认检查当前完整战役。
+本轮工具、生产、操作与连续战役检查见[v1.21报告](docs/tools-production-validation.json)。街区项目、救援与供水的历史验证见[v1.13报告](docs/v23-validation.json)。此前[v1.12报告](docs/v22-validation.json)中的60天结果属于上一版本，不能代替本版所有长期策略的验证。历史核心场景失败策略仍保留，可用`--legacy-prototype-long-runs`显式复现，默认检查当前完整战役。
 
 开发需要Godot4.6.3、Python3；图形检查需要显示环境。普通玩家不需要这些工具。默认入口为`scenes/campaign.tscn`，`shelter.tscn`是底层回归测试场景。
 

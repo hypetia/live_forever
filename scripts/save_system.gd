@@ -3,7 +3,7 @@ extends RefCounted
 ## Validated snapshots, checksummed JSON, atomic replacement and one backup.
 ## Only data is loaded: no resource paths, scripts or executable expressions.
 
-const VERSION := 20
+const VERSION := 21
 const MAX_BYTES := 2 * 1024 * 1024
 const STATIONS := ["workbench", "stove", "table", "bed"]
 const FLOAT_FIELDS := ["work_elapsed", "work_duration", "hunger", "fatigue", "health", "injury", "infection", "illness", "cold_exposure", "movement_clock", "facing"]
@@ -32,6 +32,7 @@ static func capture(game: Node2D) -> Dictionary:
 	for id in game.regions:
 		if id != game.expedition.location_id: other_regions[id] = game.regions[id].snapshot()
 	return {
+		"production":game.production_snapshot() if game.has_method("production_snapshot") else {},
 		"camp": game.camp_snapshot() if game.has_method("camp_snapshot") else {},
 		"neighborhood": game.neighborhood_snapshot() if game.has_method("neighborhood_snapshot") else {},
 		"chronicle": game.chronicle_snapshot() if game.has_method("chronicle_snapshot") else {},
@@ -108,6 +109,7 @@ static func validate(data: Variant) -> String:
 	if not data is Dictionary:
 		return "存档内容不是对象"
 	var required := ["simulation_time", "paused", "speed", "selected_id", "selected_task", "stock", "history", "stairs_open", "actors", "stations", "logs", "expedition", "destination", "other_regions", "upkeep", "people", "story", "goals", "campaign", "expansion", "residence", "facilities"]
+	required.append("production")
 	required.append("director")
 	required.append("districts")
 	required.append("self_care")
@@ -274,6 +276,8 @@ static func validate(data: Variant) -> String:
 	if not siege_error.is_empty(): return siege_error
 	var camp_error := CampLife.validate(data.get("camp",{}),data)
 	if not camp_error.is_empty():return camp_error
+	var production_error:=WorkshopProduction.validate(data.get("production",{}),data)
+	if not production_error.is_empty():return production_error
 	var care_error := SelfCareSystem.validate(data["self_care"],data)
 	if not care_error.is_empty(): return care_error
 	var director_error := CampaignDirector.validate(data["director"],data)
@@ -363,6 +367,7 @@ static func apply_state(game: Node2D, data: Dictionary) -> String:
 	if game.has_method("restore_self_care"): game.restore_self_care(data["self_care"])
 	if game.has_method("restore_neighborhood"): game.restore_neighborhood(data["neighborhood"])
 	if game.has_method("restore_camp"):game.restore_camp(data.get("camp",{}))
+	if game.has_method("restore_production"):game.restore_production(data.get("production",{}))
 	game.expedition_view.reset_feedback()
 	game.select_survivor(int(data["selected_id"]))
 	game._refresh_log()
@@ -432,6 +437,8 @@ func _read_file(filename: String) -> Dictionary:
 		data = migrate_v18(data)
 	if int(envelope["version"]) <= 19:
 		data = migrate_v19(data)
+	if int(envelope["version"])<=20 and data is Dictionary and not data.has("production"):
+		data["production"]={} if data.get("campaign",{}).is_empty() else WorkshopProduction.new().snapshot()
 	var error := validate(data)
 	if not error.is_empty():
 		return {"ok": false, "message": error}

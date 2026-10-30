@@ -42,6 +42,7 @@ var confirm_exits := false # Campaign UI policy, derived again after loading.
 var _exit_interact_held := false
 var loot_site := -1
 var discovered: Array[int] = []
+var tool_sites: Array[int] = [] # Derived from unclaimed recoverable tool caches.
 var special_sites: Array[int] = [] # Derived from campaign parts after loading; never trusted from disk.
 var location_id := "street"
 var active := false
@@ -204,7 +205,7 @@ func site_in_range(index: int) -> bool:
 
 
 func site_has_supplies(index: int) -> bool:
-	return sites[index]["contents"].values().any(func(amount): return int(amount) > 0)
+	return tool_sites.has(index) or sites[index]["contents"].values().any(func(amount): return int(amount) > 0)
 
 
 func nearby_site() -> int:
@@ -297,7 +298,7 @@ func tick(delta: float, actor: Survivor, raw_controls: Dictionary) -> void:
 				if exit_interact: request_retreat()
 				return
 			if route_in_range() and nearby_site() == -1:
-				_clear_route(delta)
+				_clear_route(delta,actor)
 			else:
 				_search(delta * (1.2 if PeopleCatalog.scout_training(actor.person.persona) else 1.0) * actor.person.bonus("scout"), actor)
 	if attack_windup > 0:
@@ -338,17 +339,21 @@ func _search(delta: float, actor: Survivor) -> void:
 	if search_index != index:
 		search_index = index
 		search_progress = 0
-		search_tool = site["locked"] and bag["tools"] > 0
+		search_tool = site["locked"] and (FieldTools.can_use(actor,"lock") if environment_active else bag["tools"]>0)
 		search_duration = 3.0 if search_tool else float(site_definitions()[index]["seconds"]) + (4.0 if site["locked"] else 0.0)
-	noise_burst = maxf(noise_burst, 70 if site["locked"] else 42)
+	noise_burst = maxf(noise_burst, (22 if search_tool else 70) if site["locked"] else 42)
 	search_active = delta > 0
+	if search_tool and environment_active and not FieldTools.can_use(actor,"lock"):
+		_reset_search();return
 	search_progress += delta * (0.8 if sneaking else 1.0)
 	feedback = "搜索 %s · %d%%（移动或松开 E 会暂停）" % [site_definitions()[index]["name"], int(search_progress / search_duration * 100)]
 	if search_progress + 0.000001 < search_duration:
 		return
 	if manual_loot:
 		if site["locked"]:
-			if search_tool: bag["tools"] -= 1
+			if search_tool:
+				if environment_active:FieldTools.spend(actor,"lock")
+				else:bag["tools"]-=1
 			site["locked"] = false
 		discovered.append(index)
 		loot_site = index
@@ -364,8 +369,9 @@ func _search(delta: float, actor: Survivor) -> void:
 			taken[resource] = quantity
 	if not taken.is_empty() and site["locked"]:
 		if search_tool:
-			bag["tools"] -= 1
-			event_reported.emit("使用了一件工具破锁。")
+			if environment_active:FieldTools.spend(actor,"lock")
+			else:bag["tools"]-=1
+			event_reported.emit("锁柜已打开。")
 		site["locked"] = false
 	var gained := 0
 	for amount in taken.values(): gained += int(amount)
@@ -817,7 +823,7 @@ static func validate_snapshot(data: Variant, actors: Array, id: String = "street
 	if not _n(data["route_progress"],0,route_seconds) or data["route_progress"] >= route_seconds: return "清障进度无效"
 	if data["route_progress"] > 0:
 		if not data["active"] or data["route_open"] or data["floor"] != 0 or data["climb_target"] != -1 or absf(float(data["player_x"])-float(LocationEnvironment.profile(id)["route"])) >= INTERACTION_RADIUS or data["search_index"] != -1: return "清障位置无效"
-		if data["route_tool"] and int(data.get("bag",{}).get("tools",0)) < 1: return "清障工具缺失"
+		if data["route_tool"] and not data["stacked"] and int(data.get("bag",{}).get("tools",0)) < 1: return "清障工具缺失"
 	elif data["route_tool"]: return "空清障保留工具状态"
 	if not _i(data["extra_slots"], 0, 16) or not _i(data["reserve_ammo"], 0, 120) or not _i(data["magazine"], 0, 6) or not _n(data["reload_remaining"], 0, 1.4): return "弹药或装备负重无效"
 	if not _i(data["capacity"], 10, 16) or not data["manual_loot"] is bool or not _i(data["loot_site"], -1, site_defs.size() - 1): return "背包容量或物资窗口无效"
@@ -873,7 +879,7 @@ static func validate_snapshot(data: Variant, actors: Array, id: String = "street
 		var site: Dictionary = data["sites"][search]
 		var duration := 3.0 if data["search_tool"] else float(site_defs[search]["seconds"]) + (4.0 if site["locked"] else 0.0)
 		if not data["active"] or target != -1 or site_defs[search]["floor"] != level or data["search_progress"] >= duration or not is_equal_approx(data["search_duration"], duration): return "搜索动作与容器不符"
-		if data["search_tool"] and (not site["locked"] or data["bag"]["tools"] < 1): return "破锁没有实际工具"
+		if data["search_tool"] and (not site["locked"] or (not data["stacked"] and data["bag"]["tools"]<1)): return "破锁没有实际工具"
 	if not _i(data.get("migration_extra",0),0,1):return "迁移感染者数量无效"
 	if not data["enemies"] is Array or data["enemies"].size()<definition["guards"].size() or data["enemies"].size()>mini(8,definition["guards"].size()+4): return "感染者数量超出区域巡群容量"
 	for enemy in data["enemies"]:
@@ -999,18 +1005,20 @@ func _reset_route() -> void:
 	route_tool = false
 
 
-func _clear_route(delta: float) -> void:
+func _clear_route(delta: float,actor: Survivor) -> void:
 	if not route_in_range(): return
 	_reset_search()
-	if route_progress == 0: route_tool = int(bag["tools"]) > 0
-	if route_tool and int(bag["tools"]) < 1:
+	if route_progress == 0: route_tool = FieldTools.can_use(actor,"route") if environment_active else int(bag["tools"])>0
+	if route_tool and not (FieldTools.can_use(actor,"route") if environment_active else int(bag["tools"])>0):
 		_reset_route()
 		return
 	route_progress += delta
 	noise_burst = maxf(noise_burst,36 if route_tool else 95)
 	feedback = LocationEnvironment.route_hint(location_id)
 	if route_progress + 0.000001 < LocationEnvironment.route_seconds(location_id,route_tool): return
-	if route_tool: bag["tools"] -= 1
+	if route_tool:
+		if environment_active:FieldTools.spend(actor,"route")
+		else:bag["tools"]-=1
 	route_open = true
 	_reset_route()
 	feedback = "%s已打通；感染者也能使用这条通路。" % LocationEnvironment.profile(location_id)["route_name"]

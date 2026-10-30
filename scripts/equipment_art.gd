@@ -4,12 +4,12 @@ extends RefCounted
 
 static func slots(actor: Survivor) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
-	for entry in [["weapon",actor.weapon_item],["armor",actor.armor_item],["coat",actor.coat_item]]:
+	for entry in [["weapon",actor.weapon_item],["armor",actor.armor_item],["coat",actor.coat_item],["tool",actor.tool_item]]:
 		var item: Dictionary = entry[1]
 		var kind := str(item.get("kind",""))
 		var maximum := int(GearCatalog.ITEMS.get(kind,{}).get("durability",1))
 		var durability := int(item.get("durability",0))
-		result.append({"slot":entry[0],"kind":kind,"name":GearCatalog.ITEMS.get(kind,{}).get("name",{"weapon":"徒手","armor":"未穿护甲","coat":"未穿冬衣"}[entry[0]]),"durability":durability,"maximum":maximum,"ratio":float(durability)/maximum,"broken":not kind.is_empty() and durability <= 0})
+		result.append({"slot":entry[0],"kind":kind,"name":GearCatalog.ITEMS.get(kind,{}).get("name",{"weapon":"徒手","armor":"未穿护甲","coat":"未穿冬衣","tool":"未带工具"}[entry[0]]),"durability":durability,"maximum":maximum,"ratio":float(durability)/maximum,"broken":not kind.is_empty() and durability <= 0})
 	return result
 
 
@@ -53,6 +53,15 @@ static func icon(c: CanvasItem, slot: Dictionary, at: Vector2) -> void:
 			c.draw_circle(at,7,color)
 			for x in [-5,-1,3]: c.draw_line(at+Vector2(x,-9),at+Vector2(x,-2),color,3,true)
 		else: weapon(c,kind,at-Vector2(12,0),1,-0.45,0.55 if kind == "spear" else 0.85,slot["broken"])
+	elif slot["slot"]=="tool":
+		if kind=="lockpick":
+			c.draw_line(at+Vector2(-12,10),at+Vector2(7,-9),color,3,true)
+			c.draw_line(at+Vector2(7,-9),at+Vector2(14,-9),color,2,true)
+		else:
+			c.draw_rect(Rect2(at+Vector2(-16,-8),Vector2(32,23)),color,false,2)
+			c.draw_rect(Rect2(at+Vector2(-7,-14),Vector2(14,7)),color,false,2)
+			c.draw_line(at+Vector2(-15,0),at+Vector2(15,0),color,2,true)
+			c.draw_rect(Rect2(at+Vector2(-3,-3),Vector2(6,7)),color)
 	else:
 		var coat: bool = slot["slot"] == "coat"
 		var points := PackedVector2Array([at+Vector2(-7,-12),at+Vector2(-16,-7),at+Vector2(-11,3),at+Vector2(-8,0),at+Vector2(-9,14 if coat else 10),at+Vector2(9,14 if coat else 10),at+Vector2(8,0),at+Vector2(11,3),at+Vector2(16,-7),at+Vector2(7,-12),at+Vector2(4,-7),at+Vector2(-4,-7)])

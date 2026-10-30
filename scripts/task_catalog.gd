@@ -7,7 +7,7 @@ const TASKS := {
 	"cook": {"label": "做饭", "facility": "stove", "cost": {"raw_food": 1, "water": 1, "fuel": 1}, "output": {"meals": 2}},
 	"eat": {"label": "吃饭", "facility": "table", "cost": {"meals": 1}, "output": {}},
 	"sleep": {"label": "睡觉", "facility": "bed", "cost": {}, "output": {}},
-	"craft": {"label": "制作工具", "facility": "workbench", "cost": {"materials": 2}, "output": {"tools": 1}},
+	"craft": {"label": "加工机械零件", "facility": "workbench", "cost": {"materials": 2}, "output": {"tools": 1}},
 	"heal": {"label": "治疗", "facility": "table", "cost": {"medicine": 1}, "output": {}},
 }
 

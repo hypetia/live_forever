@@ -54,7 +54,7 @@ func render() -> void:
 	y += 22
 	ui.label(body,"迁居",Vector2(0,y),Vector2(1280,32),21,game.GOLD)
 	y += 42
-	var warning := ui.label(body,"库存、装备、吉他与战役设备可带走；床、炉、收集器、隔断和安防拆解，仅回收部分材料。新址等级归零。\n运输补给为全队打包（熟食5、水10、燃料2、工具1），行军会受冷、消耗精神，也可能遇袭；迁居后至少休整5天。",Vector2(0,y),Vector2(1280,62),15)
+	var warning := ui.label(body,"库存、装备、吉他与战役设备可带走；床、炉、收集器、隔断和安防拆解，仅回收部分材料。新址等级归零。\n运输补给为全队打包（熟食5、水10、燃料2、零件1），行军会受冷、消耗精神，也可能遇袭；迁居后至少休整5天。",Vector2(0,y),Vector2(1280,62),15)
 	warning.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	y += 82
 	if not game.residence.convoy.is_empty():

@@ -117,7 +117,7 @@ func controls(field: ExpeditionState,actor: Survivor,delta: float,input: Diction
  if not action.is_empty():
   if press:held=true
   var n:int=action['door'];var kind:String=action['kind']
-  if (action['quiet'] and field.bag['tools']<1) or actor.health<float(action['health']) or (kind!='vault' and (absf(float(input.get('axis',0)))>0 or int(input.get('climb',0))!=0)):
+  if (action['quiet'] and not FieldTools.can_use(actor,'window')) or actor.health<float(action['health']) or (kind!='vault' and (absf(float(input.get('axis',0)))>0 or int(input.get('climb',0))!=0)):
    if kind=='vault':field.player_x=float(action['from']) if float(action['elapsed'])<.5 else float(action['to'])
    action.clear();return result
   var duration:=1.2 if kind=='door' else 3.0 if kind=='window' else 1.0
@@ -131,8 +131,8 @@ func controls(field: ExpeditionState,actor: Survivor,delta: float,input: Diction
    if kind=='door':doors[n]['open']=not doors[n]['open']
    elif kind=='window':
     if action['quiet']:
-     if field.bag['tools']<1:action.clear();return result
-     field.bag['tools']-=1
+     if not FieldTools.can_use(actor,'window'):action.clear();return result
+     FieldTools.spend(actor,'window')
     doors[n]['window']=1 if action['quiet'] else 2
    operation_finished.emit(kind,n,bool(action['quiet']))
    action.clear()
@@ -146,7 +146,9 @@ func controls(field: ExpeditionState,actor: Survivor,delta: float,input: Diction
   var contact_x:=x+(28 if kind=='window' else 6)-field.player_x
   if absf(contact_x)>2:field.facing=signf(contact_x)
   var from:=field.player_x;var to:=x+(44 if from<x else -44)
-  action={'door':index,'kind':kind,'elapsed':0.0,'health':actor.health,'from':from,'to':to,'quiet':kind=='window' and field.bag['tools']>0 and not bool(input.get('sprint',false))}
+  if kind=='window' and not bool(input.get('sprint',false)) and not FieldTools.can_use(actor,'window'):
+   field.feedback='静拆需要装备工具包；Shift+X可直接砸窗。';return result
+  action={'door':index,'kind':kind,'elapsed':0.0,'health':actor.health,'from':from,'to':to,'quiet':kind=='window' and FieldTools.can_use(actor,'window') and not bool(input.get('sprint',false))}
   field._reset_route();field._reset_search()
  if index>=0 and press:result['interact']=false
  if peeking:result['axis']=0.0;result['interact']=false
@@ -243,7 +245,7 @@ static func validate(data: Variant,id: String,field: Dictionary) -> String:
   if not CharacterState.keys(a,['door','kind','elapsed','health','from','to','quiet']) or not field['active'] or not CharacterState.integer(a['door'],0,layout(id).size()-1) or not a['kind'] in ['door','window','vault']:return '门窗行动无效'
   var point:Dictionary=layout(id)[int(a['door'])]
   var duration:=1.2 if a['kind']=='door' else 3.0 if a['kind']=='window' else 1.0
-  if not a['quiet'] is bool or (a['quiet'] and (a['kind']!='window' or field['bag'].get('tools',0)<1)):return '静拆窗口缺少工具'
+  if not a['quiet'] is bool or (a['quiet'] and (a['kind']!='window')):return '静拆窗口缺少工具'
   if point['floor']!=field['floor'] or field['climb_target']!=-1 or absf(float(field['player_x'])-float(point['x']))>64 or not CharacterState.number(a['elapsed'],0,duration-.00000001) or not CharacterState.number(a['health'],0,100):return '门窗行动位置或工时无效'
   if not CharacterState.number(a['from'],float(point['x'])-64,float(point['x'])+64) or not CharacterState.number(a['to'],float(point['x'])-64,float(point['x'])+64):return '翻窗路线无效'
  return ''

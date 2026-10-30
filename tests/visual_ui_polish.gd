@@ -15,7 +15,7 @@ func _run() -> void:
 	await keypress(KEY_ESCAPE)
 	check(not g.paused,"production screen restores the previous clock state")
 	await keypress(KEY_O)
-	check(g.equipment_view.opened and g.equipment_view.slot_buttons.size()==3,"equipment retains three distinct functional slots")
+	check(g.equipment_view.opened and g.equipment_view.slot_buttons.size()==4,"equipment retains four distinct functional slots")
 	await picture(output+"/equipment.png")
 	await keypress(KEY_ESCAPE)
 	await keypress(KEY_F5)

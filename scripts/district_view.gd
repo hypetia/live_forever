@@ -92,4 +92,4 @@ func render() -> void:
 	target_button.tooltip_text = "在夜间分工给一人安排“前哨轮值”，其余人仍需安排守夜或休息。"
 	travel_button = ui.button(window,"今晚搜刮此区",Vector2(918,708),Vector2(425,44),func(): game.choose_destination(selected);game.interface.refresh();render())
 	travel_button.disabled = game.cycle.phase != "planning" or not game.expansion.unlocked(game,selected)
-	ui.label(window,"前哨施工：材料5、工具1。先到现场排除近处感染者；轮值会磨损前哨，失修后需维修。",Vector2(30,794),Vector2(1310,34),18,GameUi.SECONDARY)
+	ui.label(window,"前哨施工：材料5、零件1。先到现场排除近处感染者；轮值会磨损前哨，失修后需维修。",Vector2(30,794),Vector2(1310,34),18,GameUi.SECONDARY)

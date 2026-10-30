@@ -165,7 +165,7 @@ func _ready() -> void:
 			for r in [10,16]: decoy_button.draw_arc(at,r,-.9,.9,14,GOLD,1.5,true)
 		)
 		equipment_name = _label("",Vector2(350,788),Vector2(340,23),15,GOLD)
-		for index in range(3):
+		for index in range(4):
 			var button := _button("",Vector2(350+index*76,817),Vector2(66,60),show_equipment.bind(index))
 			button.draw.connect(_equipment_icon.bind(button,index))
 			equipment_buttons.append(button)
@@ -305,7 +305,7 @@ func refresh() -> void:
 	attack_button.disabled = game.paused or state.attack_cooldown > 0 or state.climb_target != -1
 	attack_button.text = (actor.weapon().get("name", "徒手推搡") + " J") if actor.metabolism < 1 else ("工具挥击 J" if state.bag["tools"] > 0 else "徒手推搡 J")
 	if state.attack_cooldown > 0: attack_button.text = "冷却 %.1f" % state.attack_cooldown
-	attack_button.tooltip_text = (GearCatalog.describe(actor.weapon_item["kind"]) + "；L换弹" if not actor.weapon().is_empty() else "徒手只推开，工具用于破锁和制作。") if actor.metabolism < 1 else "有工具：消耗1件，命中造成40伤害。徒手：只推开、不扣生命。面向敌人，75范围内生效；前摇0.2秒，冷却1.1秒。"
+	attack_button.tooltip_text = (GearCatalog.describe(actor.weapon_item["kind"]) + "；L换弹" if not actor.weapon().is_empty() else "徒手只推开。工具包在独立工具栏装备。") if actor.metabolism < 1 else "有工具：消耗1件，命中造成40伤害。徒手：只推开、不扣生命。面向敌人，75范围内生效；前摇0.2秒，冷却1.1秒。"
 	drink_button.disabled = game.paused or state.bag["water"] <= 0 or actor.person.thirst <= 0
 	medicine_button.disabled = game.paused or state.bag["medicine"] <= 0 or state.medicine_cooldown > 0
 	retreat_button.text = "撤退并带回物资 [T]" if state.floor_level == 0 and state.player_x <= 145 else "回入口撤退 [T]"
@@ -698,7 +698,7 @@ func _refresh_quiet(state: ExpeditionState, actor: Survivor) -> void:
 	decoy_button.queue_redraw()
 	var slots := EquipmentArt.slots(actor)
 	equipment_name.text = slots[0]["name"]+(" · 损坏" if slots[0]["broken"] else "")
-	for index in range(3):
+	for index in range(4):
 		equipment_buttons[index].tooltip_text = _equipment_description(slots[index])+"\n点击查看随身装备"
 		equipment_buttons[index].queue_redraw()
 	for label in [title_label,area_hint,alert_label,gear_label,actor_label,role_label,stats_label,log_label,context_label,feedback_label]: label.hide()
@@ -706,7 +706,9 @@ func _refresh_quiet(state: ExpeditionState, actor: Survivor) -> void:
 	stack_panel.visible = bag_open
 	if bag_open:
 		stack_capacity.text = "背包 %d / %d格" % [state.used_capacity(),state.capacity]
-		stack_grid.render(BackpackStacks.carried(state,actor,game.expansion.carried,game.camp.food.cargo_entries() if game.camp.enabled else []),state.capacity)
+		var entries:=BackpackStacks.carried(state,actor,game.expansion.carried,game.camp.food.cargo_entries() if game.camp.enabled else [])
+		entries.append_array(game.production.cargo_entries())
+		stack_grid.render(entries,state.capacity)
 	search_bar.value = state.search_progress/state.search_duration*100 if state.search_duration > 0 else 0
 	retreat_button.disabled = false if quiet else game.paused
 	search_button.disabled = game.paused or (state.nearby_site() < 0 and not state.route_in_range() and game.neighborhood.nearby(game).is_empty()) or game.cycle.return_requested or game.cycle.phase == "returning"

@@ -47,12 +47,14 @@ func sync(game: Node2D) -> void:
 		actor.weapon_item = {}
 		actor.armor_item = {}
 		actor.coat_item = {}
+		actor.tool_item = {}
 		for item in gear:
 			if item["owner"] == actor.person.persona:
 				actor.set(str(GearCatalog.ITEMS[item["kind"]]["slot"]) + "_item", item)
 
 	if game.has_method("districts_snapshot"): game.districts.sync(game)
 	if "camp" in game and game.camp.enabled:game.camp.food.sync_sites(game)
+	if game.has_method("production_snapshot"):game.production.sync(game)
 
 func grant(kind: String, owner: String = "") -> void:
 	gear.append({"id": next_id, "kind": kind, "durability": GearCatalog.ITEMS[kind]["durability"], "owner": owner})
@@ -83,7 +85,7 @@ func equip(game: Node2D, id: int, actor_id: int) -> bool:
 	return false
 
 func equipped_slots(actor: Survivor) -> int:
-	return (0 if actor.weapon_item.is_empty() else 1) + (0 if actor.armor_item.is_empty() else 1)
+	return (0 if actor.weapon_item.is_empty() else 1) + (0 if actor.armor_item.is_empty() else 1) + (0 if actor.tool_item.is_empty() else 1)
 
 func reserved_slots(game: Node2D) -> int:
 	var id: int = game.cycle.scavenger()
@@ -93,6 +95,7 @@ func refresh_slots(field: ExpeditionState, actor: Survivor) -> void:
 	field.extra_slots = equipped_slots(actor) + ceili((field.reserve_ammo + field.magazine) / 8.0) + carried.size() + (2 if field.carrying_person else 0)
 	var game:Node=actor.get_parent().get_parent() if is_instance_valid(actor.get_parent()) else null
 	if is_instance_valid(game) and "camp" in game and game.camp.enabled:field.extra_slots+=game.camp.food.slots()
+	if is_instance_valid(game) and game.has_method("production_snapshot"):field.extra_slots+=game.production.carried.size()
 
 func unlocked(game: Node2D, id: String) -> bool:
 	match id:
@@ -136,6 +139,7 @@ func take_part(game: Node2D) -> bool:
 	return false
 
 func trip_return(game: Node2D, id: int, survived: bool) -> void:
+	if game.has_method("production_snapshot"):game.production.returned(game,survived)
 	if survived:
 		ammo += game.expedition.reserve_ammo + game.expedition.magazine
 		for key in carried:
@@ -187,6 +191,7 @@ func tick_day(game: Node2D, delta: float) -> void:
 			continue
 		if not station.is_empty(): used_stations.append(station)
 		var rate: float = game.facilities.rate(station) if not station.is_empty() and not FacilitySystem.RECIPES.get(job["kind"],{}).has("from") else 1.0
+		if station=="workbench" and job["kind"]!="service_tools":rate*=game.production.rate()
 		job["elapsed"] = minf(job["duration"], job["elapsed"] + delta * (game.camp.relations.work_factor(game,actor) if game.camp.enabled else 1.0) * (1.0 if job["kind"] in ["music","picnic"] else CharacterAbilities.factor(actor,"work")) * actor.effort_factor() * actor.person.bonus("craft") * rate)
 		actor.activity = {"kind": "music" if job["kind"] == "music" else "eat" if job["kind"] == "picnic" else "cook" if FacilitySystem.RECIPES.get(job["kind"],{}).has("output") else "build", "label": job["label"], "progress": job["elapsed"] / job["duration"]}
 		if job["elapsed"] >= job["duration"]:
@@ -226,8 +231,9 @@ func start_job(game: Node2D, kind: String, item_id: int = -1, actor_id: int = -1
 	if GearCatalog.ITEMS.has(kind) and gear.size() >= 300:
 		game._log("装备仓库已满，请优先修理现有装备。")
 		return false
+	if kind=="service_tools" and game.production.condition>=100:return false
 	if kind == "ammo" and ammo > 99992: return false
-	if kind == "repair" and not gear.any(func(item): return item["id"] == item_id and item["durability"] < GearCatalog.ITEMS[item["kind"]]["durability"]): return false
+	if kind == "repair" and not gear.any(func(item): return item["id"] == item_id and item["kind"]!="lockpick" and item["durability"] < GearCatalog.ITEMS[item["kind"]]["durability"]): return false
 	if kind == "radio" and (stage != 0 or not parts.has("relay")): return false
 	if kind == "pump" and (stage != 2 or not parts.has("filter_core")): return false
 	if kind == "beacon" and (stage != 3 or not parts.has("beacon_core") or not parts.has("power_cell")): return false
@@ -261,6 +267,7 @@ func finish(game: Node2D, job: Dictionary) -> void:
 	if FacilitySystem.RECIPES.has(kind): game.facilities.complete(game,kind,game.survivors[int(job["actor"])])
 	elif GearCatalog.ITEMS.has(kind): grant(kind)
 	elif kind == "ammo": ammo += 8
+	elif kind == "service_tools":pass
 	elif ResidenceSystem.PROJECTS.has(kind): game.residence.finish(game, kind, game.survivors[int(job["actor"])])
 	elif kind == "repair":
 		for item in gear:
@@ -269,6 +276,7 @@ func finish(game: Node2D, job: Dictionary) -> void:
 		parts.erase(GearCatalog.PROJECTS[kind]["part"])
 		if kind == "beacon": parts.erase("power_cell")
 		stage += 1
+	if game.has_method("production_snapshot"):game.production.finished(game,int(job["actor"]),kind)
 	if KitchenPlan.ADVANCED.has(kind):game.self_care.finished(game,int(job["actor"]),"cook")
 	sync(game)
 	game._log(job["label"] + "完成。")
@@ -391,10 +399,16 @@ static func validate(data: Variant, world: Dictionary) -> String:
 	var field: Dictionary = world["expedition"]
 	if field["active"]:
 		var owner: String = world["actors"][int(field["actor_id"])]["person"]["persona"]
+		var tool:Dictionary={}
+		for item in data["gear"]:
+			if item["owner"]==owner and GearCatalog.ITEMS[item["kind"]]["slot"]=="tool":tool=item
+		if field["search_tool"] and not FieldTools.usable(tool,"lock"):return "破锁缺少可用工具"
+		if field["route_tool"] and not FieldTools.usable(tool,"route"):return "清障缺少可用工具包"
+		if field["interior"]["action"].get("quiet",false) and not FieldTools.usable(tool,"window"):return "静拆窗口缺少可用工具包"
 		var equipped := 0
 		for item in data["gear"]:
 			if item["owner"] == owner and GearCatalog.ITEMS[item["kind"]]["slot"] != "coat": equipped += 1
-		var expected: int = CampLife.cargo_slots_from(world.get("camp",{})) + equipped + ceili((field["reserve_ammo"] + field["magazine"]) / 8.0) + data["carried"].size()
+		var expected: int = CampLife.cargo_slots_from(world.get("camp",{})) + equipped + ceili((field["reserve_ammo"] + field["magazine"]) / 8.0) + data["carried"].size() + WorkshopProduction.cargo_slots(world.get("production",{}))
 		if world.get("neighborhood",{}).get("rescue",{}).get("state","")=="carried": expected+=2
 		if expected != field["extra_slots"]: return "装备弹药与背包负重不符"
 	elif not data["carried"].is_empty() or field["reserve_ammo"] != 0 or field["magazine"] != 0 or field["reload_remaining"] != 0:

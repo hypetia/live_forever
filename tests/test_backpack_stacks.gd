@@ -1,7 +1,7 @@
 extends "res://tests/test_campaign.gd"
 
 func _run() -> void:
-	var rules := {"raw_food":4,"water":4,"fuel":4,"meals":4,"materials":8,"tools":1,"medicine":2}
+	var rules := {"raw_food":4,"water":4,"fuel":4,"meals":4,"materials":8,"tools":4,"medicine":2}
 	for key in rules:
 		var maximum: int = rules[key]
 		expect(BackpackStacks.limit(key) == maximum,"declared stack ceiling: "+key)

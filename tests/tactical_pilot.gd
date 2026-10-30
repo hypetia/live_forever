@@ -93,9 +93,11 @@ func _manage_expansion() -> void:
  var builder:Survivor=game.survivors[builder_id]
  if builder.health<=0 or builder.hunger>=65 or builder.fatigue>=80 or game._external_busy(builder_id) or not builder.orders.is_empty():return
  game.select_survivor(builder_id)
+ if game.production.condition<=20 and game.inventory.can_take(GearCatalog.PROJECTS['service_tools']['cost']):
+  if game.expansion.start_job(game,'service_tools'):return
  # Keep paid fighting tools usable before starting elective projects.
  for item in game.expansion.gear:
-  if item['kind'] in ['spear','knife','bat','padding','vest'] and item['durability']<int(GearCatalog.ITEMS[item['kind']]['durability'])*.6 and game.facilities.levels['workbench']>=2 and game.inventory.amount('materials')>=4:
+  if item['kind'] in ['spear','knife','bat','padding','vest','toolkit'] and item['durability']<int(GearCatalog.ITEMS[item['kind']]['durability'])*.6 and game.facilities.levels['workbench']>=2 and game.inventory.amount('materials')>=4:
    if game.expansion.start_job(game,'repair',int(item['id'])):return
  if game.inventory.amount('tools')<2 and game.inventory.amount('materials')>=6:
   game.scheduler.submit(builder,'craft');return
@@ -187,6 +189,9 @@ func _select_night() -> void:
  for n in range(coats.size()):
   var target_id:int=(scout+n)%game.survivors.size()
   if coats[n]['owner']!=game.survivors[target_id].person.persona:game.expansion.equip(game,int(coats[n]['id']),target_id)
+ var toolkits:Array=game.expansion.gear.filter(func(item):return item['kind']=='toolkit' and item['durability']>0)
+ toolkits.sort_custom(func(a,b):return a['durability']>b['durability'])
+ if not toolkits.is_empty():game.expansion.assign_gear(game,toolkits[0]['id'],scout)
  game.cycle.loadout.clear()
  if game.inventory.amount('medicine')>0:game.cycle.loadout['medicine']=1
  _extra_loadout()

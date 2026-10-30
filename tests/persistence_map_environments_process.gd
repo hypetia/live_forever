@@ -9,18 +9,19 @@ func _run() -> void:
 	game.save_store.path = args[1]
 	var okay := true
 	if args[0] == "write":
+		game.expansion.grant("toolkit",game.survivors[2].person.persona);game.expansion.sync(game)
 		game.inventory.deposit({"tools":1},"declared clearance persistence fixture")
 		game.end_day();game.cycle.loadout = {"tools":1};okay = game.start_expedition()
 		var field: ExpeditionState = game.expedition
 		for enemy in field.enemies: enemy["hp"] = 0;enemy["mode"] = "dead"
-		field.player_x = field.route_x();field.condition = 1;field._clear_route(1)
+		field.player_x = field.route_x();field.condition = 1;field._clear_route(1,game.survivors[field.actor_id])
 		game.regions["clinic"].route_open = true
 	elif args[0] == "read":
 		okay = game.load_game()
 		var field: ExpeditionState = game.expedition
 		okay = okay and field.condition == 1 and field.route_progress == 1 and field.route_tool and field.bag["tools"] == 1 and game.regions["clinic"].route_open
-		field._clear_route(2)
-		okay = okay and field.route_open and field.bag["tools"] == 0
+		field._clear_route(2,game.survivors[field.actor_id])
+		okay = okay and field.route_open and field.bag["tools"] == 1 and game.survivors[field.actor_id].tool_item["durability"]==88
 		field.tick(.01,game.survivors[field.actor_id],{"climb":1})
 		field.tick(.8,game.survivors[field.actor_id],{})
 		okay = okay and field.climb_target == 1 and field.climb_progress == .4
@@ -39,7 +40,7 @@ func _run() -> void:
 		okay = okay and game.cycle.phase == "dawn"
 	elif args[0] == "verify":
 		okay = game.load_game() and game.cycle.phase == "dawn"
-		okay = okay and game.expedition.route_open and game.regions["clinic"].route_open and game.inventory.amount("tools") == 0
+		okay = okay and game.expedition.route_open and game.regions["clinic"].route_open and game.inventory.amount("tools") == 1
 		var before := SaveSystem.capture(game)
 		game._settle_night([]);game.confirm_departure()
 		okay = okay and before == SaveSystem.capture(game)

@@ -17,7 +17,7 @@ func _run() -> void:
    var f:ExpeditionState=game.expedition
    expect(f.interior.action.get('kind')=='window' and f.bag['tools']==1,'unfinished opening survives process boundary')
    for n in range(200):f.tick(.02,game.survivors[2],{'window':true})
-   expect(f.interior.doors[0]['window']==1 and f.bag['tools']==0,'resumed quiet opening consumes exactly one real tool')
+   expect(f.interior.doors[0]['window']==1 and f.bag['tools']==1 and game.survivors[2].tool_item['durability']==92,'resumed quiet opening wears the same equipped kit once')
    f.tick(.02,game.survivors[2],{})
    for n in range(15):f.tick(.02,game.survivors[2],{'window':true})
    expect(f.interior.action.get('kind')=='vault','mid-vault is persisted rather than teleporting to completion')
@@ -25,7 +25,7 @@ func _run() -> void:
    var f:ExpeditionState=game.expedition
    expect(f.interior.action.get('kind')=='vault','interrupted vault restores its route and timer')
    for n in range(100):f.tick(.02,game.survivors[2],{'window':true})
-   expect(f.player_x>float(InteriorState.layout('street')[0]['x']) and f.bag['tools']==0,'resumed vault lands on the other side without a second charge')
+   expect(f.player_x>float(InteriorState.layout('street')[0]['x']) and f.bag['tools']==1 and game.survivors[2].tool_item['durability']==92,'resumed vault lands on the other side without a second charge')
   elif phase=='finish':
    expect(game.siege.active and game.siege.wave==1 and game.cycle.phase=='siege','active battle survives process restart')
    game.select_survivor(0);game.paused=false;game.move_selected(Vector2(140,640));game.advance_simulation(8)

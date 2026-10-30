@@ -7,6 +7,7 @@ var menu_button: Button
 var end_button: Button
 var save_button: Button
 var goal_button: Button
+var camp_button:Button
 var home_button: Button
 var temperature: Label
 var toast: Label
@@ -83,7 +84,7 @@ void fragment(){
 			box.content_margin_top = 3
 			box.content_margin_bottom = 3
 			button.add_theme_stylebox_override(state,box)
-	game.interface.button(root,"营地 F5",Vector2(1005,748),Vector2(105,36),func():game.camp_view.show_page("situation"))
+	camp_button=game.interface.button(root,"营地 F5",Vector2(1005,748),Vector2(105,36),func():game.camp_view.show_page("situation"))
 	refresh()
 
 func _process(delta: float) -> void:
@@ -99,6 +100,7 @@ func refresh() -> void:
 	if not is_instance_valid(root):return
 	var day: bool = game.cycle.phase == "day"
 	var field: bool = game.expedition.active
+	camp_button.visible=day and game.camp.enabled
 	home_button.visible = day
 	home_button.tooltip_text = game.residence.title() + " · 家园 H\n安防耐久%d / 噪声%d" % [roundi(game.residence.condition),roundi(game.residence.noise)]
 	for node in [game.main_title,game.subtitle,game.upkeep_label,game.phase_label,game.stock_label,game.save_label,game.tutorial_label,game.log_label]: node.hide()

@@ -5,6 +5,7 @@ extends RefCounted
 static func render(ui: CampaignInterface) -> Panel:
 	var game := ui.game
 	ui.workshop_recipes.clear()
+	ui.production_counts.clear();ui.production_modes.clear();ui.production_actions.clear()
 	ui.workshop_owner_choices.clear()
 	ui.workshop_upgrade = null
 	var window := ui.panel(ui.root,Vector2(25,20),Vector2(1390,860))
@@ -20,7 +21,7 @@ static func render(ui: CampaignInterface) -> Panel:
 		living_row += 1
 	GameUi.paper(window,Rect2(0,0,1390,860))
 	GameUi.line(window,Vector2(250,72),Vector2(250,828))
-	var pages := [["workbench","工作台"],["kitchen","厨房"],["storage","装备维护"],["campaign","撤离工程"]]
+	var pages := [["workbench","工作台"],["kitchen","厨房"],["storage","装备维护"],["campaign","撤离工程"],["production","生产计划"]]
 	for index in range(pages.size()):
 		var page: Array = pages[index]
 		var tab := ui.button(window,page[1],Vector2(25,126+index*57),Vector2(210,46),func(): ui.workshop_section = page[0]; ui._create_workshop())
@@ -32,7 +33,7 @@ static func render(ui: CampaignInterface) -> Panel:
 		if station == "stove":
 			benefit = "烹饪效率 +%d%%" % roundi((game.facilities.rate(station)-1)*100)
 		else:
-			benefit = "制作效率 +%d%%" % roundi((game.facilities.rate(station)-1)*100)
+			benefit = "制作效率 %+d%%  /  工具状态 %d%%" % [roundi((game.facilities.rate(station)*game.production.rate()-1)*100),game.production.condition]
 		ui.label(window,benefit,Vector2(270,202),Vector2(740,38),16)
 		var upgrade: String = game.facilities.next_upgrade(station)
 		if not upgrade.is_empty():
@@ -47,6 +48,9 @@ static func render(ui: CampaignInterface) -> Panel:
 				if job["kind"] == upgrade:
 					ui.workshop_upgrade.text = "升级施工中 · %d%%" % roundi(100*float(job["elapsed"])/float(job["duration"]))
 		else: ui.label(window,"已达到最高等级",Vector2(1040,158),Vector2(305,35),19,game.GOLD)
+	elif ui.workshop_section=="production":
+		ui.label(window,"生产计划",Vector2(270,150),Vector2(1070,38),23,game.GOLD)
+		ui.label(window,"工人空闲时执行，逐件扣料。手动命令暂停计划，夜间暂停施工。",Vector2(270,204),Vector2(1070,40),17,GameUi.SECONDARY)
 	elif ui.workshop_section == "storage":
 		ui.label(window,"装备仓库 · 弹药%d发" % game.expansion.ammo,Vector2(270,150),Vector2(1070,38),23,game.GOLD)
 		ui.label(window,"维修：材料2，恢复60耐久。",Vector2(270,204),Vector2(1070,32),16)
@@ -65,12 +69,17 @@ static func render(ui: CampaignInterface) -> Panel:
 	match ui.workshop_section:
 		"workbench": kinds = ["craft","repair_shelter"]+GearCatalog.ITEMS.keys()
 		"kitchen": kinds = ["cook","cook_batch","cook_stew","cook_pot"]
-		"campaign": kinds = GearCatalog.PROJECTS.keys().filter(func(kind): return kind != "ammo")
+		"campaign": kinds = GearCatalog.PROJECTS.keys().filter(func(kind): return not kind in ["ammo","service_tools"])
+		"production":WorkshopProductionView.page(ui,body)
 		"storage":
 			for index in range(game.expansion.gear.size()): _storage_card(ui,body,game.expansion.gear[index],index)
 			if game.expansion.gear.is_empty(): ui.label(body,"暂无装备",Vector2(15,20),Vector2(1200,40),18)
 	if ui.workshop_section == "workbench": kinds.append("ammo")
 	for index in range(kinds.size()): _recipe_card(ui,body,kinds[index],index)
+	if ui.workshop_section=="workbench":
+		var service:=ui.button(window,"保养 · 零件1 材料1",Vector2(25,414),Vector2(210,38),func():_start(ui,"service_tools"))
+		service.disabled=game.cycle.phase!="day" or game.production.condition>=100 or not game.inventory.can_take(GearCatalog.PROJECTS["service_tools"]["cost"])
+		service.tooltip_text="恢复工作台工具状态60。低于21时效率降低15%，完全损坏时降低35%；无需重新制作整套工具。"
 	if ui.workshop_section == "campaign":
 		var y := ceilf(kinds.size()/2.0)*180+12
 		ui.button(body,"点燃炉火 · 燃料1",Vector2(0,y),Vector2(332,42),func(): game.expansion.ignite(game); ui._create_workshop())
@@ -78,7 +87,7 @@ static func render(ui: CampaignInterface) -> Panel:
 		ui.button(body,"净水泵 "+("开" if game.expansion.pump_on else "关"),Vector2(700,y),Vector2(332,42),func(): game.expansion.pump_on = not game.expansion.pump_on; ui._create_workshop())
 		ui.label(body,"夜间取暖出发前扣燃料，每份烧8小时；净水泵每日燃料1换水3。",Vector2(0,y+57),Vector2(1050,40),15)
 		body.custom_minimum_size.y = y+110
-	else:
+	elif ui.workshop_section!="production":
 		var count: int = game.expansion.gear.size() if ui.workshop_section == "storage" else kinds.size()
 		body.custom_minimum_size.y = maxf(180,ceilf(count/2.0)*180+10)
 	window.draw.connect(func():
@@ -114,11 +123,13 @@ static func _recipe_card(ui: CampaignInterface, body: Control, kind: String, ind
 	var line: String = ("每批：" if kind == "cook" else "")+ShelterInventory.describe(recipe["cost"])
 	if not output.is_empty(): line += " → "+ShelterInventory.describe(output)
 	ui.label(card,line,Vector2(16,56),Vector2(488,28),15)
-	var hint: String = "房屋结构 +18（上限100）" if kind == "repair_shelter" else "现场制作；取消退还材料。" if basic else GearCatalog.describe(kind) if GearCatalog.ITEMS.has(kind) else FacilitySystem.RECIPES[kind]["hint"] if FacilitySystem.RECIPES.has(kind) else "用于手枪，射击会引来尸群。" if kind == "ammo" else "使用已带回的战役零件。"
+	var hint: String = "房屋结构 +18（上限100）" if kind == "repair_shelter" else "用于制造和设施装配；逐件加工。" if kind=="craft" else "现场制作；取消退还材料。" if basic else GearCatalog.describe(kind) if GearCatalog.ITEMS.has(kind) else FacilitySystem.RECIPES[kind]["hint"] if FacilitySystem.RECIPES.has(kind) else "用于手枪，射击会引来尸群。" if kind == "ammo" else "使用已带回的战役零件。"
 	var detail:=ui.label(card,hint,Vector2(16,87),Vector2(488,26),14)
 	detail.tooltip_text=hint;detail.mouse_filter=Control.MOUSE_FILTER_PASS
 	var duration: float = TaskCatalog.duration_for(task,actor) if basic else float(recipe["seconds"])
-	var action := ui.button(card,("维修" if kind == "repair_shelter" else "烹饪" if station == "stove" else "制作")+" · 约%.1f秒" % (duration/game.facilities.rate(station)),Vector2(340,120),Vector2(164,34),func(): _basic(ui,task) if basic else _start(ui,kind))
+	var action := ui.button(card,("维修" if kind == "repair_shelter" else "烹饪" if station == "stove" else "制作")+" · 约%.1f秒" % (duration/(game.facilities.rate(station)*(game.production.rate() if station=="workbench" else 1.0))),Vector2(340,120),Vector2(164,34),func(): WorkshopProductionView.arrange(ui,kind) if kind in WorkshopProduction.KINDS else _basic(ui,task) if basic else _start(ui,kind))
+	if kind in WorkshopProduction.KINDS:
+		WorkshopProductionView.controls(ui,card,kind);action.text="安排生产"
 	if locked: action.text="未解锁"
 	ui.workshop_recipes[kind] = action
 	var error: String = game.facilities.job_error(game,kind)
@@ -127,6 +138,10 @@ static func _recipe_card(ui: CampaignInterface, body: Control, kind: String, ind
 		if game.expansion.stage != {"radio":0,"pump":2,"beacon":3}[kind] or not game.expansion.parts.has(recipe["part"]) or (kind == "beacon" and not game.expansion.parts.has("power_cell")): error = "需要对应阶段和已入库的战役零件。"
 	action.disabled = game.cycle.phase != "day" or locked or not error.is_empty() or not game.inventory.can_take(recipe["cost"]) or actor.health <= 0
 	action.tooltip_text = error if not error.is_empty() else "缺料："+game.inventory.missing_text(recipe["cost"]) if not game.inventory.can_take(recipe["cost"]) else "耗时随人物专长、状态和设施效率变化。"
+	if kind in WorkshopProduction.KINDS:
+		action.disabled=game.cycle.phase!="day" or locked or actor.health<=0
+		action.tooltip_text="逐件开工时扣料，缺料时等待。重新安排会替换该物品的原计划。"
+		if not game.inventory.can_take(recipe["cost"]):action.tooltip_text+="\n"+game.inventory.missing_text(recipe["cost"])
 	if kind == "cook":
 		ui.label(card,"批数",Vector2(16,123),Vector2(52,27),14)
 		ui.kitchen_batches = SpinBox.new()
@@ -181,4 +196,4 @@ static func _storage_card(ui: CampaignInterface, body: Control, item: Dictionary
 		if game.expansion.start_job(game,"repair",int(item["id"])): ui.close_workshop()
 		else: ui._create_workshop()
 	)
-	repair.disabled = game.cycle.phase != "day" or item["durability"] >= GearCatalog.ITEMS[kind]["durability"] or not game.inventory.can_take({"materials":2})
+	repair.disabled = kind=="lockpick" or game.cycle.phase != "day" or item["durability"] >= GearCatalog.ITEMS[kind]["durability"] or not game.inventory.can_take({"materials":2})

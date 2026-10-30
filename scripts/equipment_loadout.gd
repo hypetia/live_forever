@@ -1,8 +1,8 @@
 class_name EquipmentLoadout
 extends CanvasLayer
 ## A physical-item loadout screen shared by the shelter, departure and field inspection.
-const SLOT_NAMES := ["手持武器", "护甲", "衣物"]
-const SLOT_KEYS := ["weapon", "armor", "coat"]
+const SLOT_NAMES := ["手持武器", "护甲", "衣物", "工具"]
+const SLOT_KEYS := ["weapon", "armor", "coat", "tool"]
 var game: Node2D
 var root: Control
 var window: Panel
@@ -38,7 +38,7 @@ func open_for(actor_id: int = -1, slot: int = 0) -> void:
 	read_only = not game.cycle.phase in ["day","planning"]
 	selected_actor = game.expedition.actor_id if read_only else game.selected_id if actor_id < 0 else actor_id
 	if selected_actor < 0 or selected_actor >= game.survivors.size(): return
-	selected_slot = clampi(slot,0,2)
+	selected_slot = clampi(slot,0,3)
 	opened = true
 	game.paused = true
 	game.expedition_view.search_held = false
@@ -78,19 +78,19 @@ func refresh() -> void:
 		y += 72
 	ui.label(window,actor.display_name+" · "+actor.speciality,Vector2(275,86),Vector2(920,34),23,game.GOLD)
 	var slots := EquipmentArt.slots(actor)
-	for index in range(3):
+	for index in range(4):
 		var entry: Dictionary = slots[index]
-		var b := ui.button(window,"",Vector2(275+index*310,135),Vector2(295,118),open_for.bind(selected_actor,index))
+		var b := ui.button(window,"",Vector2(275+index*233,135),Vector2(221,118),open_for.bind(selected_actor,index))
 		GameUi.tab(b,index==selected_slot)
 		b.draw.connect(func():
 			EquipmentArt.icon(b,entry,Vector2(35,53))
 			if not entry["kind"].is_empty():
-				b.draw_rect(Rect2(18,103,259,4),Color("34453f"))
-				b.draw_rect(Rect2(18,103,259*entry["ratio"],4),Color("c5ab75") if not entry["broken"] else Color("dc816b"))
+				b.draw_rect(Rect2(18,103,185,4),Color("34453f"))
+				b.draw_rect(Rect2(18,103,185*entry["ratio"],4),Color("c5ab75") if not entry["broken"] else Color("dc816b"))
 		)
-		ui.label(b,SLOT_NAMES[index],Vector2(68,10),Vector2(210,26),18,GameUi.SECONDARY)
-		ui.label(b,entry["name"]+(" · 损坏" if entry["broken"] else ""),Vector2(68,40),Vector2(210,28),21)
-		ui.label(b,"耐久 %d / %d"%[entry["durability"],entry["maximum"]] if not entry["kind"].is_empty() else "空栏位",Vector2(68,72),Vector2(210,24),17,GameUi.SECONDARY)
+		ui.label(b,SLOT_NAMES[index],Vector2(68,10),Vector2(143,26),18,GameUi.SECONDARY)
+		ui.label(b,entry["name"]+(" · 损坏" if entry["broken"] else ""),Vector2(68,40),Vector2(143,28),21)
+		ui.label(b,"耐久 %d / %d"%[entry["durability"],entry["maximum"]] if not entry["kind"].is_empty() else "空栏位",Vector2(68,72),Vector2(143,24),17,GameUi.SECONDARY)
 		b.tooltip_text = GearCatalog.describe(entry["kind"]) if not entry["kind"].is_empty() else entry["name"]
 		slot_buttons.append(b)
 	ui.label(window,"随身物品" if read_only else "装备库存",Vector2(275,283),Vector2(940,30),20,game.GOLD)
@@ -120,7 +120,7 @@ func refresh() -> void:
 		item_buttons[int(item["id"])] = b
 		count += 1
 	if count == 0: ui.label(body,"暂无"+SLOT_NAMES[selected_slot],Vector2.ZERO,Vector2(880,44),21,GameUi.SECONDARY)
-	ui.label(window,"外出期间无法更换装备" if read_only else "武器、护甲各占1格；衣物不占格。",Vector2(275,719),Vector2(940,30),17,GameUi.SECONDARY)
+	ui.label(window,"外出期间无法更换装备" if read_only else "武器、护甲、工具各占1格；衣物不占格。",Vector2(275,719),Vector2(940,30),17,GameUi.SECONDARY)
 
 func assign(id: int, actor_id: int) -> void:
 	if read_only or not opened: return
