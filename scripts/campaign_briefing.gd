@@ -39,9 +39,9 @@ func render() -> void:
 	var ui: CampaignInterface = game.interface
 	var d: CampaignDirector = game.director
 	window = ui.panel(self,Vector2(25,20),Vector2(1390,860))
-	ui.label(window,"街区动态",Vector2(28,22),Vector2(1000,44),30,GameUi.ACCENT)
+	ui.label(window,"委托",Vector2(28,22),Vector2(1000,44),30,GameUi.TEXT)
 	ui.button(window,"返回 U / Esc",Vector2(1155,22),Vector2(205,42),close)
-	ui.label(window,"战役第%d天 · 本轮第%d—%d天 · 每轮可选一项，不接取不受惩罚" % [game.expansion.day(game),d.window(game)*3+1,d.window(game)*3+3],Vector2(28,80),Vector2(1320,31),18,GameUi.SECONDARY)
+	ui.label(window,"第%d天  /  委托期限：第%d—%d天" % [game.expansion.day(game),d.window(game)*3+1,d.window(game)*3+3],Vector2(28,80),Vector2(1320,31),18,GameUi.SECONDARY)
 	var forecast := ui.panel(window,Vector2(28,127),Vector2(1330,94),GameUi.SURFACE)
 	ui.label(forecast,game.night_forecast().replace(" · U查看街区动态",""),Vector2(20,13),Vector2(1010,29),21,GameUi.ACCENT)
 	ui.button(forecast,"安防详情 Z",Vector2(1080,12),Vector2(225,38),func(): game.security_view.toggle())
@@ -80,7 +80,7 @@ func _active(ui: CampaignInterface, d: CampaignDirector) -> void:
 	bar.value = d.progress
 	card.add_child(bar)
 	ui.label(card,"接应补给："+ShelterInventory.describe(definition["reward"]),Vector2(24,273),Vector2(1255,35),22,GameUi.SUCCESS)
-	if not definition["cost"].is_empty(): ui.label(card,"交付："+ShelterInventory.describe(definition["cost"])+"；先为队伍留好食物。",Vector2(24,322),Vector2(1255,35),19,GameUi.WARNING)
+	if not definition["cost"].is_empty(): ui.label(card,"交付："+ShelterInventory.describe(definition["cost"])+"。",Vector2(24,322),Vector2(1255,35),19,GameUi.WARNING)
 	claim_button = ui.button(card,"接收补给",Vector2(24,411),Vector2(330,48),func(): d.claim(game); render())
 	claim_button.disabled = d.status != "ready" or not game.cycle.phase in ["day","planning"] or not game.inventory.can_take(definition["cost"])
 	claim_button.tooltip_text = "需交付："+ShelterInventory.describe(definition["cost"]) if not game.inventory.can_take(definition["cost"]) else "完成后只能领取一次。"

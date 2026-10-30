@@ -47,7 +47,7 @@ func render() -> void:
 		backdrop.mouse_filter = Control.MOUSE_FILTER_STOP;add_child(backdrop)
 	var ui: CampaignInterface = game.interface
 	window = ui.panel(self,Vector2(25,20),Vector2(1390,860))
-	ui.label(window,"街区与补给前哨",Vector2(30,20),Vector2(970,44),30,GameUi.ACCENT)
+	ui.label(window,"街区与补给前哨",Vector2(30,20),Vector2(970,44),30,GameUi.TEXT)
 	ui.button(window,"返回 Y / Esc",Vector2(1150,22),Vector2(210,42),close)
 	ui.label(window,"枪声留下压力 · 轮值占用人手和燃料 · 修整与清理需要回到现场",Vector2(30,78),Vector2(1300,30),18,GameUi.SECONDARY)
 	var chart := Control.new();chart.mouse_filter = Control.MOUSE_FILTER_IGNORE;window.add_child(chart)

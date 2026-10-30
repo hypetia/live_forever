@@ -15,11 +15,9 @@ func _run() -> void:
 	check(not game.interface.workshop_open and not game.paused, "mouse closes workshop and restores time")
 	game.end_day()
 	await process_frame
-	await click_button(game.interface.overlay, "下一组")
-	check(game.interface.map_page == 1 and game.interface.map_buttons.has("waterworks"), "map pager exposes additional playable routes")
+	check(game.interface.map_buttons.size()==9 and game.interface.map_buttons.has("waterworks"), "full destination list exposes every playable route")
 	check(game.interface.map_buttons["waterworks"].disabled, "locked route shows a gate rather than silently entering")
 	await picture("res://docs/v12-maps.png")
-	await click_button(game.interface.overlay, "‹ 上一组")
 	await click_at(game.interface.map_buttons["street"].get_global_rect().get_center())
 	await keypress(KEY_ENTER)
 	check(game.expedition.active and game.expedition.extra_slots == 1, "keyboard departure carries equipped knife at real weight")

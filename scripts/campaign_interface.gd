@@ -11,6 +11,10 @@ var district_button: Button
 var outpost_buttons: Dictionary = {}
 var role_options: Array[OptionButton] = []
 var role_stats: Array[Label] = []
+var plan_stock_labels: Dictionary = {}
+var plan_rows: Dictionary = {}
+var plan_ammo_stock: Label
+var plan_heat: CheckBox
 var role_equipment_buttons: Dictionary = {}
 var equipment_button: Button
 var supply_buttons: Dictionary = {}
@@ -65,7 +69,7 @@ func _ready() -> void:
 	placement_hint = label(root, "", Vector2(32, 246), Vector2(1000, 38), 17, game.GOLD)
 	workshop_button = button(root, "制作 / 战役 K", Vector2(1212, 150), Vector2(200, 42), toggle_workshop)
 	climate_label = label(root, "", Vector2(32, 151), Vector2(990, 62), 15)
-	briefing_button = button(root,"街区动态 U",Vector2(1218,748),Vector2(190,36),func(): game.briefing.toggle())
+	briefing_button = button(root,"委托 U",Vector2(1218,748),Vector2(190,36),func(): game.briefing.toggle())
 	district_button = button(root,"街区 Y",Vector2(32,90),Vector2(134,34),func(): game.district_view.toggle())
 	equipment_button = button(root,"装备 O",Vector2(850,748),Vector2(140,36),func(): game.equipment_view.open_for())
 	refresh(true)
@@ -79,7 +83,7 @@ func label(parent: Node, text: String, point: Vector2, size: Vector2, font_size:
 	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	node.clip_text = true
 	node.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	node.add_theme_font_override("font", game.FONT)
+	node.add_theme_font_override("font",GameUi.heading_font() if font_size>=24 else game.FONT)
 	node.add_theme_font_size_override("font_size", maxi(17,font_size))
 	node.add_theme_color_override("font_color", color)
 	parent.add_child(node)
@@ -115,7 +119,7 @@ func refresh(force: bool = false) -> void:
 	if not is_instance_valid(root): return
 	district_button.visible = game.cycle.phase in ["day","scavenge","returning"]
 	briefing_button.visible = game.cycle.phase == "day" and game.placement.is_empty() and not game.context_open
-	briefing_button.text = "补给待领取 U" if game.director.status == "ready" else "街区动态 U"
+	briefing_button.text = "领取报酬 U" if game.director.status == "ready" else "委托 U"
 	equipment_button.visible = game.cycle.phase == "day"
 	workshop_button.visible = game.cycle.phase == "day"
 	climate_label.visible = game.cycle.phase == "day"
@@ -133,6 +137,8 @@ func refresh(force: bool = false) -> void:
 			overlay.queue_free()
 		role_options.clear()
 		role_stats.clear()
+		plan_stock_labels.clear()
+		plan_rows.clear()
 		role_equipment_buttons.clear()
 		supply_buttons.clear()
 		supply_labels.clear()
@@ -142,7 +148,7 @@ func refresh(force: bool = false) -> void:
 		if not mode.is_empty():
 			build_open = false
 			if is_instance_valid(build_panel): build_panel.hide()
-			overlay = panel(root, Vector2.ZERO, Vector2(1440, 900), Color("101b1c"))
+			overlay = panel(root, Vector2.ZERO, Vector2(1440, 900), GameUi.PANEL)
 			if mode == "planning": _create_plan()
 			elif mode == "dawn": _create_dawn()
 			else: _create_loot()
@@ -154,69 +160,91 @@ func refresh(force: bool = false) -> void:
 
 
 func _create_plan() -> void:
-	label(overlay, "第%d夜 · 谁去，谁留下" % game.cycle.night_day, Vector2(36, 24), Vector2(900, 48), 30, game.GOLD)
-	plan_forecast = label(overlay,"",Vector2(38,80),Vector2(1300,30),18,GameUi.SECONDARY)
-	button(overlay, "保存 F6", Vector2(1260, 30), Vector2(140, 42), func(): game.save_game())
-	label(overlay, "目的地", Vector2(38, 129), Vector2(600, 30), 19, game.GOLD)
-	button(overlay, "‹ 上一组", Vector2(770, 122), Vector2(150, 34), _page_maps.bind(-1))
-	label(overlay, "%d / 3" % (map_page + 1), Vector2(935, 122), Vector2(100, 32))
-	button(overlay, "下一组 ›", Vector2(1040, 122), Vector2(150, 34), _page_maps.bind(1))
-	button(overlay, "装备 O", Vector2(1200, 122), Vector2(195, 34), func(): game.equipment_view.open_for())
-	for index in range(3):
-		var id: String = LocationCatalog.ALL_IDS[map_page * 3 + index]
-		var area := LocationCatalog.area(id)
-		var x := 38.0 + index * 458
-		panel(overlay, Vector2(x, 169), Vector2(440, 145), Color(str(area["color"])).darkened(0.15))
-		label(overlay, area["name"] + "  /  风险" + area["risk"], Vector2(x + 16, 181), Vector2(405, 30), 21)
-		var summary := label(overlay, LocationEnvironment.BRIEFS[id]+"\n"+RegionalThreats.brief(game,id) if game.expansion.unlocked(game, id) else "尚未开放：" + game.expansion.lock_reason(id), Vector2(x + 16, 220), Vector2(405, 46), 14)
-		summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		map_buttons[id] = button(overlay, "选择地点", Vector2(x + 16, 267), Vector2(405, 35), func(): game.choose_destination(id); refresh())
-		map_buttons[id].tooltip_text = area["summary"]+"\n"+LocationEnvironment.route_hint(id)+"\n通路状态："+("已打通" if game.regions[id].route_open else "待清障；原有楼梯始终可用")
-	label(overlay, "夜间岗位  /  一名搜刮者 · 床位%d" % game.cycle.bed_count(), Vector2(38, 334), Vector2(650, 30), 19, game.GOLD)
-	var live_row := 0
+	GameUi.paper(overlay,Rect2(0,0,1440,900))
+	label(overlay,"夜间准备",Vector2(36,24),Vector2(500,45),30)
+	label(overlay,"第 %02d 夜   /   20:00—06:00"%game.cycle.night_day,Vector2(36,70),Vector2(700,28),17,GameUi.SECONDARY)
+	button(overlay,"保存 F6",Vector2(1260,30),Vector2(144,38),func():game.save_game())
+	GameUi.line(overlay,Vector2(36,112),Vector2(1404,112))
+	plan_forecast=label(overlay,"",Vector2(36,122),Vector2(1368,28),17,GameUi.SECONDARY)
+	label(overlay,"探索地点",Vector2(36,163),Vector2(330,28),20,game.GOLD)
+	label(overlay,"人员安排",Vector2(408,163),Vector2(300,28),20,game.GOLD)
+	label(overlay,"床位 %d"%game.cycle.bed_count(),Vector2(900,163),Vector2(120,28),17,GameUi.SECONDARY)
+	label(overlay,"出行背包",Vector2(1044,163),Vector2(280,28),20,game.GOLD)
+	GameUi.line(overlay,Vector2(395,163),Vector2(395,774))
+	GameUi.line(overlay,Vector2(1032,163),Vector2(1032,774))
+	for index in range(LocationCatalog.ALL_IDS.size()):
+		var id: String=LocationCatalog.ALL_IDS[index]
+		var row:=button(overlay,"",Vector2(36,203+index*63),Vector2(348,59),func():game.choose_destination(id);refresh())
+		var totals: Dictionary={}
+		for site in LocationCatalog.area(id)["sites"]:
+			for key in site["items"]:totals[key]=int(totals.get(key,0))+int(site["items"][key])
+		var resources: Array=totals.keys();resources.sort_custom(func(a,b):return totals[a]>totals[b])
+		row.set_meta("resources",resources.slice(0,2))
+		row.draw.connect(_draw_plan_map.bind(row,id))
+		row.tooltip_text=LocationCatalog.area(id)["summary"]+"\n"+RegionalThreats.brief(game,id)+"\n"+LocationEnvironment.route_hint(id)+"\n"+("通路已清理" if game.regions[id].route_open else "通路尚未清理")
+		map_buttons[id]=row
+	var live_row:=0
 	for index in range(game.survivors.size()):
-		var actor: Survivor = game.survivors[index]
-		var y := 377.0 + live_row * 79
-		var row_start := overlay.get_child_count()
-		panel(overlay, Vector2(38, y), Vector2(665, 73))
-		label(overlay, actor.display_name + " · " + actor.speciality, Vector2(53, y + 4), Vector2(230, 24), 16, actor.tint.lightened(0.2))
-		role_stats.append(label(overlay, "", Vector2(53, y + 25), Vector2(235, 43), 13))
-		role_stats[-1].add_theme_constant_override("line_spacing",-8)
-		role_equipment_buttons[index] = []
+		var actor: Survivor=game.survivors[index]
+		var y:=203.0+live_row*112
+		var row_start:=overlay.get_child_count()
+		var card:=panel(overlay,Vector2(408,y),Vector2(612,103),GameUi.SURFACE.darkened(.25))
+		card.draw.connect(func():
+			ActorVisual.portrait(card,actor.person.persona,Rect2(12,10,50,82))
+			if game.cycle.roles[index]=="scavenge":card.draw_rect(Rect2(0,0,3,103),game.GOLD)
+		)
+		plan_rows[index]=card
+		label(overlay,actor.display_name,Vector2(484,y+9),Vector2(250,26),21)
+		role_stats.append(label(overlay,"",Vector2(484,y+40),Vector2(283,25),16,GameUi.SECONDARY))
+		label(overlay,actor.speciality+"  /  背包%d格"%CampaignCycle.BAGS[actor.person.persona],Vector2(484,y+72),Vector2(275,22),15,GameUi.MUTED)
+		role_equipment_buttons[index]=[]
 		for slot_index in range(3):
-			var gear_button := button(overlay,"",Vector2(292+slot_index*76,y+5),Vector2(70,63),func(): game.equipment_view.open_for(index,slot_index))
+			var gear_button:=button(overlay,"",Vector2(778+slot_index*78,y+53),Vector2(70,44),func():game.equipment_view.open_for(index,slot_index))
 			gear_button.draw.connect(_draw_plan_gear.bind(gear_button,index,slot_index))
 			role_equipment_buttons[index].append(gear_button)
-		var option := OptionButton.new()
-		option.position = Vector2(529, y + 17)
-		option.size = Vector2(158, 40)
-		option.add_theme_font_override("font", game.FONT)
-		option.add_theme_font_size_override("font_size", 18)
-		for name in CampaignCycle.ROLE_NAMES: option.add_item(name)
-		option.item_selected.connect(func(item: int): _set_role(index, CampaignCycle.ROLES[item]))
-		overlay.add_child(option)
-		role_options.append(option)
-		for child in overlay.get_children().slice(row_start): child.visible = actor.health > 0
-		if actor.health > 0: live_row += 1
-	label(overlay, "携带物资 · 出发前可反复调整", Vector2(746, 334), Vector2(640, 30), 19, game.GOLD)
-	plan_capacity = label(overlay, "", Vector2(746, 374), Vector2(650, 30), 17)
-	var row := 0
+		var option:=OptionButton.new();option.position=Vector2(792,y+9);option.size=Vector2(210,34)
+		option.add_theme_font_override("font",game.FONT);option.add_theme_font_size_override("font_size",18)
+		for name in CampaignCycle.ROLE_NAMES:option.add_item(name)
+		var hints: Array=["单人搜刮；精神消耗35","守夜；精神消耗28","休息恢复最多65精神；需要床位","休息恢复最多35精神","已故","驻守前哨；需要燃料1"]
+		for item in range(hints.size()):option.get_popup().set_item_tooltip(item,hints[item])
+		option.item_selected.connect(func(item: int):_set_role(index,CampaignCycle.ROLES[item]))
+		overlay.add_child(option);role_options.append(option)
+		for child in overlay.get_children().slice(row_start):child.visible=actor.health>0
+		if actor.health>0:live_row+=1
+	plan_capacity=label(overlay,"",Vector2(1044,200),Vector2(360,28),19)
+	plan_capacity.mouse_filter=Control.MOUSE_FILTER_PASS
+	plan_capacity.tooltip_text="武器、护甲各占1格，弹药每8发占1格；衣物不占格。\n睡床恢复精神65，地铺恢复35；守夜消耗28，搜刮35，驻守45。"
+	label(overlay,"物资",Vector2(1056,242),Vector2(120,24),16,GameUi.MUTED)
+	label(overlay,"库存",Vector2(1190,242),Vector2(48,24),16,GameUi.MUTED)
+	label(overlay,"携带",Vector2(1292,242),Vector2(80,24),16,GameUi.MUTED)
+	var row:=0
 	for key in ShelterInventory.NAMES:
-		var y := 416.0 + row * 42
-		supply_labels[key] = label(overlay, "", Vector2(746, y), Vector2(450, 30), 16)
-		var minus := button(overlay, "−", Vector2(1210, y - 2), Vector2(66, 34), _change_loadout.bind(key, -1))
-		var plus := button(overlay, "+", Vector2(1290, y - 2), Vector2(100, 34), _change_loadout.bind(key, 1))
-		supply_buttons[key] = [minus, plus]
-		row += 1
-	label(overlay, "精神：床眠+65，地铺+35；守夜−28，搜刮−35，轮值−45。\n武器、护甲各占1格；弹药每8发占1格。冬衣穿在身上。", Vector2(746, 757), Vector2(650, 44), 13)
-	ammo_label = label(overlay, "", Vector2(746, 714), Vector2(430, 30), 15)
-	button(overlay, "−8发", Vector2(1195, 714), Vector2(90, 32), _ammo.bind(-8))
-	button(overlay, "+8发", Vector2(1300, 714), Vector2(90, 32), _ammo.bind(8))
-	plan_error = label(overlay, "", Vector2(38, 786), Vector2(1100, 28), 15, Color("dca184"))
-	button(overlay, "全员留守 · 不携带物资", Vector2(38, 829), Vector2(320, 44), _stay_home)
-	button(overlay,"检查安防 Z",Vector2(380,829),Vector2(220,44),func(): game.security_view.toggle())
-	button(overlay,"街区 / 轮值 Y",Vector2(620,829),Vector2(240,44),func(): game.district_view.toggle())
-	depart_button = button(overlay, "开始这一夜 →", Vector2(1035, 829), Vector2(360, 44), func(): game.start_expedition())
+		var y:=279.0+row*43
+		overlay.draw.connect(func():HudIcons.draw(overlay,key,Vector2(1066,y+14),18,GameUi.SECONDARY))
+		label(overlay,ShelterInventory.NAMES[key],Vector2(1090,y),Vector2(95,28),17)
+		plan_stock_labels[key]=label(overlay,"",Vector2(1190,y),Vector2(48,28),18,GameUi.SECONDARY)
+		supply_labels[key]=label(overlay,"",Vector2(1296,y),Vector2(40,28),18)
+		supply_labels[key].horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+		supply_buttons[key]=[button(overlay,"−",Vector2(1254,y-2),Vector2(34,32),_change_loadout.bind(key,-1)),button(overlay,"+",Vector2(1344,y-2),Vector2(34,32),_change_loadout.bind(key,1))]
+		row+=1
+	GameUi.line(overlay,Vector2(1044,600),Vector2(1404,600))
+	label(overlay,"弹药",Vector2(1056,618),Vector2(125,28),18)
+	plan_ammo_stock=label(overlay,"",Vector2(1190,618),Vector2(48,28),18,GameUi.SECONDARY)
+	ammo_label=label(overlay,"",Vector2(1296,618),Vector2(40,28),18);ammo_label.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+	button(overlay,"−8",Vector2(1250,616),Vector2(42,34),_ammo.bind(-8))
+	button(overlay,"+8",Vector2(1340,616),Vector2(42,34),_ammo.bind(8))
+	plan_heat=CheckBox.new();plan_heat.text="夜间取暖";plan_heat.position=Vector2(1048,680);plan_heat.size=Vector2(330,40);plan_heat.focus_mode=Control.FOCUS_NONE
+	plan_heat.tooltip_text="取暖炉每份燃料维持8小时。燃料在出发时扣除。"
+	plan_heat.toggled.connect(func(value: bool):game.expansion.use_night_heat=value);overlay.add_child(plan_heat)
+	var help:=label(overlay,"负重规则",Vector2(1056,738),Vector2(340,26),15,GameUi.MUTED)
+	help.tooltip_text=plan_capacity.tooltip_text;help.mouse_filter=Control.MOUSE_FILTER_PASS
+	GameUi.line(overlay,Vector2(36,794),Vector2(1404,794))
+	plan_error=label(overlay,"",Vector2(36,802),Vector2(960,26),17,GameUi.DANGER)
+	button(overlay,"安防 Z",Vector2(36,842),Vector2(120,38),func():game.security_view.toggle())
+	button(overlay,"前哨 Y",Vector2(168,842),Vector2(120,38),func():game.district_view.toggle())
+	button(overlay,"装备 O",Vector2(300,842),Vector2(120,38),func():game.equipment_view.open_for())
+	button(overlay,"取消外出",Vector2(1016,838),Vector2(164,44),_stay_home)
+	depart_button=button(overlay,"出发",Vector2(1196,838),Vector2(208,44),func():game.start_expedition());GameUi.primary(depart_button)
 
 
 func _set_role(index: int, role: String) -> void:
@@ -238,7 +266,10 @@ func _refresh_plan() -> void:
 		role_options[index].set_item_disabled(4, actor.health > 0)
 		role_options[index].set_item_disabled(5,not game.districts.regions[game.districts.target]["built"])
 		role_options[index].get_popup().set_item_tooltip(5,"先在现场建立前哨，Y选择轮值目标。每夜预留燃料1，轮值者不能同时守夜或睡眠。")
-		role_stats[index].text = "生命%d 精神%d\n饱腹%d · %d格" % [Vitals.value(actor,"health"),Vitals.value(actor,"vigor"),Vitals.value(actor,"fullness"),CampaignCycle.BAGS[actor.person.persona]]
+		role_stats[index].text = "生命 %d   精神 %d   饱腹 %d" % [Vitals.value(actor,"health"),Vitals.value(actor,"vigor"),Vitals.value(actor,"fullness")]
+		role_stats[index].add_theme_color_override("font_color",GameUi.DANGER if mini(Vitals.value(actor,"health"),mini(Vitals.value(actor,"vigor"),Vitals.value(actor,"fullness")))<=20 else GameUi.SECONDARY)
+		plan_rows[index].tooltip_text=Vitals.summary(actor)+"\n背包%d格"%CampaignCycle.BAGS[actor.person.persona]
+		plan_rows[index].queue_redraw()
 		for slot_index in range(3):
 			var entry: Dictionary = EquipmentArt.slots(actor)[slot_index]
 			var gear_button: Button = role_equipment_buttons[index][slot_index]
@@ -247,20 +278,30 @@ func _refresh_plan() -> void:
 
 	var total := BackpackStacks.slots(game.cycle.loadout)
 	total += game.expansion.reserved_slots(game)
-	ammo_label.text = "弹药库存%d / 携带%d；取暖：%s" % [game.expansion.ammo, game.expansion.ammo_loadout, "预留燃料" if game.expansion.use_night_heat else "关闭（K调整）"]
-	plan_capacity.text = "随身 %d / %d格 · %s" % [total,game.cycle.capacity(game),"轮值预留燃料1："+LocationCatalog.area(game.districts.target)["name"] if game.districts.operator(game) >= 0 else "据点库存确认出发才扣除"]
+	ammo_label.text=str(game.expansion.ammo_loadout)
+	plan_ammo_stock.text=str(game.expansion.ammo)
+	plan_capacity.text="%d / %d 格"%[total,game.cycle.capacity(game)]
+	plan_capacity.tooltip_text="武器、护甲各占1格，弹药每8发占1格；衣物不占格。"
+	if game.districts.operator(game)>=0:plan_capacity.tooltip_text+="\n轮值预留燃料1："+LocationCatalog.area(game.districts.target)["name"]
+	plan_heat.set_pressed_no_signal(game.expansion.use_night_heat)
+	plan_heat.disabled=not game.cycle.has_build("heater")
+	if plan_heat.disabled:plan_heat.tooltip_text="需要建造取暖炉"
 	for key in supply_labels:
 		var amount := int(game.cycle.loadout.get(key, 0))
-		supply_labels[key].text = "%s    库存%d    携带%d" % [ShelterInventory.NAMES[key], game.inventory.amount(key), amount]
+		supply_labels[key].text=str(amount)
+		plan_stock_labels[key].text=str(game.inventory.amount(key))
 		supply_buttons[key][0].disabled = amount <= 0
 		supply_buttons[key][1].disabled = BackpackStacks.room(game.cycle.loadout,key,game.cycle.capacity(game),game.expansion.reserved_slots(game)) <= 0 or amount >= game.inventory.amount(key)
 	for id in map_buttons:
-		map_buttons[id].text = "✓ 当前目的地" if id == game.expedition.location_id else "选择地点"
+		map_buttons[id].queue_redraw()
+		GameUi.tab(map_buttons[id],id==game.expedition.location_id)
 		map_buttons[id].disabled = not game.expansion.unlocked(game, id)
 	var error: String = game.cycle.plan_error(game)
-	plan_error.text = "车队迁往" + ResidenceSystem.HOMES[game.residence.convoy]["name"] + "：全员整夜行军，不能搜刮或睡眠。" if not game.residence.convoy.is_empty() and error.is_empty() else error if not error.is_empty() else "岗位和装备已就绪。留守者不会在夜里继续白天的生产任务。"
-	depart_button.disabled = not error.is_empty()
-	depart_button.text = "出发迁居 →" if not game.residence.convoy.is_empty() else "开始搜刮 →" if game.cycle.scavenger() >= 0 else "留守并度过这一夜 →"
+	plan_error.text="迁往 "+ResidenceSystem.HOMES[game.residence.convoy]["name"]+" · 全员行军" if not game.residence.convoy.is_empty() and error.is_empty() else error
+	depart_button.disabled=not error.is_empty()
+	depart_button.text="迁居" if not game.residence.convoy.is_empty() else "出发" if game.cycle.scavenger()>=0 else "留守过夜"
+	depart_button.tooltip_text=error if not error.is_empty() else "确认人员、装备与携带物资，开始夜间行动。"
+
 
 
 func _change_loadout(key: String, change: int) -> void:
@@ -286,51 +327,37 @@ func _stay_home() -> void:
 
 
 func _create_dawn() -> void:
-	label(overlay, "第%d天 · 天亮了" % ExpeditionState.day_at(game.simulation_time), Vector2(80, 48), Vector2(1250, 58), 34, game.GOLD)
-	overlay.add_theme_stylebox_override("panel",game._style(Color(0.035,0.055,0.06,0.94),Color("465047")))
-	var live_row := 0
+	GameUi.paper(overlay,Rect2(0,0,1440,900))
+	label(overlay,"行动报告",Vector2(36,24),Vector2(1000,45),30)
+	label(overlay,"第 %02d 天  /  06:00"%ExpeditionState.day_at(game.simulation_time),Vector2(36,75),Vector2(1000,28),17,GameUi.SECONDARY)
+	GameUi.line(overlay,Vector2(36,120),Vector2(1404,120))
+	label(overlay,"人员状态",Vector2(36,141),Vector2(410,30),20,game.GOLD)
+	label(overlay,"夜间记录",Vector2(472,141),Vector2(900,30),20,game.GOLD)
+	var live_row:=0
 	for index in range(game.survivors.size()):
-		if game.survivors[index].health <= 0: continue
-		var card := SurvivorCard.new()
-		card.game = game
-		card.member_id = index
-		card.position = Vector2(80+(live_row%3)*425,180+(live_row/3)*143)
-		live_row += 1
-		card.size = Vector2(390,96)
-		card.tooltip_text = Vitals.summary(game.survivors[index])
-		for state in ["normal","hover","pressed"]:card.add_theme_stylebox_override(state,StyleBoxEmpty.new())
-		overlay.add_child(card)
-		var role: String = game.cycle.roles[index] if index < game.cycle.roles.size() else "floor"
-		label(overlay,CampaignCycle.ROLE_NAMES[CampaignCycle.ROLES.find(role)],card.position+Vector2(0,101),Vector2(390,24),14)
-	var summary: Array[String] = []
-	for line: String in game.cycle.report:
-		if "已归来" in line or "未能归来" in line or "尸群" in line or "撤离成功" in line or "窗口已关闭" in line: summary.append(line)
-	label(overlay,"\n\n".join(summary).left(220),Vector2(83,508),Vector2(1240,170),19)
-	var scroll := ScrollContainer.new()
-	scroll.position = Vector2(75,173)
-	scroll.size = Vector2(1290,525)
-	scroll.add_theme_stylebox_override("panel",game._style(Color("12201f"),Color("626950")))
-	overlay.add_child(scroll)
-	var lines := Label.new()
-	lines.text = "\n\n".join(game.cycle.report)
-	lines.add_theme_font_override("font",game.FONT)
-	lines.add_theme_font_size_override("font_size",18)
-	lines.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	lines.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(lines)
-	scroll.hide()
-	button(overlay,"安防复盘 Z",Vector2(350,731),Vector2(230,38),func(): game.security_view.toggle())
-	button(overlay,"查看 / 收起纪要",Vector2(80,731),Vector2(250,38),func(): scroll.visible = not scroll.visible)
-	var begin := button(overlay, "开始白天的生活 →", Vector2(950, 812), Vector2(400, 50), game.begin_day)
-	begin.disabled = game.game_over or (not game.expansion.outcome.is_empty() and not game.expansion.endless)
+		var actor:Survivor=game.survivors[index]
+		var card:=SurvivorCard.new();card.game=game;card.member_id=index
+		card.position=Vector2(36,190+live_row*115);card.size=Vector2(400,86);card.tooltip_text=Vitals.summary(actor);overlay.add_child(card)
+		var role:String=game.cycle.roles[index] if index<game.cycle.roles.size() else "floor"
+		label(overlay,CampaignCycle.ROLE_NAMES[CampaignCycle.ROLES.find(role)],card.position+Vector2(61,86),Vector2(330,24),15,GameUi.SECONDARY)
+		live_row+=1
+	var scroll:=ScrollContainer.new();scroll.position=Vector2(472,190);scroll.size=Vector2(932,579);overlay.add_child(scroll)
+	var lines:=Label.new();lines.text=_report_text(false);lines.add_theme_font_override("font",game.FONT);lines.add_theme_font_size_override("font_size",18);lines.add_theme_color_override("font_color",GameUi.TEXT);lines.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;lines.size_flags_horizontal=Control.SIZE_EXPAND_FILL;scroll.add_child(lines)
+	GameUi.line(overlay,Vector2(450,141),Vector2(450,774));GameUi.line(overlay,Vector2(36,807),Vector2(1404,807))
+	button(overlay,"保存 F6",Vector2(36,838),Vector2(144,44),func():game.save_game())
+	button(overlay,"读取 F9",Vector2(196,838),Vector2(144,44),game.request_load)
+	button(overlay,"安防记录 Z",Vector2(356,838),Vector2(164,44),func():game.security_view.toggle())
+	var detail:=button(overlay,"完整记录",Vector2(536,838),Vector2(144,44),func():pass)
+	detail.pressed.connect(func():var full:bool=detail.text=="完整记录";lines.text=_report_text(full);detail.text="简要记录" if full else "完整记录")
+	var begin:=button(overlay,"进入白天",Vector2(1196,838),Vector2(208,44),game.begin_day);GameUi.primary(begin)
+	begin.disabled=game.game_over or (not game.expansion.outcome.is_empty() and not game.expansion.endless)
 	if not game.expansion.outcome.is_empty() and not game.expansion.endless:
-		begin.text = "继续无尽生存 →"
-		begin.disabled = game.game_over
-		for connection in begin.pressed.get_connections(): begin.pressed.disconnect(connection["callable"])
-		begin.pressed.connect(func(): game.expansion.endless = true; game.begin_day())
-	button(overlay, "保存 F6", Vector2(80, 812), Vector2(180, 50), func(): game.save_game())
-	button(overlay, "读取存档 F9", Vector2(280, 812), Vector2(200, 50), game.request_load)
-	if game.game_over: button(overlay, "新的一局", Vector2(500, 812), Vector2(200, 50), game.request_new_game)
+		begin.text="继续生存";begin.disabled=game.game_over
+		for connection in begin.pressed.get_connections():begin.pressed.disconnect(connection["callable"])
+		begin.pressed.connect(func():game.expansion.endless=true;game.begin_day())
+	if game.game_over:
+		begin.hide()
+		GameUi.primary(button(overlay,"新建战役",Vector2(1196,838),Vector2(208,44),game.request_new_game))
 
 
 func _create_loot() -> void:
@@ -523,9 +550,30 @@ func _loot_icon(action: Button, resource: String) -> void:
 	HudIcons.draw(action,resource,Vector2(50,30),29,Color("637064") if action.disabled else game.GOLD)
 
 func _draw_plan_gear(button_node: Button, actor_id: int, slot_index: int) -> void:
-	var entry: Dictionary = EquipmentArt.slots(game.survivors[actor_id])[slot_index]
-	EquipmentArt.icon(button_node,entry,Vector2(34,25))
-	button_node.draw_string(game.FONT,Vector2(5,52),entry["name"],HORIZONTAL_ALIGNMENT_CENTER,60,12,game.GOLD)
+	var entry: Dictionary=EquipmentArt.slots(game.survivors[actor_id])[slot_index]
+	EquipmentArt.icon(button_node,entry,Vector2(34,14))
+	button_node.draw_string(game.FONT,Vector2(5,37),entry["name"],HORIZONTAL_ALIGNMENT_CENTER,60,13,GameUi.TEXT)
 	if not entry["kind"].is_empty():
-		button_node.draw_rect(Rect2(6,57,58,3),Color("34453f"))
-		button_node.draw_rect(Rect2(6,57,58*entry["ratio"],3),Color("c5ab75") if not entry["broken"] else Color("dc816b"))
+		button_node.draw_rect(Rect2(6,40,58,2),GameUi.BORDER)
+		button_node.draw_rect(Rect2(6,40,58*entry["ratio"],2),GameUi.ACCENT if not entry["broken"] else GameUi.DANGER)
+
+func _draw_plan_map(row: Button,id: String) -> void:
+	var area:=LocationCatalog.area(id)
+	var tile: int=RealismAssets.LOCATIONS[id]
+	row.draw_texture_rect_region(RealismAssets.PLACES,Rect2(9,8,48,43),Rect2((tile%3)*512+128,(tile/3)*256,256,256),Color(.78,.78,.7))
+	var unlocked: bool=game.expansion.unlocked(game,id)
+	var resources: Array=row.get_meta("resources",[])
+	for index in range(resources.size()):HudIcons.draw(row,resources[index],Vector2(292+index*31,19),14,GameUi.SECONDARY if unlocked else GameUi.MUTED)
+	row.draw_string(game.FONT,Vector2(69,23),area["name"],HORIZONTAL_ALIGNMENT_LEFT,208,19,GameUi.TEXT if unlocked else GameUi.MUTED)
+	row.draw_string(game.FONT,Vector2(69,46),RegionalThreats.brief(game,id) if unlocked else "未开放",HORIZONTAL_ALIGNMENT_LEFT,264,15,GameUi.SECONDARY if unlocked else GameUi.MUTED)
+
+func _report_text(full: bool) -> String:
+	var lines: PackedStringArray=[]
+	for line: String in game.cycle.report:
+		if full:lines.append(line);continue
+		if "F5可查看食材保鲜" in line:continue
+		if "疾病0、寒冷0、衣物保暖+0℃" in line:continue
+		if "这一夜没有尸群袭击，没有物资损失，也未损耗安防耐久" in line:line="安防：未遭袭击。"
+		line=line.replace("，需处理后饮用。","")
+		lines.append(line)
+	return "\n\n".join(lines)

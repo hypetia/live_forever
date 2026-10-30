@@ -9,10 +9,11 @@ func _run() -> void:
   var names:Array=game.survivors.map(func(a):return a.display_name)
   check(names.all(func(n):return n in ['阿笠博士','黑杰克','里昂','小当家','端木蓉','詹姆斯·邦德']),'actual roster cards use recognizable names in '+scenario)
   game.chronicle_view.show_page('people')
-  var text:=''
-  for child in game.chronicle_view.body.get_children():
-   if child is Label:text+=child.text
-  check(text.contains('角色原型：') and names.all(func(n):return text.contains(n)),'actual character page contains each resident and visible prototype reference in '+scenario)
+  for member:Survivor in game.survivors:
+   await click_at(game.chronicle_view.person_buttons[member.person.persona].get_global_rect().get_center())
+   var text:=''
+   for child in game.chronicle_view.body.find_children('*','Label',true,false):text+=child.text
+   check(text.contains(member.display_name) and text.contains(PeopleCatalog.DATA[member.person.persona]['reference']),'selected character shows their own visible identity and source reference in '+scenario)
   await process_frame;RenderingServer.force_draw();root.get_texture().get_image().save_png(output.path_join(scenario+'.png'))
   game.chronicle_view.close()
   check(SaveSystem.validate(SaveSystem.capture(game)).is_empty(),'new roster identities remain valid in '+scenario)
@@ -21,8 +22,8 @@ func _run() -> void:
  game.chronicle_view.show_page('roster')
  await process_frame;await process_frame
  var catalogue:=''
- for child in game.chronicle_view.body.get_children():
-  if child is Label:catalogue+=child.text
+ for child in game.chronicle_view.body.find_children('*','Label',true,false):
+  catalogue+=child.text
  check(PeopleCatalog.DATA.values().all(func(info):return catalogue.contains(info['name']) and catalogue.contains(info['reference'])),'scrollable catalogue contains all twelve names and source works')
  var scroll:ScrollContainer=game.chronicle_view.body.get_parent()
  scroll.scroll_vertical=int(scroll.get_v_scroll_bar().max_value)
@@ -46,9 +47,10 @@ func _run() -> void:
   a.person.morale=40;a.person.stress=60;a.person.trauma=20
  game.chronicle_view.show_page('people')
  await process_frame;await process_frame
+ await click_at(game.chronicle_view.person_buttons['pooh'].get_global_rect().get_center())
  var picnic:Button
  for child in game.chronicle_view.body.get_children():
-  if child is Button and child.text.begins_with('让维尼分享'):picnic=child
+  if child is Button and child.text.begins_with('分享点心'):picnic=child
  check(is_instance_valid(picnic) and not picnic.disabled,'Pooh special activity has an available visible character-page control')
  if is_instance_valid(picnic):await click_at(picnic.get_global_rect().get_center())
  check(not game.chronicle_view.opened and game.expansion.jobs.any(func(j):return j['kind']=='picnic'),'actual mouse command starts physical picnic preparation and returns to the scene')

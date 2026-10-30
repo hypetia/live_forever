@@ -128,7 +128,7 @@ func _run() -> void:
 	await keypress(KEY_F9)
 	await dialog_click(scene.load_dialog, scene.load_dialog.get_ok_button())
 	check(scene.cycle.phase == "dawn" and scene.inventory.snapshot() == stock and scene.cycle.bed_count() == 2, "load restores the already-settled morning and built bed without repeating results")
-	await click_button(scene.interface.overlay, "开始白天")
+	await click_button(scene.interface.overlay, "进入白天")
 	check(scene.cycle.phase == "day" and scene.interface.shown.is_empty() and not scene.paused, "morning acknowledgement returns to real shelter play")
 	check(SaveSystem.validate(SaveSystem.capture(scene)).is_empty(), "complete physical day-night-day loop remains fully valid")
 	await dispose_scene(scene)

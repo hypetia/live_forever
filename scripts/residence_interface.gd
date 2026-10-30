@@ -30,7 +30,7 @@ func render() -> void:
 	if is_instance_valid(window): window.hide(); window.queue_free()
 	var ui: CampaignInterface = game.interface
 	window = ui.panel(self, Vector2(25, 20), Vector2(1390, 860))
-	ui.label(window, game.residence.title() + " · 家园与迁居", Vector2(25,17), Vector2(1120,42), 27,game.GOLD)
+	ui.label(window, game.residence.title() + " · 避难所", Vector2(25,17), Vector2(1120,42), 27,GameUi.TEXT)
 	ui.button(window,"关闭 H / Esc",Vector2(1175,17),Vector2(185,42),close)
 	ui.label(window,"安防耐久%d / 100 · 暴露噪声%d · 室内基础保温+%d℃" % [roundi(game.residence.condition),roundi(game.residence.noise),game.residence.indoor_bonus()],Vector2(25,77),Vector2(1000,30),18)
 	ui.button(window,"检查安防 Z",Vector2(1080,76),Vector2(280,38),func(): game.security_view.toggle())
@@ -47,12 +47,12 @@ func render() -> void:
 	body.custom_minimum_size = Vector2(1300,1)
 	scroll.add_child(body)
 	var y := 0.0
-	ui.label(body,"安防与休闲 · 到对应设施准备，完成才生效",Vector2(0,y),Vector2(1200,30),21,game.GOLD)
+	ui.label(body,"设施工程",Vector2(0,y),Vector2(1200,30),21,game.GOLD)
 	y += 45
 	for kind in ["gate","mesh","alarm","stakes","maintain","guitar","music","picnic"]:
 		y = project_row(body,kind,y)
 	y += 22
-	ui.label(body,"迁居 · 实地勘察、清理、打包、整夜转移",Vector2(0,y),Vector2(1280,32),21,game.GOLD)
+	ui.label(body,"迁居",Vector2(0,y),Vector2(1280,32),21,game.GOLD)
 	y += 42
 	var warning := ui.label(body,"库存、装备、吉他与战役设备可带走；床、炉、收集器、隔断和安防拆解，仅回收部分材料。新址等级归零。\n运输补给为全队打包（熟食5、水10、燃料2、工具1），行军会受冷、消耗精神，也可能遇袭；迁居后至少休整5天。",Vector2(0,y),Vector2(1280,62),15)
 	warning.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

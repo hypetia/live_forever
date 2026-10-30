@@ -1,12 +1,12 @@
-# Live Forever · 封锁区：余生 v1.19.0
+# Live Forever · 封锁区：余生 v1.20.0
 
-v1.19.0重做战斗与区域压力：受击稳身防止连续轻击无限打断，重型尸正面抗刀刺，迅捷尸追得上步行并会扑击。近战消耗精神，疲劳会延长出手间隔；夜间地图预告巡群变化，日期和地区噪声影响新巡群，维护前哨能阻止迁入。外出与基地防守使用相同的抗性、打断和攻击预警。窗口标题显示 `v1.19.0`。
+v1.20.0重新整理夜间准备、制作、装备、营地和人物界面。“谁去，谁留下”等口语化标题改为明确的功能名称；九个地点、人员岗位与携带物资分栏显示。统一深灰底色、米白正文与琥珀色选中标记，缩短常驻说明，规则和效果可悬停查看。保留上一版战斗与巡群机制。窗口标题显示 `v1.20.0`。
 
-单人僵尸生存游戏：白天经营、制作和照顾同伴，夜间亲自潜入搜刮、抵御尸群。保留九张地图、三个开局、十二名角色及个人线、35日撤离战役、无尽生存、迁居和前哨。体验本次营地新机制请新开战役。
+单人僵尸生存游戏：白天经营、制作和照顾同伴，夜间亲自潜入搜刮、抵御尸群。保留九张地图、三个开局、十二名角色及个人线、35日撤离战役、无尽生存、迁居和前哨。建议按F2新开战役体验当前版本。
 
-![实际战斗预警](docs/pressure-brute-windup.png)
+![夜间准备：实际运行画面](docs/ui-planning-1440x900.png)
 
-[战斗压力、反制与区域巡群](docs/COMBAT_PRESSURE.md) · [设施与装备操作、实际截图](docs/FACILITIES_EQUIPMENT.md) · [人物和环境美术](docs/REALISM_ART.md) · [营地玩法说明](docs/CAMP_LIFE.md) · [本版验证记录](docs/combat-pressure-validation.json)
+[界面改版与实际截图](docs/UI_REDESIGN.md) · [战斗压力、反制与区域巡群](docs/COMBAT_PRESSURE.md) · [设施与装备操作、实际截图](docs/FACILITIES_EQUIPMENT.md) · [人物和环境美术](docs/REALISM_ART.md) · [营地玩法说明](docs/CAMP_LIFE.md) · [本版验证记录](docs/ui-validation.json)
 
 ## 下载后直接玩
 
@@ -14,16 +14,16 @@ v1.19.0重做战斗与区域压力：受击稳身防止连续轻击无限打断�
 
 | 用途 | GitHub直接下载 | 使用方法 |
 | --- | --- | --- |
-| Windows 64位游戏（约46MB） | [live_forever_v1.19.0_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.19.0/live_forever_v1.19.0_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
-| Linux x86_64游戏（约37MB） | [live_forever_v1.19.0_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.19.0/live_forever_v1.19.0_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
-| Windows一键验收工具 | [live_forever_v1.19.0_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.19.0/live_forever_v1.19.0_windows_acceptance.zip) | 主动运行 `windows_acceptance.cmd`，默认约30分钟 |
-| v1.19.0完整源码 | [live_forever_v1.19.0_source.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.19.0/live_forever_v1.19.0_source.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
+| Windows 64位游戏（约46MB） | [live_forever_v1.20.0_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.20.0/live_forever_v1.20.0_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
+| Linux x86_64游戏（约37MB） | [live_forever_v1.20.0_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.20.0/live_forever_v1.20.0_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
+| Windows一键验收工具 | [live_forever_v1.20.0_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.20.0/live_forever_v1.20.0_windows_acceptance.zip) | 主动运行 `windows_acceptance.cmd`，默认约30分钟 |
+| v1.20.0完整源码 | [live_forever_v1.20.0_source.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.20.0/live_forever_v1.20.0_source.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
 
 普通游戏不需要Godot、Python、登录、服务器或持续联网。验收工具是单独的程序，不会在正常游戏中替你操作。Windows包按官方模板导出；**尚未在Windows真实设备完成验收**。
 
-[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.19.0) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
+[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.20.0) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
 
-v1.19.0 运行包和对应源码托管在 `downloads-v1.19.0`；同版验收包在 `downloads-v1.19.0`，开发源码在 `main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
+v1.20.0 运行包和对应源码托管在 `downloads-v1.20.0`；同版验收包在 `downloads-v1.20.0`，开发源码在 `main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
 
 [角色设定说明（沿用）](docs/SELECTED_ROSTER_V27.md)
 
@@ -48,7 +48,7 @@ v1.19.0 运行包和对应源码托管在 `downloads-v1.19.0`；同版验收包�
 ![实际引擎录制的自主护理；伤势为展示夹具，行走、治疗与扣药实际发生](docs/v22-autonomous-aid.gif)
 
 
-**F2选开局，F3看人物志与感染档案。** 三个开局分别是残灯旅社、断桥最后一餐、白霜救护站，具有不同队伍、库存、装备、初始建设与气候。替换战役须确认；读档不会再次发放初始物资。十二名人物各有原有技能、行为偏好、两种个人信念和需要实地勘查的专属工程；完成才解锁相应能力。
+**F2选开局，F3查看人物与感染档案。** 三个开局分别是旧城旅社、断桥车队、临时救护站，具有不同队伍、库存、装备、初始建设与气候。替换战役须确认；读档不会再次发放初始物资。十二名人物各有原有技能、行为偏好、两种个人信念和需要实地勘查的专属工程；完成才解锁相应能力。
 
 **门窗是真实路线。** 靠门按住E开关，Alt窥视邻近房间，X静拆窗口（完成消耗工具1），Shift+X砸窗制造响声，再按X翻越。鼠标也可点击门和窗自动走近操作。关闭的门遮挡视线与近战，敌人只能调查听见的方向、沿路破门；翻窗不等于瞬移。T返程会实际处理沿路的关门。
 
@@ -129,7 +129,7 @@ python tests/run_checks.py --graphics --artifacts /tmp/live-forever-checks
 python tools/build_desktop.py --acceptance --output builds --logs builds/logs
 ```
 
-本轮检查范围见[v1.13报告](docs/v23-validation.json)，包含新街区的项目、救援、持续供水、存档与交互。此前[v1.12报告](docs/v22-validation.json)中的60天结果属于上一版本，不能代替本版所有长期策略的验证。历史核心场景失败策略仍保留，可用`--legacy-prototype-long-runs`显式复现，默认检查当前完整战役。
+本轮界面、操作和导出检查见[v1.20报告](docs/ui-validation.json)。街区项目、救援与供水的历史验证见[v1.13报告](docs/v23-validation.json)。此前[v1.12报告](docs/v22-validation.json)中的60天结果属于上一版本，不能代替本版所有长期策略的验证。历史核心场景失败策略仍保留，可用`--legacy-prototype-long-runs`显式复现，默认检查当前完整战役。
 
 开发需要Godot4.6.3、Python3；图形检查需要显示环境。普通玩家不需要这些工具。默认入口为`scenes/campaign.tscn`，`shelter.tscn`是底层回归测试场景。
 

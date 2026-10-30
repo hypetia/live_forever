@@ -31,8 +31,20 @@ func _run() -> void:
 	await picture("res://docs/v19-closed-access.png")
 	var head: Vector2 = game.world_offset()+Vector2(field.player_x-game.expedition_view._camera(),555)*game.world_scale()
 	var frame := root.get_texture().get_image()
-	var pixel := frame.get_pixel(roundi(head.x),roundi(head.y))
-	check(pixel.r > .6 and pixel.g > .5 and pixel.b > .35,"an uncleared access icon cannot reset the world transform or displace the rendered player")
+	# Textured actors no longer have a fixed flat skin color. Compare two actual
+	# poses in the expected body rectangle to detect a displaced draw transform.
+	field.sneaking = true;game.expedition_view.queue_redraw()
+	await process_frame;await process_frame
+	var crouched := root.get_texture().get_image()
+	var body := Rect2i(Vector2i(head)-Vector2i(45,30),Vector2i(90,115))
+	var changed := 0
+	for y in range(body.position.y,body.end.y):
+		for x in range(body.position.x,body.end.x):
+			var a := frame.get_pixel(x,y)
+			var b := crouched.get_pixel(x,y)
+			if Vector3(a.r,a.g,a.b).distance_to(Vector3(b.r,b.g,b.b)) > .08: changed += 1
+	check(changed > 20,"an uncleared access icon cannot reset the world transform or displace the rendered player")
+	field.sneaking = false;game.expedition_view.queue_redraw()
 	var point: Dictionary = field.site_definitions()[DistrictSystem.POINTS["street"]]
 	field.player_x = point["x"];field.floor_level = point["floor"];field.player_y = ExpeditionState.FLOOR_Y[point["floor"]]
 	game._process(0)
@@ -53,10 +65,17 @@ func _run() -> void:
 	await click_at(game.interface.outpost_buttons["build"].get_global_rect().get_center())
 	sim(game,10)
 	check(game.districts.regions["street"]["built"] and field.bag["materials"] == materials-5 and field.bag["tools"] == 0,"GUI construction completes, pays real bag items and changes the physical outpost state")
+	# Wait for construction noise to decay before testing a separate sound source.
+	sim(game,4)
+	field.facing = 1.0
 	await keypress(KEY_G)
 	check(field.decoys.size() == 1 and field.bag["materials"] == 0 and field.bag["fuel"] == 0,"real G input deploys a paid field distraction")
 	var enemy: Dictionary = field.enemies[2]
-	enemy["hp"] = 40;enemy["mode"] = "patrol";enemy["x"] = field.player_x+215;enemy["direction"] = 1.0
+	enemy["hp"] = 40;enemy["mode"] = "patrol";enemy["x"] = field.player_x+150;enemy["direction"] = 1.0
+	# Keep it within hearing range, outside the 38-pixel already-investigated radius.
+	enemy["floor"] = field.floor_level;enemy["target_floor"] = field.floor_level
+	enemy["climb_target"] = -1;enemy["climb_progress"] = 0;enemy["memory"] = 0;enemy["suspicion"] = 0
+	field.minds[2]["search"].clear()
 	sim(game,.5)
 	check(enemy["target"] == field.decoys[0]["x"] and enemy["target"] != field.player_x,"visible enemy investigation uses the separate sound source")
 	await picture("res://docs/v19-decoy-investigation.png")
@@ -82,7 +101,7 @@ func _run() -> void:
 	await process_frame
 	await dialog_click(game.departure_dialog,game.departure_dialog.get_ok_button())
 	check(game.cycle.phase == "dawn" and game.districts.regions["street"]["built"],"outpost persists through a real exit and dawn settlement")
-	await click_button(game.interface.overlay,"开始白天")
+	await click_button(game.interface.overlay,"进入白天")
 	game.end_day()
 	var option: OptionButton = game.interface.role_options[0]
 	await click_at(option.get_global_rect().get_center())
@@ -91,9 +110,9 @@ func _run() -> void:
 		await keypress(KEY_DOWN)
 	await keypress(KEY_ENTER)
 	check(game.cycle.roles[0] == "outpost","actual night-role dropdown selects the newly available outpost worker")
-	check(game.interface.plan_capacity.text.contains("轮值预留燃料1"),"night preparation exposes the reserved logistics cost")
+	check(game.interface.plan_capacity.tooltip_text.contains("轮值预留燃料1"),"night preparation exposes the reserved logistics cost")
 	await keypress(KEY_Y)
-	check(game.district_view.target_button.disabled == false and game.district_view.detail.text.contains("墨衡「钉钟人」"),"planning chart previews the assigned person's real shift")
+	check(game.district_view.target_button.disabled == false and game.district_view.detail.text.contains(game.survivors[0].display_name),"planning chart previews the assigned person's real shift")
 	check(game.district_view.detail.get_line_count()*game.district_view.detail.get_line_height() <= game.district_view.detail.size.y,"assigned-person preview remains readable without clipping")
 	await picture("res://docs/v19-outpost-roster.png")
 	await keypress(KEY_ESCAPE)

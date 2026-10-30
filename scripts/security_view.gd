@@ -45,7 +45,7 @@ func render() -> void:
 		add_child(backdrop)
 	var ui: CampaignInterface = game.interface
 	window = ui.panel(self,Vector2(70,55),Vector2(1300,790))
-	ui.label(window,"夜间安防",Vector2(30,20),Vector2(900,44),30,GameUi.ACCENT)
+	ui.label(window,"夜间安防",Vector2(30,20),Vector2(900,44),30,GameUi.TEXT)
 	ui.button(window,"返回 Z / Esc",Vector2(1060,22),Vector2(210,42),close)
 	ui.button(window,"当前防备",Vector2(30,83),Vector2(225,42),func(): last_night=false; render())
 	ui.button(window,"上次纪要",Vector2(270,83),Vector2(225,42),func(): last_night=true; render())
@@ -63,7 +63,7 @@ func render() -> void:
 			ui.label(body,line.trim_prefix("【安防】"),Vector2(10,y),Vector2(1170,91),21,GameUi.TEXT).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			y += 105
 		if y == 0:
-			ui.label(body,"尚无详细安防纪要；下一次天亮后会记录实际抵挡、损耗和损失。",Vector2(10,20),Vector2(1170,60),21,GameUi.SECONDARY).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			ui.label(body,"暂无防守记录",Vector2(10,20),Vector2(1170,60),21,GameUi.SECONDARY).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		body.custom_minimum_size.y = maxf(600,y)
 		return
 	var convoy: bool = not game.residence.convoy.is_empty()
@@ -76,7 +76,7 @@ func render() -> void:
 	var chance: int = game.raid_chance(night)
 	var hint := "全员随车队行军；营地隔断、安防不参与护送。" if convoy else "第%d夜 · 遇袭概率%d%% · 耐久%d%% · 暴露噪声%d" % [night,chance,roundi(game.residence.condition),roundi(game.residence.noise)]
 	ui.label(body,hint,Vector2(10,49),Vector2(1180,36),18,GameUi.SECONDARY)
-	ui.label(body,"白天先检查设施，20:00再安排守夜；此处不提前结算夜袭。" if game.cycle.phase == "day" else "天亮后的设施现状；守夜按上次岗位估算，下次黄昏需重新安排。" if game.cycle.phase == "dawn" else "守夜已计入精神、健康、战斗专长和完好武器；遇袭后设施会损耗。",Vector2(10,91),Vector2(1180,32),18,GameUi.SECONDARY)
+	ui.label(body,"守夜人员在夜间准备中安排。" if game.cycle.phase == "day" else "设施状态与上次防守记录。" if game.cycle.phase == "dawn" else "防守能力受角色状态、专长和装备影响。",Vector2(10,91),Vector2(1180,32),18,GameUi.SECONDARY)
 	var y := 145.0
 	for row in rows:
 		var card := ui.panel(body,Vector2(0,y),Vector2(1190,76),GameUi.SURFACE)

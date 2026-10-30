@@ -42,7 +42,7 @@ func _ready() -> void:
 		if is_instance_valid(node): node.reparent(root)
 	save_button = game.interface.button(root,"存",Vector2(1306,16),Vector2(36,32),func(): game.save_game())
 	save_button.tooltip_text = "保存 F6 · 读取 F9"
-	goal_button = game.interface.button(root,"目标",Vector2(1120,798),Vector2(82,36),game.interface.toggle_workshop)
+	goal_button = game.interface.button(root,"工程",Vector2(1120,798),Vector2(82,36),func(): game.interface.workshop_section="campaign";game.interface.toggle_workshop())
 	home_button = game.interface.button(root,"家",Vector2(309,16),Vector2(36,32),func(): game.residence_view.toggle())
 	temperature = game.interface.label(root,"",Vector2(376,20),Vector2(175,28),17)
 	temperature.mouse_filter = Control.MOUSE_FILTER_PASS

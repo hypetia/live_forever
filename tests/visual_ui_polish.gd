@@ -1,0 +1,73 @@
+extends "res://tests/visual_campaign.gd"
+var output: String="/tmp/ui-polish-artifacts"
+
+func _run() -> void:
+	if not OS.get_cmdline_user_args().is_empty():output=OS.get_cmdline_user_args()[0]
+	DirAccess.make_dir_recursive_absolute(output)
+	var g:Node2D=load("res://scenes/campaign.tscn").instantiate();g.persistence_enabled=false;root.add_child(g);g.set_process(false);g.chronicle.manual_defense=false
+	await process_frame;await process_frame
+	await keypress(KEY_K)
+	check(g.interface.workshop_open and g.paused,"K opens the redesigned production screen")
+	await picture(output+"/workshop.png")
+	await click_button(g.interface.workshop_panel,"厨房")
+	check(g.interface.workshop_section=="kitchen" and g.interface.workshop_recipes.has("cook"),"side navigation opens the same kitchen recipes")
+	await picture(output+"/kitchen.png")
+	await keypress(KEY_ESCAPE)
+	check(not g.paused,"production screen restores the previous clock state")
+	await keypress(KEY_O)
+	check(g.equipment_view.opened and g.equipment_view.slot_buttons.size()==3,"equipment retains three distinct functional slots")
+	await picture(output+"/equipment.png")
+	await keypress(KEY_ESCAPE)
+	await keypress(KEY_F5)
+	check(g.camp_view.opened and g.paused,"F5 opens camp management")
+	await picture(output+"/camp.png")
+	await click_at(g.camp_view.page_buttons["production"].get_global_rect().get_center())
+	check(g.camp_view.actions.has("balanced"),"production page retains real recipe actions")
+	await picture(output+"/production.png")
+	await click_at(g.camp_view.page_buttons["health"].get_global_rect().get_center())
+	check(g.camp_view.actions.has("recover:0"),"health page retains per-person rest actions")
+	await picture(output+"/health.png")
+	await keypress(KEY_ESCAPE)
+	await keypress(KEY_F3);check(g.chronicle_view.opened,"F3 opens the restyled character archive");await picture(output+"/characters.png")
+	var archive_state:=SaveSystem.capture(g)
+	await click_at(g.chronicle_view.person_buttons["chen"].get_global_rect().get_center())
+	check(g.chronicle_view.selected_persona=="chen" and g.chronicle_view.choice_buttons.size()==2,"character portraits open the selected person's own plans")
+	check(SaveSystem.capture(g)==archive_state,"reading another biography does not change the controlled actor or simulation")
+	await keypress(KEY_ESCAPE)
+	g.end_day();await process_frame
+	check(g.interface.map_buttons.size()==9,"all nine destinations are visible in one list")
+	for resolution in [Vector2i(1024,768),Vector2i(1280,720),Vector2i(1440,900),Vector2i(1920,1080)]:
+		root.size=resolution;await process_frame;await process_frame
+		check(g.interface.depart_button.get_global_rect().end.y<=900,"primary departure action fits the design canvas at "+str(resolution))
+		await picture(output+"/planning-%dx%d.png"%[resolution.x,resolution.y])
+	root.size=Vector2i(1440,900);await process_frame
+	await click_at(g.interface.map_buttons["clinic"].get_global_rect().get_center())
+	check(g.expedition.location_id=="clinic","full destination rows select the actual map")
+	await click_at(g.interface.role_equipment_buttons[1][0].get_global_rect().get_center())
+	check(g.equipment_view.opened and g.equipment_view.selected_actor==1,"each crew row keeps its independent equipment entry")
+	await keypress(KEY_ESCAPE)
+	var stock:Dictionary=g.inventory.snapshot()
+	await click_at(g.interface.supply_buttons["water"][1].get_global_rect().get_center())
+	check(g.cycle.loadout.get("water",0)==1 and g.inventory.snapshot()==stock,"supply table changes draft quantity without spending warehouse stock")
+	await click_button(g.interface.overlay,"取消外出")
+	check(g.cycle.scavenger()<0 and g.cycle.loadout.is_empty() and g.interface.depart_button.text=="留守过夜","cancel outing clears cargo and exposes the correct stay-home action")
+	await click_at(g.interface.depart_button.get_global_rect().get_center())
+	check(g.cycle.phase=="dawn","primary action settles the chosen night")
+	await picture(output+"/report.png")
+	await click_button(g.interface.overlay,"完整记录")
+	check(g.interface.overlay.find_children("*","Label",true,false).any(func(label):return label.text=="\n\n".join(g.cycle.report)),"full report remains available without filtering event facts")
+	await click_button(g.interface.overlay,"进入白天")
+	check(g.cycle.phase=="day" and not g.paused,"report confirmation returns to real daytime play")
+	check(SaveSystem.validate(SaveSystem.capture(g)).is_empty(),"full redesigned UI sequence preserves a valid campaign")
+	await dispose_scene(g)
+	# Declared maximum-roster layout fixture, not evidence of earning extra survivors.
+	g=load("res://scenes/campaign.tscn").instantiate();g.persistence_enabled=false;root.add_child(g);g.set_process(false)
+	g.ensure_roster(["lin","xu","chen","tesla","mickey"]);g.people.sync_members(g.survivors);g.self_care.sync(g);g.camp.food.sync_people(g);g.camp.relations.sync(g);g.chronicle.sync(g)
+	g.simulation_time=360;g.enter_night_planning();await process_frame
+	check(g.interface.plan_rows.size()==5 and g.interface.plan_rows.values().all(func(card):return card.get_global_rect().end.y<794),"five crew rows fit above the departure controls")
+	await picture(output+"/planning-five-crew.png")
+	await keypress(KEY_F3)
+	check(g.chronicle_view.person_buttons.size()==5 and g.chronicle_view.person_buttons.values().all(func(button):return button.get_global_rect().end.x<1370),"five character portraits fit inside the archive")
+	await picture(output+"/characters-five-crew.png")
+	await keypress(KEY_ESCAPE);await dispose_scene(g)
+	print("UI POLISH VISUAL RESULT: %d checks, %d failures"%[checks,failures]);quit(1 if failures else 0)

@@ -5,7 +5,7 @@ extends RefCounted
 
 const PHASES := ["day", "planning", "scavenge", "returning", "siege", "dawn"]
 const ROLES := ["scavenge", "guard", "bed", "floor", "dead", "outpost"]
-const ROLE_NAMES := ["外出搜刮", "留守警戒", "床上睡眠", "地铺睡眠", "已故", "前哨轮值"]
+const ROLE_NAMES := ["外出搜刮", "留守警戒", "床位休息", "地铺休息", "已故", "前哨轮值"]
 const BAGS := {"lin":12,"xu":10,"chen":14,"he":12,"gu":10,"tang":16,"alice":12,"conan":10,"rick":12,"tesla":12,"pooh":10,"mickey":12}
 const SLOTS := [Vector2(330, 640), Vector2(650, 640), Vector2(190, 430), Vector2(755, 430), Vector2(905, 640)]
 const RECIPES := {

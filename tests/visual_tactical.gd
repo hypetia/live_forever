@@ -10,7 +10,7 @@ func _run() -> void:
   check(Rect2(Vector2.ZERO,Vector2(1440,900)).encloses(game.chronicle_view.window.get_global_rect()),'scenario window remains inside the design viewport at '+str(size))
   await keypress(KEY_ESCAPE)
   await keypress(KEY_F3)
-  check(game.chronicle_view.opened and game.chronicle_view.body.get_child_count()>10,'F3 exposes the actual roster, histories and selectable beliefs at '+str(size))
+  check(game.chronicle_view.opened and game.chronicle_view.person_buttons.size()==game.survivors.size() and game.chronicle_view.choice_buttons.size()==2,'F3 exposes the actual roster, histories and selectable beliefs at '+str(size))
   await keypress(KEY_ESCAPE)
  root.size=Vector2i(1440,900)
  await keypress(KEY_F2);await picture('res://docs/v21-starts.png');await keypress(KEY_ESCAPE)
@@ -18,7 +18,7 @@ func _run() -> void:
  var stock:Dictionary=game.inventory.snapshot();game.chronicle_view.show_page('starts')
  var choose:Button
  for c in game.chronicle_view.body.get_children():
-  if c is Button and c.text.contains('残灯'):choose=c
+  if c is Button and c.text.contains('旧城旅社'):choose=c
  game.chronicle_view.body.get_parent().ensure_control_visible(choose)
  await process_frame;await process_frame
  await click_at(choose.get_global_rect().get_center())

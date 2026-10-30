@@ -18,7 +18,7 @@ func _run() -> void:
 	game.residence.security = {"gate":2,"mesh":1,"alarm":1,"stakes":1}
 	game.residence.condition = 68
 	game.residence.noise = 45
-	await click_button(game.interface.overlay,"检查安防")
+	await click_button(game.interface.overlay,"安防 Z")
 	check(game.security_view.opened,"night-planning button opens the same assessment")
 	check(is_equal_approx(game.security_view.total_value,game.raid_defense(true)),"visible assessment equals the gameplay forecast")
 	await click_at(Vector2(1390,850))
@@ -78,7 +78,7 @@ func _run() -> void:
 	game.paused = false
 	game.expedition_retreat(); game.confirm_departure()
 	await process_frame
-	await click_button(game.interface.overlay,"安防复盘")
+	await click_button(game.interface.overlay,"安防记录")
 	check(game.security_view.opened and game.security_view.last_night,"dawn button opens historical facts instead of current predictions")
 	await picture("res://docs/v16-security-review.png")
 	await keypress(KEY_ESCAPE)

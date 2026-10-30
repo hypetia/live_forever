@@ -65,21 +65,23 @@ func refresh() -> void:
 	var ui: CampaignInterface = game.interface
 	window = ui.panel(root,Vector2(90,65),Vector2(1260,770))
 	var actor: Survivor = game.survivors[selected_actor]
-	ui.label(window,"随身装备" + (" · 外出查看" if read_only else " · 出发前分配"),Vector2(28,20),Vector2(900,42),28,game.GOLD)
-	close_button = ui.button(window,"返回 O / Esc",Vector2(1030,20),Vector2(200,40),close)
+	ui.label(window,"装备",Vector2(28,20),Vector2(900,42),28,GameUi.TEXT)
+	close_button = ui.button(window,"关闭 O / Esc",Vector2(1030,20),Vector2(200,40),close)
+	GameUi.paper(window,Rect2(0,0,1260,770))
+	GameUi.line(window,Vector2(254,83),Vector2(254,735))
 	var y := 90
 	for index in range(game.survivors.size()):
 		var person: Survivor = game.survivors[index]
 		if person.health <= 0 or (read_only and index != selected_actor): continue
-		var b := ui.button(window,("✓ " if index == selected_actor else "")+person.display_name,Vector2(25,y),Vector2(220,52),open_for.bind(index,selected_slot))
+		var b := GameUi.crew_button(ui,window,person,Vector2(20,y),Vector2(220,60),open_for.bind(index,selected_slot),index==selected_actor)
 		actor_buttons[index] = b
-		y += 64
+		y += 72
 	ui.label(window,actor.display_name+" · "+actor.speciality,Vector2(275,86),Vector2(920,34),23,game.GOLD)
 	var slots := EquipmentArt.slots(actor)
 	for index in range(3):
 		var entry: Dictionary = slots[index]
 		var b := ui.button(window,"",Vector2(275+index*310,135),Vector2(295,118),open_for.bind(selected_actor,index))
-		b.modulate = Color("edcf9b") if index == selected_slot else Color.WHITE
+		GameUi.tab(b,index==selected_slot)
 		b.draw.connect(func():
 			EquipmentArt.icon(b,entry,Vector2(35,53))
 			if not entry["kind"].is_empty():
@@ -91,13 +93,14 @@ func refresh() -> void:
 		ui.label(b,"耐久 %d / %d"%[entry["durability"],entry["maximum"]] if not entry["kind"].is_empty() else "空栏位",Vector2(68,72),Vector2(210,24),17,GameUi.SECONDARY)
 		b.tooltip_text = GearCatalog.describe(entry["kind"]) if not entry["kind"].is_empty() else entry["name"]
 		slot_buttons.append(b)
-	ui.label(window,"外出途中只能查看，回到避难所再换装。" if read_only else "选择一件实物分配；同类装备按编号、耐久分别保管。换装会把原来的装备放回仓库。",Vector2(275,270),Vector2(940,52),18,GameUi.SECONDARY)
+	ui.label(window,"随身物品" if read_only else "装备库存",Vector2(275,283),Vector2(940,30),20,game.GOLD)
+	GameUi.line(window,Vector2(275,326),Vector2(1205,326))
 	var scroll := ScrollContainer.new()
 	scroll.position = Vector2(275,340); scroll.size = Vector2(930,360)
 	window.add_child(scroll)
 	var body := VBoxContainer.new()
 	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	body.add_theme_constant_override("separation",12)
+	body.add_theme_constant_override("separation",0)
 	scroll.add_child(body)
 	var count := 0
 	for item in game.expansion.gear:
@@ -106,17 +109,18 @@ func refresh() -> void:
 		var kind: String = item["kind"]
 		var owned: bool = item["owner"] == actor.person.persona
 		var location: String = "仓库" if str(item["owner"]).is_empty() else PeopleCatalog.DATA[item["owner"]]["name"]
-		var row := Panel.new(); row.custom_minimum_size = Vector2(900,96); row.theme = GameUi.theme(); body.add_child(row)
+		var row := Panel.new(); row.custom_minimum_size = Vector2(900,82); row.theme = GameUi.theme(); row.add_theme_stylebox_override("panel",StyleBoxEmpty.new()); body.add_child(row)
+		GameUi.line(row,Vector2(0,81),Vector2(900,81))
 		ui.label(row,"%s · #%02d    耐久 %d/%d"%[GearCatalog.ITEMS[kind]["name"],item["id"],item["durability"],GearCatalog.ITEMS[kind]["durability"]],Vector2(18,10),Vector2(640,30),21,game.GOLD)
-		ui.label(row,"保管："+location+" · "+GearCatalog.describe(kind),Vector2(18,49),Vector2(640,30),17)
+		ui.label(row,location+"  /  "+GearCatalog.describe(kind),Vector2(18,44),Vector2(640,30),17)
 		var target := -1 if owned else selected_actor
-		var b := ui.button(row,"已穿戴" if read_only else "卸下到仓库" if owned else "分配给"+actor.display_name,Vector2(680,23),Vector2(205,46),assign.bind(int(item["id"]),target))
+		var b := ui.button(row,"已装备" if read_only else "卸下" if owned else "装备" if str(item["owner"]).is_empty() else "转交",Vector2(728,21),Vector2(154,40),assign.bind(int(item["id"]),target))
 		b.disabled = read_only
-		b.tooltip_text = "从%s转交；当前栏位的旧装备将回到仓库。"%location if not owned else "仅卸下这件实物。"
+		b.tooltip_text = "交给%s；原装备放回仓库。"%actor.display_name if not owned else "放回仓库。"
 		item_buttons[int(item["id"])] = b
 		count += 1
-	if count == 0: ui.label(body,"当前没有可用的"+SLOT_NAMES[selected_slot]+"。",Vector2.ZERO,Vector2(880,44),21,GameUi.SECONDARY)
-	ui.label(window,"武器、护甲各占一个背包格；衣物穿在身上。弹药在出发准备中另外携带。",Vector2(275,719),Vector2(940,30),17,GameUi.SECONDARY)
+	if count == 0: ui.label(body,"暂无"+SLOT_NAMES[selected_slot],Vector2.ZERO,Vector2(880,44),21,GameUi.SECONDARY)
+	ui.label(window,"外出期间无法更换装备" if read_only else "武器、护甲各占1格；衣物不占格。",Vector2(275,719),Vector2(940,30),17,GameUi.SECONDARY)
 
 func assign(id: int, actor_id: int) -> void:
 	if read_only or not opened: return

@@ -88,7 +88,7 @@ func _ready() -> void:
 	scheduler.production_rate = func(id: String): return facilities.rate(id)
 	facilities.sync(self)
 	expansion.sync(self)
-	get_window().title = "封锁区：余生 · v1.19.0"
+	get_window().title = "封锁区：余生 · v1.20.0"
 	neighborhood.sync(self)
 	chronicle.sync(self)
 	scheduler.task_finished.connect(func(id: int,task: String): chronicle.job(self,id,task))
@@ -805,13 +805,13 @@ func raid_defense(preview: bool = false) -> float:
 
 
 func night_forecast() -> String:
-	if not residence.convoy.is_empty(): return "整夜迁居 · 室外%d℃ · 全员护送，不能留守或搜刮；注意保暖与护送装备" % expansion.outside(self)
+	if not residence.convoy.is_empty(): return "迁居运输  /  室外 %d℃  /  全员随行" % expansion.outside(self)
 	var day := cycle.night_day if cycle.phase == "planning" else ExpeditionState.day_at(simulation_time)
 	var chance := raid_chance(day)
 	var threat := raid_threat(day)
-	var guard := "暂未出现集中袭击" if chance == 0 else "20:00安排守夜" if cycle.phase != "planning" else "预计防守稳固" if raid_defense(true) >= threat else "预计防守吃紧"
-	if chronicle.manual_defense and chance>0: guard="夜袭需亲自参战，备好武器与守夜人手"
-	return "今晚室外%d℃ · 尸群活动%d%% · %s · U查看街区动态" % [expansion.outside(self),chance,guard]
+	var guard := "无夜袭预警" if chance == 0 else "守夜待安排" if cycle.phase != "planning" else "防守充足" if raid_defense(true) >= threat else "防守不足"
+	if chronicle.manual_defense and chance>0: guard="基地防守"
+	return "室外 %d℃    夜袭风险 %d%%    %s" % [expansion.outside(self),chance,guard]
 
 
 func _resolve_convoy(report: Array[String]) -> void:
