@@ -9,7 +9,7 @@
 | Windows一键验收（v1.22.0） | [live_forever_v1.22.0_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.22.0/live_forever_v1.22.0_windows_acceptance.zip) | 主动运行windows_acceptance.cmd |
 | v1.22.0完整源码 | [live_forever_v1.22.0_source.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.22.0/live_forever_v1.22.0_source.zip) | Godot4.6.3导入project.godot，F5 |
 
-[SHA-256](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.22.0/SHA256SUMS.txt) · [玩法](../docs/PLAYING.md) · [十二人角色池与验证](../docs/SELECTED_ROSTER_V27.md)
+[SHA-256](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.22.0/SHA256SUMS.txt) · [玩法](https://github.com/hypetia/live_forever/blob/main/docs/PLAYING.md) · [十二人角色池与验证](https://github.com/hypetia/live_forever/blob/main/docs/SELECTED_ROSTER_V27.md)
 
 这些ZIP上传到下载分支，未建立GitHub Release。Windows已导出，实际设备验收仍待进行；不要把Linux检查当作Windows通过。
 
