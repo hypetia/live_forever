@@ -497,25 +497,13 @@ func set_target(x: float, floor_level: int, run: bool, site: int) -> void:
 
 
 func toggle_build_menu() -> void:
-	build_open = not build_open
-	if not is_instance_valid(build_panel):
-		build_panel = panel(root, Vector2(32, 270), Vector2(370, 535))
-		label(build_panel, "建设 · 选设施，再点场景位置", Vector2(16, 16), Vector2(340, 30), 17, game.GOLD)
-		var row := 0
-		for type in CampaignCycle.RECIPES:
-			var recipe: Dictionary = CampaignCycle.RECIPES[type]
-			var action := button(build_panel, recipe["name"] + " · " + ShelterInventory.describe(recipe["cost"]), Vector2(16, 60 + row * 115), Vector2(338, 42), _select_build.bind(type))
-			action.add_theme_font_size_override("font_size", 14)
-			var hint := label(build_panel, recipe["hint"], Vector2(16, 107 + row * 115), Vector2(338, 53), 13)
-			hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			row += 1
-	build_panel.visible = build_open
+	if workshop_open and workshop_section=="construction":close_workshop()
+	else:open_workshop("construction")
 
 
 func _select_build(type: String) -> void:
 	game.placement = type
-	build_open = false
-	build_panel.hide()
+	close_workshop()
 	refresh()
 
 
@@ -534,10 +522,18 @@ func toggle_workshop() -> void:
 		close_workshop()
 		return
 	if not game.cycle.phase in ["day", "planning"]: return
+	CampaignPanels.close_all(game)
+	game.placement=""
 	workshop_pause = game.paused
 	game.paused = true
 	workshop_open = true
 	_create_workshop()
+
+
+func open_workshop(section: String) -> void:
+	workshop_section=section
+	if workshop_open:_create_workshop()
+	else:toggle_workshop()
 
 
 func close_workshop() -> void:

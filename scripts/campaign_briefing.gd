@@ -15,6 +15,7 @@ func _ready() -> void:
 func toggle() -> void:
 	if opened: close(); return
 	if game.game_over or not game.cycle.phase in ["day","planning","scavenge","returning"]: return
+	CampaignPanels.close_all(game)
 	if game.interface.workshop_open: game.interface.close_workshop()
 	if game.residence_view.opened: game.residence_view.close()
 	if game.center.visible: game.center.close()

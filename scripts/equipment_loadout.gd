@@ -31,6 +31,7 @@ func open_for(actor_id: int = -1, slot: int = 0) -> void:
 	if game.game_over or not game.cycle.phase in ["day","planning","scavenge","returning"]: return
 	if game.departure_dialog.visible or game._loot_open: return
 	if not opened:
+		CampaignPanels.close_all(game)
 		if game.interface.workshop_open: game.interface.close_workshop()
 		if game.camp_view.opened: game.camp_view.close()
 		if game.center.visible: game.center.close()

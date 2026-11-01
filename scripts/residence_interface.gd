@@ -12,6 +12,7 @@ func _ready() -> void:
 func toggle() -> void:
 	if opened: close(); return
 	if not game.cycle.phase in ["day", "planning"] or game.game_over: return
+	CampaignPanels.close_all(game)
 	if game.interface.workshop_open: game.interface.close_workshop()
 	if game.center.visible: game.center.close()
 	paused_before = game.paused
@@ -47,7 +48,7 @@ func render() -> void:
 	body.custom_minimum_size = Vector2(1300,1)
 	scroll.add_child(body)
 	var y := 0.0
-	ui.label(body,"设施工程",Vector2(0,y),Vector2(1200,30),21,game.GOLD)
+	ui.label(body,"安防与公共活动",Vector2(0,y),Vector2(1200,30),21,game.GOLD)
 	y += 45
 	for kind in ["gate","mesh","alarm","stakes","maintain","guitar","music","picnic"]:
 		y = project_row(body,kind,y)
@@ -85,7 +86,7 @@ func project_row(parent: Control, kind: String, y: float) -> float:
 	ui.label(parent,recipe["hint"],Vector2(0,y+30),Vector2(1030,29),14)
 	var error: String = game.residence.job_error(game,kind)
 	var action := ui.button(parent,"安排 · %d秒" % recipe["seconds"],Vector2(1080,y+4),Vector2(200,40),func():
-		if game.expansion.start_job(game,kind): close()
+		if game.expansion.start_job(game,kind): CampaignPanels.resume(game)
 		else: render()
 	)
 	action.tooltip_text = error if not error.is_empty() else recipe["hint"]

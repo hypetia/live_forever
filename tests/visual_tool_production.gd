@@ -29,7 +29,7 @@ func _run() -> void:
 	await keypress(KEY_ESCAPE);sim(g,15)
 	check(g.inventory.amount("tools")==initial["tools"],"paused plans do not resume behind the closed menu")
 	await keypress(KEY_K);await click_button(g.interface.workshop_panel,"生产计划")
-	await click_at(g.interface.production_actions["craft"].get_global_rect().get_center());await keypress(KEY_ESCAPE);sim(g,65)
+	await click_at(g.interface.production_actions["craft"].get_global_rect().get_center());sim(g,65)
 	check(g.production.orders.is_empty() and g.inventory.amount("tools")==initial["tools"]+3 and g.inventory.amount("materials")==initial["materials"]-6,"resume completes exactly three paid jobs")
 	await keypress(KEY_K);await click_button(g.interface.workshop_panel,"工作台")
 	var mode:OptionButton=g.interface.production_modes["craft"]

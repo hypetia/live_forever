@@ -35,7 +35,9 @@ func text(value: String,size: int=19) -> Label:
 func button(label: String,action: Callable,disabled: bool=false) -> Button:
  var b:=Button.new();b.text=label;b.custom_minimum_size=Vector2(1000,42);b.focus_mode=Control.FOCUS_NONE;b.disabled=disabled;body.add_child(b);b.pressed.connect(action);return b
 func show_page(value: String) -> void:
- if not opened:pause_before=game.paused
+ if not opened:
+  CampaignPanels.close_all(game)
+  pause_before=game.paused
  page=value;opened=true;game.paused=true;root.show();refresh()
 func close() -> void:
  opened=false;root.hide();game.paused=pause_before or game.game_over

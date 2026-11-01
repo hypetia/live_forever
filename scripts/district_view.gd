@@ -18,6 +18,7 @@ func _ready() -> void: layer = 13
 func toggle() -> void:
 	if opened: close();return
 	if game.game_over or game._loot_open or game.departure_dialog.visible or game.expedition_view.equipment_dialog.visible: return
+	CampaignPanels.close_all(game)
 	if game.briefing.opened: game.briefing.close()
 	if game.security_view.opened: game.security_view.close()
 	if game.residence_view.opened: game.residence_view.close()

@@ -16,6 +16,7 @@ func _ready() -> void:
 func toggle() -> void:
 	if opened: close(); return
 	if game.game_over: return
+	CampaignPanels.close_all(game)
 	paused_before = game.paused
 	game.paused = true
 	opened = true

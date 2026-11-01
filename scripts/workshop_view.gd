@@ -9,8 +9,9 @@ static func render(ui: CampaignInterface) -> Panel:
 	ui.workshop_owner_choices.clear()
 	ui.workshop_upgrade = null
 	var window := ui.panel(ui.root,Vector2(25,20),Vector2(1390,860))
-	ui.label(window,"制作",Vector2(25,17),Vector2(1080,40),27,GameUi.TEXT)
-	ui.button(window,"关闭 K / Esc",Vector2(1170,17),Vector2(190,40),ui.close_workshop)
+	ui.label(window,"营地工作",Vector2(25,17),Vector2(1080,40),27,GameUi.TEXT)
+	ui.button(window,"返回 · 右键 / Esc",Vector2(1130,17),Vector2(230,40),ui.close_workshop)
+	ui.label(window,"空格：返回并继续",Vector2(25,812),Vector2(220,28),17,GameUi.SECONDARY)
 	var living_row := 0
 	for index in range(game.survivors.size()):
 		var actor: Survivor = game.survivors[index]
@@ -21,7 +22,7 @@ static func render(ui: CampaignInterface) -> Panel:
 		living_row += 1
 	GameUi.paper(window,Rect2(0,0,1390,860))
 	GameUi.line(window,Vector2(250,72),Vector2(250,828))
-	var pages := [["workbench","工作台"],["kitchen","厨房"],["storage","装备维护"],["campaign","撤离工程"],["production","生产计划"]]
+	var pages := [["workbench","工作台"],["kitchen","厨房"],["water","饮水处理"],["garden","种植与采集"],["construction","建造"],["storage","装备维护"],["campaign","撤离工程"],["production","生产计划"]]
 	for index in range(pages.size()):
 		var page: Array = pages[index]
 		var tab := ui.button(window,page[1],Vector2(25,126+index*57),Vector2(210,46),func(): ui.workshop_section = page[0]; ui._create_workshop())
@@ -48,6 +49,11 @@ static func render(ui: CampaignInterface) -> Panel:
 				if job["kind"] == upgrade:
 					ui.workshop_upgrade.text = "升级施工中 · %d%%" % roundi(100*float(job["elapsed"])/float(job["duration"]))
 		else: ui.label(window,"已达到最高等级",Vector2(1040,158),Vector2(305,35),19,game.GOLD)
+	elif ui.workshop_section in ["water","garden","construction"]:
+		var titles:Dictionary={"water":"饮水处理","garden":"种植与采集","construction":"床铺与生活设施"}
+		var hints:Dictionary={"water":"煮沸需炉灶；过滤需沉淀过滤器。","garden":"种植箱内播种、施肥，成熟后收获。","construction":"床、取暖炉和集水器先选位置；生活设施完工后固定安装。"}
+		ui.label(window,titles[ui.workshop_section],Vector2(270,150),Vector2(1070,38),23,game.GOLD)
+		ui.label(window,hints[ui.workshop_section],Vector2(270,204),Vector2(1070,40),17,GameUi.SECONDARY)
 	elif ui.workshop_section=="production":
 		ui.label(window,"生产计划",Vector2(270,150),Vector2(1070,38),23,game.GOLD)
 		ui.label(window,"工人空闲时执行，逐件扣料。手动命令暂停计划，夜间暂停施工。",Vector2(270,204),Vector2(1070,40),17,GameUi.SECONDARY)
@@ -67,17 +73,23 @@ static func render(ui: CampaignInterface) -> Panel:
 	scroll.add_child(body)
 	var kinds: Array = []
 	match ui.workshop_section:
-		"workbench": kinds = ["craft","repair_shelter"]+GearCatalog.ITEMS.keys()
-		"kitchen": kinds = ["cook","cook_batch","cook_stew","cook_pot"]
+		"workbench": kinds = ["craft"]+GearCatalog.ITEMS.keys()
+		"kitchen": kinds = ["cook","cook_batch","cook_stew","cook_pot"]+(["balanced","broth","salad","dry_meat"] if game.camp.enabled else [])
+		"water":kinds=["boil_water","filter_water"] if game.camp.enabled else []
+		"garden":kinds=["plant_veg","plant_herbs","fertilize","harvest","extract_seeds","check_trap"] if game.camp.enabled else []
+		"construction":kinds=["bed","heater","filter","barricade","repair_shelter"]+(["planter","pantry","trap","settling_filter","backup_power"] if game.camp.enabled else [])
 		"campaign": kinds = GearCatalog.PROJECTS.keys().filter(func(kind): return not kind in ["ammo","service_tools"])
 		"production":WorkshopProductionView.page(ui,body)
 		"storage":
 			for index in range(game.expansion.gear.size()): _storage_card(ui,body,game.expansion.gear[index],index)
 			if game.expansion.gear.is_empty(): ui.label(body,"暂无装备",Vector2(15,20),Vector2(1200,40),18)
 	if ui.workshop_section == "workbench": kinds.append("ammo")
-	for index in range(kinds.size()): _recipe_card(ui,body,kinds[index],index)
+	for index in range(kinds.size()):
+		if ui.workshop_section=="construction" and CampaignCycle.RECIPES.has(kinds[index]):_build_card(ui,body,kinds[index],index)
+		elif CampFoodCatalog.RECIPES.has(kinds[index]):_camp_card(ui,body,kinds[index],index)
+		else:_recipe_card(ui,body,kinds[index],index)
 	if ui.workshop_section=="workbench":
-		var service:=ui.button(window,"保养 · 零件1 材料1",Vector2(25,414),Vector2(210,38),func():_start(ui,"service_tools"))
+		var service:=ui.button(window,"保养 · 零件1 材料1",Vector2(25,760),Vector2(210,38),func():_start(ui,"service_tools"))
 		service.disabled=game.cycle.phase!="day" or game.production.condition>=100 or not game.inventory.can_take(GearCatalog.PROJECTS["service_tools"]["cost"])
 		service.tooltip_text="恢复工作台工具状态60。低于21时效率降低15%，完全损坏时降低35%；无需重新制作整套工具。"
 	if ui.workshop_section == "campaign":
@@ -92,11 +104,11 @@ static func render(ui: CampaignInterface) -> Panel:
 		body.custom_minimum_size.y = maxf(180,ceilf(count/2.0)*180+10)
 	window.draw.connect(func():
 		if ui.workshop_section=="workbench":
-			if game.facility.tier>=2:FacilityArt.prop(window,8 if game.facility.tier==2 else 9,Rect2(43,450,170,160))
-			else:RealismAssets.prop(window,1,Rect2(43,506,170,104))
+			if game.facility.tier>=2:FacilityArt.prop(window,8 if game.facility.tier==2 else 9,Rect2(43,604,170,140))
+			else:RealismAssets.prop(window,1,Rect2(43,636,170,104))
 		elif ui.workshop_section=="kitchen":
-			if game.stove.tier>=2:FacilityArt.prop(window,10 if game.stove.tier==2 else 11,Rect2(43,440,170,170))
-			else:RealismAssets.prop(window,2,Rect2(66,478,125,132))
+			if game.stove.tier>=2:FacilityArt.prop(window,10 if game.stove.tier==2 else 11,Rect2(43,600,170,150))
+			else:RealismAssets.prop(window,2,Rect2(66,610,125,132))
 	)
 	return window
 
@@ -160,12 +172,12 @@ static func _basic(ui: CampaignInterface, task: String) -> void:
 	ui.game.batch_count.value = count
 	ui.game.assign_selected()
 	ui.game.context_open = false
-	ui.close_workshop()
+	CampaignPanels.resume(ui.game)
 	ui.game._refresh_hud()
 
 
 static func _start(ui: CampaignInterface, kind: String) -> void:
-	if ui.game.expansion.start_job(ui.game,kind): ui.close_workshop()
+	if ui.game.expansion.start_job(ui.game,kind): CampaignPanels.resume(ui.game)
 	else: ui._create_workshop()
 
 
@@ -193,7 +205,51 @@ static func _storage_card(ui: CampaignInterface, body: Control, item: Dictionary
 	card.add_child(owner_choice)
 	ui.workshop_owner_choices[int(item["id"])] = owner_choice
 	var repair := ui.button(card,"维修 · 材料2",Vector2(258,122),Vector2(246,32),func():
-		if game.expansion.start_job(game,"repair",int(item["id"])): ui.close_workshop()
+		if game.expansion.start_job(game,"repair",int(item["id"])): CampaignPanels.resume(game)
 		else: ui._create_workshop()
 	)
 	repair.disabled = kind=="lockpick" or game.cycle.phase != "day" or item["durability"] >= GearCatalog.ITEMS[kind]["durability"] or not game.inventory.can_take({"materials":2})
+
+
+static func _build_card(ui: CampaignInterface,body: Control,kind: String,index: int) -> void:
+	var game:=ui.game
+	var recipe:Dictionary=CampaignCycle.RECIPES[kind]
+	var existing:int=game.cycle.builds.filter(func(build):return build["type"]==kind).size()
+	var maximum:=2 if kind=="bed" else 1
+	var card:=ui.panel(body,Vector2((index%2)*535,(index/2)*180),Vector2(520,166),GameUi.SURFACE)
+	ui.label(card,recipe["name"],Vector2(80,15),Vector2(310,30),22,game.GOLD)
+	ui.label(card,"%d / %d"%[existing,maximum],Vector2(425,17),Vector2(82,28),17)
+	ui.label(card,ShelterInventory.describe(recipe["cost"]),Vector2(80,53),Vector2(420,28),17)
+	ui.label(card,recipe["hint"],Vector2(16,87),Vector2(488,26),14).tooltip_text=recipe["hint"]
+	card.draw.connect(func():
+		if kind=="bed":RealismAssets.prop(card,0,Rect2(8,17,64,55))
+		else:FacilityArt.prop(card,{"heater":0,"filter":1,"barricade":2}[kind],Rect2(12,12,58,67))
+	)
+	var action:=ui.button(card,"选择位置 · %d秒"%recipe["seconds"],Vector2(288,120),Vector2(216,34),func():ui._select_build(kind))
+	action.disabled=game.cycle.phase!="day" or existing>=maximum or game.cycle.builds.size()>=CampaignCycle.SLOTS.size() or not game.inventory.can_take(recipe["cost"])
+	action.tooltip_text="已达到数量上限" if existing>=maximum else "没有空建设位置" if game.cycle.builds.size()>=CampaignCycle.SLOTS.size() else "缺料："+game.inventory.missing_text(recipe["cost"]) if not game.inventory.can_take(recipe["cost"]) else "选中后点击场景内的绿色位置；开工后自动继续。"
+	ui.workshop_recipes[kind]=action
+
+
+static func _camp_card(ui: CampaignInterface,body: Control,kind: String,index: int) -> void:
+	var game:=ui.game
+	var recipe:Dictionary=CampFoodCatalog.RECIPES[kind]
+	var card:=ui.panel(body,Vector2((index%2)*535,(index/2)*180),Vector2(520,166),GameUi.SURFACE)
+	ui.label(card,recipe["name"],Vector2(65,15),Vector2(440,30),20,game.GOLD)
+	var costs:PackedStringArray=[]
+	if not recipe["cost"].is_empty():costs.append(ShelterInventory.describe(recipe["cost"]))
+	if not recipe["food"].is_empty():costs.append(CampFoodCatalog.names(recipe["food"]))
+	ui.label(card," / ".join(costs) if not costs.is_empty() else "无材料消耗",Vector2(16,56),Vector2(488,28),15)
+	ui.label(card,recipe["hint"],Vector2(16,87),Vector2(488,26),14).tooltip_text=recipe["hint"]
+	card.draw.connect(func():
+		if recipe.has("build") or kind in ["settling_filter","backup_power"]:FacilityArt.prop(card,{"planter":7,"pantry":4,"trap":3,"settling_filter":6,"backup_power":12}.get(kind,7),Rect2(12,8,42,42))
+		elif not recipe["food"].is_empty():CampFoodCatalog.draw_icon(card,recipe["food"].keys()[0],Vector2(33,33),24)
+		else:HudIcons.draw(card,"water" if ui.workshop_section=="water" else "meals",Vector2(33,33),24,game.GOLD)
+	)
+	var error:String=game.camp.food.error(game,kind,game.selected_id)
+	var action:=ui.button(card,("建造" if recipe.has("build") or kind in ["settling_filter","backup_power"] else "开始")+" · %d秒"%recipe["seconds"],Vector2(340,120),Vector2(164,34),func():
+		if game.camp.food.start_job(game,kind):CampaignPanels.resume(game)
+		else:ui._create_workshop()
+	)
+	action.disabled=not error.is_empty();action.tooltip_text=error if not error.is_empty() else "开工后自动收起面板并继续时间。"
+	ui.workshop_recipes[kind]=action

@@ -12,7 +12,7 @@ static func controls(ui: CampaignInterface,card: Panel,kind: String) -> void:
 		if row["kind"]==kind:mode.select(0 if row["mode"]=="batch" else 1);count.value=row["amount"]
 
 static func arrange(ui: CampaignInterface,kind: String) -> void:
-	if ui.game.production.plan(ui.game,kind,"batch" if ui.production_modes[kind].selected==0 else "stock",int(ui.production_counts[kind].value),ui.game.selected_id):ui.game.context_open=false;ui.close_workshop()
+	if ui.game.production.plan(ui.game,kind,"batch" if ui.production_modes[kind].selected==0 else "stock",int(ui.production_counts[kind].value),ui.game.selected_id):ui.game.context_open=false;CampaignPanels.resume(ui.game)
 
 static func page(ui: CampaignInterface,body: Control) -> void:
 	var game:=ui.game
@@ -26,7 +26,11 @@ static func page(ui: CampaignInterface,body: Control) -> void:
 		ui.label(card,WorkshopProduction.NAMES[row["kind"]],Vector2(18,12),Vector2(310,30),22,GameUi.ACCENT)
 		ui.label(card,name+"  /  "+target,Vector2(18,55),Vector2(560,30),18)
 		ui.label(card,game.production.status(game,row),Vector2(395,12),Vector2(620,30),18,GameUi.SECONDARY)
-		var toggle:=ui.button(card,"继续" if row["paused"] else "暂停",Vector2(742,61),Vector2(136,36),func():game.production.toggle(game,row["kind"]);ui._create_workshop())
+		var toggle:=ui.button(card,"继续" if row["paused"] else "暂停",Vector2(742,61),Vector2(136,36),func():
+			game.production.toggle(game,row["kind"])
+			if not row["paused"]:CampaignPanels.resume(game)
+			else:ui._create_workshop()
+		)
 		toggle.disabled=game.cycle.phase!="day"
 		ui.production_actions[row["kind"]]=toggle
 		var cancel:=ui.button(card,"取消",Vector2(894,61),Vector2(136,36),func():game.production.remove(game,row["kind"]);ui._create_workshop())

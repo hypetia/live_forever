@@ -1,12 +1,12 @@
-# Live Forever · 封锁区：余生 v1.21.0
+# Live Forever · 封锁区：余生 v1.22.0
 
-v1.21.0拆分工具与配方耗材：机械零件用于装配；工作台配套工具与外出工具包可重复使用、磨损和维修，另有一次性开锁器。K工作台支持按批数生产或补到指定库存；O装备新增工具栏，野外能找到并带回旧工具包。同时修复夜间营地按钮遮挡地面点击。窗口标题显示 `v1.21.0`。
+v1.22.0统一营地工作入口：普通饭菜与肉菜餐全部放入厨房；B建造直接提供床铺与生活设施，并显示数量上限。确认开工或继续生产后自动收起面板、恢复时间；查看可用右键/Esc返回、空格继续，快捷键可直接切换。底部“工程”改为“撤离”。窗口标题显示 `v1.22.0`。
 
 单人僵尸生存游戏：白天经营、制作和照顾同伴，夜间亲自潜入搜刮、抵御尸群。保留九张地图、三个开局、十二名角色及个人线、35日撤离战役、无尽生存、迁居和前哨。建议按F2新开战役体验当前版本。
 
-![工作台工具与生产计划：实际运行画面](docs/tools-workbench.png)
+![统一建造页：实际运行画面](docs/camp-workflow-building.png)
 
-[工具、维护与生产计划](docs/TOOLS_PRODUCTION.md) · [界面改版与实际截图](docs/UI_REDESIGN.md) · [战斗压力、反制与区域巡群](docs/COMBAT_PRESSURE.md) · [设施与装备操作、实际截图](docs/FACILITIES_EQUIPMENT.md) · [人物和环境美术](docs/REALISM_ART.md) · [营地玩法说明](docs/CAMP_LIFE.md) · [本版验证记录](docs/tools-production-validation.json)
+[营地分类与面板操作](docs/CAMP_WORKFLOW.md) · [工具、维护与生产计划](docs/TOOLS_PRODUCTION.md) · [界面改版与实际截图](docs/UI_REDESIGN.md) · [战斗压力、反制与区域巡群](docs/COMBAT_PRESSURE.md) · [设施与装备操作、实际截图](docs/FACILITIES_EQUIPMENT.md) · [人物和环境美术](docs/REALISM_ART.md) · [营地玩法说明](docs/CAMP_LIFE.md) · [本版验证记录](docs/camp-workflow-validation.json)
 
 ## 下载后直接玩
 
@@ -14,22 +14,22 @@ v1.21.0拆分工具与配方耗材：机械零件用于装配；工作台配套�
 
 | 用途 | GitHub直接下载 | 使用方法 |
 | --- | --- | --- |
-| Windows 64位游戏（约46MB） | [live_forever_v1.21.0_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.21.0/live_forever_v1.21.0_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
-| Linux x86_64游戏（约37MB） | [live_forever_v1.21.0_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.21.0/live_forever_v1.21.0_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
-| Windows一键验收工具 | [live_forever_v1.21.0_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.21.0/live_forever_v1.21.0_windows_acceptance.zip) | 主动运行 `windows_acceptance.cmd`，默认约30分钟 |
-| v1.21.0完整源码 | [live_forever_v1.21.0_source.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.21.0/live_forever_v1.21.0_source.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
+| Windows 64位游戏（约46MB） | [live_forever_v1.22.0_windows_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.22.0/live_forever_v1.22.0_windows_x64.zip) | 完整解压，双击 `LiveForever.exe` |
+| Linux x86_64游戏（约37MB） | [live_forever_v1.22.0_linux_x64.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.22.0/live_forever_v1.22.0_linux_x64.zip) | 完整解压，运行 `LiveForever.x86_64` |
+| Windows一键验收工具 | [live_forever_v1.22.0_windows_acceptance.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.22.0/live_forever_v1.22.0_windows_acceptance.zip) | 主动运行 `windows_acceptance.cmd`，默认约30分钟 |
+| v1.22.0完整源码 | [live_forever_v1.22.0_source.zip](https://github.com/hypetia/live_forever/raw/refs/heads/downloads-v1.22.0/live_forever_v1.22.0_source.zip) | Godot **4.6.3标准版**导入 `project.godot`，按F5 |
 
 普通游戏不需要Godot、Python、登录、服务器或持续联网。验收工具是单独的程序，不会在正常游戏中替你操作。Windows包按官方模板导出；**尚未在Windows真实设备完成验收**。
 
-[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.21.0) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
+[全部文件及校验](https://github.com/hypetia/live_forever/tree/downloads-v1.22.0) · [最新main源码ZIP](https://github.com/hypetia/live_forever/archive/refs/heads/main.zip)
 
-v1.21.0 运行包和对应源码托管在 `downloads-v1.21.0`；同版验收包在 `downloads-v1.21.0`，开发源码在 `main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
+v1.22.0 运行包和对应源码托管在 `downloads-v1.22.0`；同版验收包在 `downloads-v1.22.0`，开发源码在 `main`。当前环境不能使用GitHub Releases接口，下载分支中的文件**不是Release附件**；打开上面的直接链接即可下载。旧版分支保留。
 
 [角色设定说明（沿用）](docs/SELECTED_ROSTER_V27.md)
 
 ## 新版怎样玩
 
-**F5管理营地。** 查看两天后的局势，安排种植、肉菜饭、保鲜、净水、病床休养和草药护理。角色能主动陪伴、望风与补充蔬菜；连续守夜会产生分工争议，轮换承诺由实际夜间岗位兑现。
+**F5管理营地。** 查看局势、物资、健康与关系；“日常工作”进入统一厨房、净水、种植和建造菜单。B直接建造床铺与生活设施，K打开制作。角色能主动陪伴、望风与补充蔬菜；连续守夜会产生分工争议，轮换承诺由实际夜间岗位兑现。
 
 **诊所与水厂会记住行动。** 点击现场设备或靠近按E，选择保全、拆取、持续生产与分流；施工有进度，完成才扣料。普通容器在这两张地图搜空后保持空。水厂可把水送回基地，也可支持诊所制作护理用品。
 

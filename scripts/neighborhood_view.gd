@@ -19,7 +19,9 @@ func _ready() -> void:
 
 func open_at(id: String) -> void:
 	if not game.neighborhood.near(game,id) or game.cycle.phase!="scavenge" or game._loot_open or game.departure_dialog.visible:return
-	if not opened:paused_before=game.paused
+	if not opened:
+		CampaignPanels.close_all(game)
+		paused_before=game.paused
 	selected=id;confirmed="";opened=true;game.paused=true;root.show();render()
 
 func render() -> void:

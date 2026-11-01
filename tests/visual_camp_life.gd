@@ -7,6 +7,10 @@ func item_click(grid: BackpackGrid,kind: String) -> void:
  for index in range(grid.items.size()):
   if grid.items[index]['kind']=='provision' and grid.items[index]['key']==kind:await click_at(grid.cells[index].get_global_rect().get_center());return
  check(false,'visible typed stack '+kind)
+func right_dismiss(point: Vector2) -> void:
+ for down in [true,false]:
+  var event:=InputEventMouseButton.new();event.position=point;event.global_position=point;event.button_index=MOUSE_BUTTON_RIGHT;event.pressed=down
+  Input.parse_input_event(event);await process_frame
 func _run() -> void:
  var output:String=OS.get_cmdline_user_args()[0];DirAccess.make_dir_recursive_absolute(output)
  var g:Node2D=load('res://scenes/campaign.tscn').instantiate();g.persistence_enabled=false;root.add_child(g);g.set_process(false)
@@ -18,17 +22,19 @@ func _run() -> void:
  var clock:float=g.simulation_time;sim(g,3);check(g.simulation_time==clock,'reading forecast spends no game time')
  await tab(g,'物资');check(g.camp_view.page=='food','food tab receives actual click')
  await picture(output+'/camp-food.png')
- await tab(g,'生产');check(g.camp_view.page=='production','production tab receives actual click')
- await click_at(g.camp_view.actions['category:building'].get_global_rect().get_center())
- check(g.camp_view.actions.has('planter') and not g.camp_view.actions['planter'].disabled,'categorized planter recipe reachable')
+ await tab(g,'日常工作');check(g.camp_view.page=='production','production tab receives actual click')
+ await click_at(g.camp_view.actions['category:construction'].get_global_rect().get_center())
+ check(g.interface.workshop_recipes.has('planter') and not g.interface.workshop_recipes['planter'].disabled,'categorized planter recipe reachable')
  var material:int=g.inventory.amount('materials')
- await click_at(g.camp_view.actions['planter'].get_global_rect().get_center())
+ g.interface.workshop_scroll.scroll_vertical=900
+ await process_frame
+ await click_at(g.interface.workshop_recipes['planter'].get_global_rect().get_center())
  check(not g.camp_view.opened and not g.paused and g.camp.food.jobs.size()==1,'recipe click closes panel and starts actual walking job')
  check(g.inventory.amount('materials')==material-5 and g.camp.food.infrastructure['plots']==0,'paid blueprint has no early planter')
  sim(g,45);check(g.camp.food.infrastructure['plots']==1 and g.camp.food.jobs.is_empty(),'physical construction finishes actual planter')
- await keypress(KEY_F5);await tab(g,'生产');await click_at(g.camp_view.actions['category:garden'].get_global_rect().get_center())
- check(not g.camp_view.actions['plant_veg'].disabled and g.camp_view.actions['harvest'].disabled,'real UI distinguishes sowing from immature harvest')
- await click_at(g.camp_view.actions['plant_veg'].get_global_rect().get_center());sim(g,35)
+ await keypress(KEY_F5);await tab(g,'日常工作');await click_at(g.camp_view.actions['category:garden'].get_global_rect().get_center())
+ check(not g.interface.workshop_recipes['plant_veg'].disabled and g.interface.workshop_recipes['harvest'].disabled,'real UI distinguishes sowing from immature harvest')
+ await click_at(g.interface.workshop_recipes['plant_veg'].get_global_rect().get_center());sim(g,35)
  check(g.camp.food.plots.size()==1,'UI sowing becomes actual growing crop')
  await keypress(KEY_F5);await tab(g,'健康');check(g.camp_view.actions.has('care:1') and g.camp_view.actions['care:1'].disabled,'nonmedic care correctly disabled with explicit target')
  await tab(g,'关系');check(g.camp_view.actions.has('talk:xu'),'relationship screen provides a specific companion')
@@ -49,8 +55,8 @@ func _run() -> void:
  var cans:int=g.camp.food.amount('cans')
  await item_click(g.interface.container_grid,'cans')
  check(g.camp.food.amount('cans',g.camp.food.cargo)==1 and g.camp.food.amount('cans')==cans,'real typed loot click transfers one to carried stack')
- await item_click(g.interface.container_grid,'drinks');await keypress(KEY_ESCAPE)
- check(not g._loot_open,'Escape closes physical loot panel')
+ await item_click(g.interface.container_grid,'drinks');await right_dismiss(Vector2(600,400))
+ check(not g._loot_open,'right click closes physical loot without issuing a cancel command')
  await keypress(KEY_I);check(g.expedition_view.bag_open,'I opens actual carried food grid')
  await item_click(g.expedition_view.stack_grid,'drinks')
  check(not g.expedition_view.bag_open and not g.camp.food.field_action.is_empty(),'clicking drink starts held field use')

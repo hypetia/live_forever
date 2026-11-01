@@ -43,7 +43,7 @@ func _ready() -> void:
 		if is_instance_valid(node): node.reparent(root)
 	save_button = game.interface.button(root,"存",Vector2(1306,16),Vector2(36,32),func(): game.save_game())
 	save_button.tooltip_text = "保存 F6 · 读取 F9"
-	goal_button = game.interface.button(root,"工程",Vector2(1120,798),Vector2(82,36),func(): game.interface.workshop_section="campaign";game.interface.toggle_workshop())
+	goal_button = game.interface.button(root,"撤离",Vector2(1120,798),Vector2(82,36),func(): game.interface.open_workshop("campaign"))
 	home_button = game.interface.button(root,"家",Vector2(309,16),Vector2(36,32),func(): game.residence_view.toggle())
 	temperature = game.interface.label(root,"",Vector2(376,20),Vector2(175,28),17)
 	temperature.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -172,11 +172,11 @@ func refresh() -> void:
 	game.interface.build_button.position = Vector2(1220,798)
 	game.interface.build_button.size = Vector2(86,36)
 	game.interface.build_button.text = "建造"
-	game.interface.build_button.tooltip_text = "建设 B"
+	game.interface.build_button.tooltip_text = "床铺、取暖、集水与生活设施 B"
 	game.interface.workshop_button.position = Vector2(1316,798)
 	game.interface.workshop_button.size = Vector2(86,36)
 	game.interface.workshop_button.text = "制作"
-	game.interface.workshop_button.tooltip_text = "设施升级、厨房配方、装备与战役 K"
+	game.interface.workshop_button.tooltip_text = "工作台、厨房、净水、种植与生产计划 K"
 	end_button.position = Vector2(1218,846)
 	end_button.size = Vector2(184,38)
 	end_button.text = "结束白天"

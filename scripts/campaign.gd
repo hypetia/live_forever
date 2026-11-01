@@ -93,7 +93,7 @@ func _ready() -> void:
 	scheduler.survivor_lost.connect(func(id: int):production.interrupt(self,id))
 	facilities.sync(self)
 	expansion.sync(self)
-	get_window().title = "封锁区：余生 · v1.21.0"
+	get_window().title = "封锁区：余生 · v1.22.0"
 	neighborhood.sync(self)
 	chronicle.sync(self)
 	scheduler.task_finished.connect(func(id: int,task: String): chronicle.job(self,id,task))
@@ -1081,6 +1081,11 @@ func cancel_selected() -> void:
 			actor.state = Survivor.TaskState.IDLE
 
 
+func _input(event: InputEvent) -> void:
+	if is_instance_valid(interface) and is_instance_valid(camp_view) and CampaignPanels.handle(self,event):
+		get_viewport().set_input_as_handled()
+
+
 func _unhandled_key_input(event: InputEvent) -> void:
 	if is_instance_valid(equipment_view) and equipment_view.opened:
 		if event is InputEventKey and event.pressed and not event.echo:
@@ -1347,6 +1352,7 @@ func place_build(type: String, slot: int) -> bool:
 	actor.state = Survivor.TaskState.RETURNING
 	actor.feedback = "前往建设位置"
 	placement = ""
+	CampaignPanels.resume(self)
 	_log("%s开始建设%s。到达后施工，完成才生效；取消或日落退还未完成用料。" % [actor.display_name, CampaignCycle.RECIPES[type]["name"]])
 	_props_signature = ""
 	return true
@@ -1475,7 +1481,7 @@ func _draw_house_details() -> void:
 func _configure_manual() -> void:
 	for node in center.tabs.get_child(3).find_children("*", "Label", true, false):
 		if node.text.begins_with("1. 给留守者"):
-			node.text = "1. 点击人物或底部卡片选人；左键地面行走，双击奔跑，右键取消。\n2. 点床休息、点餐桌吃饭、点水桶走过去饮水。R让选中者自行用药。\n3. 点灶台／工作台选择配方与批数后确认。新命令替换旧命令，按住Shift可追加。\n4. B选择建设，再点绿色位置；人物会走过去施工，完成后才有作用。O打开独立装备栏，K打开制作与战役，人物需走到工作台制作；取暖炉需点燃。H打开家园，安排门窗加固、维护、音乐和迁居。\n5. 20:00进入夜间分工，也可点击结束白天。选择一位搜刮者，其他人守夜或睡眠。\n6. 选择目的地、携带物资再出发；每晚一次，提前归来也结算到清晨。"
+			node.text = "1. 点击人物或底部卡片选人；左键地面行走，双击奔跑，右键取消。\n2. 点床休息、点餐桌吃饭、点水桶走过去饮水。R让选中者自行用药。\n3. 点灶台／工作台选择配方与批数后确认。新命令替换旧命令，按住Shift可追加。\n4. B选择建设，再点绿色位置；人物会走过去施工，完成后才有作用。O打开独立装备栏，K打开工作台与厨房，人物需走到工作台制作；取暖炉需点燃。H打开家园，安排门窗加固、维护、音乐和迁居。\n5. 20:00进入夜间分工，也可点击结束白天。选择一位搜刮者，其他人守夜或睡眠。\n6. 选择目的地、携带物资再出发；每晚一次，提前归来也结算到清晨。"
 		elif node.text.begins_with("基地："):
 			node.text = "白天：A/D或方向键移动，Shift奔跑，楼梯口W/S上下楼；左键走动，双击奔跑，右键取消；1–6／Tab选人，B建设，F／G／C／R为快捷行动，O装备，K制作，H家园与迁居，Shift追加队列。\n夜间：点地面移动、点容器走近搜索；A/D与W/S也可控制。搜索后逐份拿取／放回，F尽量全部拿走，Esc关闭；整理时夜间时间继续，空格可明确暂停。\n点击敌人靠近并挥击，J也可攻击、L为手枪换弹、R背包用药、B背包饮水、I背包、T在入口撤退。20:00出发，06:00天亮；迟归会沿实际路线自动撤回并增加疲劳与压力。\n分工画面Enter确认，清晨Enter开始新的一天。F6保存、F9读档、F11全屏、Esc菜单。"
 

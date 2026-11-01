@@ -23,7 +23,7 @@ func _ready() -> void:
  ui.button(window,'关闭 F5 / Esc',Vector2(1090,22),Vector2(185,38),close)
  GameUi.line(window,Vector2(220,88),Vector2(220,748))
  for index in range(5):
-  var pair:Array=[['situation','概况'],['food','物资'],['production','生产'],['health','健康'],['relations','关系']][index]
+  var pair:Array=[['situation','概况'],['food','物资'],['production','日常工作'],['health','健康'],['relations','关系']][index]
   var b:=ui.button(window,pair[1],Vector2(20,102+index*55),Vector2(184,44),func():page=pair[0];refresh());page_buttons[pair[0]]=b
  ui.label(window,'执行角色',Vector2(25,544),Vector2(185,28),17,GameUi.SECONDARY)
  worker=OptionButton.new();worker.position=Vector2(24,584);worker.size=Vector2(182,40);window.add_child(worker)
@@ -45,6 +45,7 @@ func check(value: String,current: bool,callback: Callable,disabled: bool=false) 
 func show_page(value: String) -> void:
  if not game.camp.enabled or game.game_over:return
  if not opened:
+  CampaignPanels.close_all(game)
   if game.chronicle_view.opened:game.chronicle_view.close()
   if game.interface.workshop_open:game.interface.close_workshop()
   if game.briefing.opened:game.briefing.close()
@@ -57,12 +58,12 @@ func close() -> void:
  opened=false;root.hide();game.paused=pause_before or game.game_over or game.cycle.phase in ['planning','dawn']
 func dismiss_loaded() -> void:opened=false;if is_instance_valid(root):root.hide()
 func start_food(kind: String,target: int=-1) -> void:
- if game.camp.food.start_job(game,kind,-1,target):close()
+ if game.camp.food.start_job(game,kind,-1,target):CampaignPanels.resume(game)
  else:refresh()
 func refresh() -> void:
  actions.clear();body.get_parent().scroll_vertical=0
  for key in page_buttons:GameUi.tab(page_buttons[key],page==key)
- page_title.text={'situation':'营地概况','food':'物资储备','production':'生产','health':'健康','relations':'同伴关系'}[page]
+ page_title.text={'situation':'营地概况','food':'物资储备','production':'日常工作','health':'健康','relations':'同伴关系'}[page]
  worker.disabled=game.cycle.phase!="day"
  worker.clear()
  for index in range(game.survivors.size()):
@@ -87,7 +88,7 @@ func refresh() -> void:
    if world.diverted(day):text('已布置远处诱饵：基地压力减轻，机修厂增加迁移感染者。')
    if world.recon_day==ExpeditionState.day_at(game.simulation_time):text('已完成警戒侦察')
   text('应对措施',23)
-  for kind in ['lure_horde','settling_filter','backup_power','supply_pact','caravan_trade']:recipe_button(kind)
+  for kind in ['lure_horde','supply_pact','caravan_trade']:recipe_button(kind)
   check('停电时启用备用设备 · 每夜燃料1',world.backup_on,func(value):world.backup_on=value,not world.resilience['generator'])
   text('尸群迁移期间，两名守夜者可减轻防守压力。',18)
  elif page=='food':
@@ -108,13 +109,11 @@ func refresh() -> void:
   check('营养不足时补充蔬菜；备餐优先营养餐',food.policy['balanced'],func(value):food.policy['balanced']=value)
   if game.expedition.active:text('外出时在 I 背包中点击罐头、肉干或饮料使用；需要站稳2—4秒，移动或受伤会中断并退回。',18)
  elif page=='production':
+  text('厨房、净水和种植使用统一的工作菜单。建造包含床铺与生活设施。',18)
+  for entry in [['kitchen','厨房'],['water','饮水处理'],['garden','种植与采集'],['construction','建造'],['production','生产计划']]:
+   button('category:'+entry[0],entry[1],func():game.interface.open_workshop(entry[0]))
   text('种植箱 %d / 2 · 保鲜柜%s · 动物陷阱%s · 沉淀过滤器%s'%[food.infrastructure['plots'],'已建' if food.infrastructure['pantry'] else '未建','已建' if food.infrastructure['trap'] else '未建','已建' if food.infrastructure['filter'] else '未建'])
   for plot in food.plots:text('%s · 第%d天成熟 · %s'%[CampFoodCatalog.ITEMS[plot['kind']]['name'],plot['ready'],'已施肥' if plot['fed'] else '未施肥'])
-  var categories:=HBoxContainer.new();body.add_child(categories)
-  for entry in [['kitchen','烹饪与储备'],['garden','种植与采集'],['water','饮水处理'],['building','建造设施']]:
-   var pick:=Button.new();pick.text=entry[1];pick.custom_minimum_size=Vector2(245,42);pick.focus_mode=Control.FOCUS_NONE;categories.add_child(pick);actions['category:'+entry[0]]=pick;pick.pressed.connect(func():production_group=entry[0];refresh())
-  var groups:Dictionary={'kitchen':['balanced','broth','salad','dry_meat'],'garden':['check_trap','extract_seeds','plant_veg','plant_herbs','fertilize','harvest'],'water':['boil_water','filter_water'],'building':['planter','pantry','trap']}
-  for kind in groups[production_group]:recipe_button(kind)
   check('自动收获成熟作物',food.policy['harvest'],func(value):food.policy['harvest']=value)
  elif page=='health':
   text('营养不足会增加患病风险。发热、肠胃病与咬伤感染分别治疗。',18)
@@ -130,7 +129,7 @@ func refresh() -> void:
     var value:=roundi(float(values[index][1]))
     var color:Color=GameUi.TEXT if index==0 or value<20 else GameUi.WARNING if value<50 else GameUi.DANGER
     game.interface.label(card,str(value),Vector2(270+index*142,48),Vector2(130,34),25,color)
-   button('recover:'+str(actor.survivor_id),'卧床休养',func():if food.start_job(game,'recover',actor.survivor_id):close(),not daytime or not food.error(game,'recover',actor.survivor_id).is_empty())
+   button('recover:'+str(actor.survivor_id),'卧床休养',func():if food.start_job(game,'recover',actor.survivor_id):CampaignPanels.resume(game),not daytime or not food.error(game,'recover',actor.survivor_id).is_empty())
    if actor!=selected:button('care:'+str(actor.survivor_id),'草药护理 '+actor.display_name,func():start_food('herbal_care',actor.survivor_id),not daytime or not food.error(game,'herbal_care',game.selected_id,actor.survivor_id).is_empty())
   check('授权空闲医护用草药和清水调养发热、肠胃病情',food.policy['herbal'],func(value):food.policy['herbal']=value)
  elif page=='relations':
@@ -142,11 +141,11 @@ func refresh() -> void:
    for pair in [['social','主动陪伴'],['watch','主动警戒'],['maintain','主动维护（材料1 / 天）']]:check(pair[1],p[pair[0]],func(value):p[pair[0]]=value)
    if actor!=selected:
     text('与'+selected.display_name+'的信任：%d'%game.people.relationship(actor.survivor_id,selected.survivor_id),18)
-    button('talk:'+id,'陪伴 '+actor.display_name,func():if society.start(game,'talk',actor.survivor_id):close(),not daytime)
-    button('meal:'+id,'与'+actor.display_name+'共餐 · 熟食2',func():if society.start(game,'meal',actor.survivor_id):close(),not daytime or game.inventory.amount('meals')<2 or game.chronicle.meal_day>=ExpeditionState.day_at(game.simulation_time))
+    button('talk:'+id,'陪伴 '+actor.display_name,func():if society.start(game,'talk',actor.survivor_id):CampaignPanels.resume(game),not daytime)
+    button('meal:'+id,'与'+actor.display_name+'共餐 · 熟食2',func():if society.start(game,'meal',actor.survivor_id):CampaignPanels.resume(game),not daytime or game.inventory.amount('meals')<2 or game.chronicle.meal_day>=ExpeditionState.day_at(game.simulation_time))
   if not society.dispute.is_empty():
    text('分工争议：'+game.survivors[int(society.dispute['left'])].display_name+'希望轮换守夜。',22)
-   button('mediate','组织当面调解 · 相关成员都需空闲',func():if society.start(game,'mediate'):close(),not daytime)
+   button('mediate','组织当面调解 · 相关成员都需空闲',func():if society.start(game,'mediate'):CampaignPanels.resume(game),not daytime)
    button('pledge','承诺下次轮换守夜 · 是否兑现会影响信任',func():society.pledge(game);refresh(),game.cycle.phase not in ['day','planning'])
   for memory in society.memories.slice(-5):text('第%d天 · %s：%s'%[memory['day'],PeopleCatalog.DATA[memory['owner']]['name'],{'talk':'陪伴交谈','meal':'共餐','mediate':'调解分工','watch':'观察尸群','maintain':'主动维护'}[memory['kind']]],18)
  if not food.jobs.is_empty():
